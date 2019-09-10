@@ -1,5 +1,6 @@
 {
   "name": "DPC sensor",
   "domains": ["binary_sensor"],
-  "country": ["EU"]
+  "country": ["EU"],
+  "render_readme": true
 }
