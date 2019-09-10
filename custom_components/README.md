@@ -10,8 +10,8 @@ To get more detailed information about parameters of warnings visit [*Civil Prot
 | `name` | `string` | `False` | `dpc` | Name of sensor |
 | `latitude` | `float` | `False` | Latitude of home | Latitude of monitored point |
 | `longitude` | `float` | `False` | Longitude of home | Longitude of monitored point |
-| `istat` | `string` | `False` | - | Number data warehouse I.Stat |
-| `alert` | `string` | `False` | - | (Verde,Gialla,Arancione,Rossa) |
+| `istat` | `string` | `False` | Self with local coordinates | Number data warehouse I.Stat |
+| `alert` | `string` | `False` | GIALLA | (Verde,Gialla,Arancione,Rossa) |
 | `warnings` | `list` | `False` | - | List of monitored warnings |
 
 ### Possible monitored warnings
