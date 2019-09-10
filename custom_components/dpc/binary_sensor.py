@@ -24,7 +24,7 @@ CONF_WARNINGS = 'warnings'
 
 DEFAULT_DEVICE_CLASS = 'safety'
 DEFAULT_NAME = 'dpc'
-DEFAULT_SCAN_INTERVAL = timedelta(minutes=5)
+DEFAULT_SCAN_INTERVAL = timedelta(minutes=30)
 
 WARNING_TYPES = {
     'temporali_oggi': ['temporali_oggi', 'Rischio Temporali Oggi', 'mdi:weather-lightning'],
@@ -54,16 +54,12 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): cv.time_period
 })
 
-# def convert_to_dm(dmf):
-#     return '{}.{:02}'.format(int(dmf), round(dmf % 1 * 60))
-
 def distance(lon1, lat1, lon2, lat2):
     x = (lon2 - lon1) * cos(0.001*(lat2+lat1))
     y = (lat2 - lat1)
     return x*x + y*y
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
-    _LOGGER.info("INIZIO SETUP PLATFORM...") 
     name = config.get(CONF_NAME)
     latitude = float(config.get(CONF_LATITUDE, hass.config.latitude))
     longitude = float(config.get(CONF_LONGITUDE, hass.config.longitude))
@@ -71,26 +67,19 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     istat = config.get(CONF_ISTAT).zfill(6)
     alert = config.get(CONF_ALERT)
     if istat is None:
-        _LOGGER.info("ISTAT NON TROVATO. Inizio ricerca...") 
         italy_geo = json.loads(open("italy_geo.json").read())
         comune_geo = sorted(italy_geo, key= lambda d: distance(d['lng'], d['lat'] , longitude, latitude))[:1]
         num_istat = [ sub['istat'] for sub in comune_geo ] 
         istat = str(num_istat[0]).zfill(6)
-        _LOGGER.info("ISTAT fine ricerva risultato: %s", istat) 
     scan_interval = config.get(CONF_SCAN_INTERVAL)
     sensors = []
     sensor_name = '{} - '.format(name)
     updater = dpcUpdater(istat, scan_interval)
-    _LOGGER.info("DOPO di updater... Prima di await updater")
     await updater.async_update()
     for warning_type in warnings:
-        _LOGGER.info("Ciclo FOR warning_type in warning [controllo se esiste]... %s", warning_type)
         uid = '{}_{}'.format(name, warning_type)
         entity_id = async_generate_entity_id(ENTITY_ID_FORMAT, uid, hass=hass)
         sensors.append(dpcWarningsSensor(entity_id, sensor_name, updater, warning_type, alert))
-        _LOGGER.info("Ciclo FOR warning_type in warning... %s", entity_id)
-        _LOGGER.info("Ciclo FOR warning_type in warning [warning_type]... %s", warning_type)
-        #_LOGGER.info("Ciclo FOR warning_type in warning [updater.dpc_output]... %s", updater.dpc_output)
     async_add_entities(sensors, True)
 
 class dpcSensor(BinarySensorDevice):
@@ -99,7 +88,6 @@ class dpcSensor(BinarySensorDevice):
         self._name = name
         self._updater = updater
         self._data = None
-    _LOGGER.info("dentro class dpcSensor(BinarySensorDevice).... ")
 
     @property
     def device_state_attributes(self):
@@ -111,7 +99,6 @@ class dpcSensor(BinarySensorDevice):
         return output
 
     async def async_update(self):
-        _LOGGER.info("async def async_update... await...")
         await self._updater.async_update()
 
 class dpcWarningsSensor(dpcSensor):
@@ -120,11 +107,9 @@ class dpcWarningsSensor(dpcSensor):
         self._warning_type = warning_type
         self._warning_key = WARNING_TYPES[self._warning_type][0]
         self._alert = WARNING_ALERT.get(alert.upper())
-    _LOGGER.info("dentro dpcWrningsSensor.")
     
     @property
     def is_on(self):
-        _LOGGER.info("dentro is_on warnig type e key = %s - %s", self._warning_type, self._warning_key)
         data = self._updater.dpc_output[self._warning_key]
         k_date = parse(data['date']).date()
         return data is not None and WARNING_ALERT.get(data['alert']) >= self._alert and k_date >= date.today()
@@ -170,8 +155,6 @@ class dpcUpdater:
         self.async_update = Throttle(scan_interval)(self._async_update)
 
     async def _async_update(self):
-        _LOGGER.info("INIZIO UPDATE")
-
         jsondata = {}
         url_base = 'http://www.protezionecivilepop.tk/allerte?citta='
         URLs = [
@@ -185,7 +168,6 @@ class dpcUpdater:
 
         # Doing a request
         try:
-            _LOGGER.info("INIZIO TRY: leggo url...")            
             for url in URLs:
                 try:
                     data = requests.get(url, timeout=10)
@@ -212,10 +194,8 @@ class dpcUpdater:
                     jsondata[k['risk'] + '_domani'] = {'alert': 'BIANCO', 'date': k['date']}
 
                 ris = json.loads(json.dumps(jsondata))
-                _LOGGER.info("Dentro ciclo for... ")
 
             self.dpc_output = ris
-            _LOGGER.info("FINE UPDATER dpc_output------------- ")
         except:
             _LOGGER.error('Error setting up dpc: %s - %s', ris, data)
 
