@@ -93,7 +93,9 @@ class dpcSensor(BinarySensorDevice):
     def device_state_attributes(self):
         output = dict()
         data = self._updater.dpc_output[self._warning_key]
-        output['data'] = parse(data['date']).date().strftime("%d-%m-%Y")
+        #output['data'] = parse(data['date']).date().strftime("%d-%m-%Y")
+        if 'update' in data:
+            output['Prossimo Aggiornamento'] = data['update']
         output[ATTR_ATTRIBUTION] = ATTRIBUTION
         return output
 
@@ -190,7 +192,7 @@ class dpcUpdater:
                 if k_date > date.today() and 'domani' in url:
                     jsondata[k['risk'] + '_domani'] = k
                 if k_date < date.today() and'oggi' in url:
-                    jsondata[k['risk'] + '_domani'] = {'alert': 'BIANCO', 'date': k['date']}
+                    jsondata[k['risk'] + '_domani'] = {'alert': 'BIANCO', 'date': k['date'], 'update': 'ore 17:00'}
 
                 ris = json.loads(json.dumps(jsondata))
 
