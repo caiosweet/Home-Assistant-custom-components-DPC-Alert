@@ -198,5 +198,3 @@ class dpcUpdater:
             self.dpc_output = ris
         except:
             _LOGGER.error('Error setting up dpc: %s - %s', ris, data)
-
-
