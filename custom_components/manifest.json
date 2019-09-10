@@ -1,9 +1,0 @@
-{
-    "domain": "dpc",
-    "name": "dpc",
-    "homeassistant": "0.98.0",
-    "documentation": "https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert",
-    "dependencies": [],
-    "codeowners": [],
-    "requirements": []
-  }
