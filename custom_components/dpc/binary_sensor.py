@@ -94,7 +94,6 @@ class dpcSensor(BinarySensorDevice):
         output = dict()
         data = self._updater.dpc_output[self._warning_key]
         output['data'] = parse(data['date']).date().strftime("%d-%m-%Y")
-        output['città'] = data['city_name']
         output[ATTR_ATTRIBUTION] = ATTRIBUTION
         return output
 
