@@ -1,6 +1,7 @@
 {
     "domain": "dpc",
     "name": "dpc",
+    "homeassistant": "0.98.0",
     "documentation": "https://www.example.com",
     "dependencies": [],
     "codeowners": [],
