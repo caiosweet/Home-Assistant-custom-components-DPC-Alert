@@ -1,1 +1,0 @@
-"""Dipartimento Protezione Civile integration."""
