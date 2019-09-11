@@ -64,7 +64,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     latitude = float(config.get(CONF_LATITUDE, hass.config.latitude))
     longitude = float(config.get(CONF_LONGITUDE, hass.config.longitude))
     warnings = config.get(CONF_WARNINGS)
-    istat = config.get(CONF_ISTAT).zfill(6)
+    istat = config.get(CONF_ISTAT)
     alert = config.get(CONF_ALERT)
     if istat is None:
         italy_geo = json.loads(open("italy_geo.json").read())
