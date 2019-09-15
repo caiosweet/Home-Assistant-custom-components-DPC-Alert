@@ -36,7 +36,7 @@ WARNING_TYPES = {
 }
 
 WARNING_ALERT = {
-    'BIANCO' : 0,
+    'BIANCA' : 0,
     'VERDE': 1,
     'GIALLA': 2,
     'ARANCIONE': 3,
@@ -67,7 +67,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     istat = config.get(CONF_ISTAT)
     alert = config.get(CONF_ALERT)
     if istat is None:
-        italy_geo = json.loads(open("italy_geo.json").read())
+        italy_geo = json.loads(open("\config\custom_components\dpc\italy_geo.json").read())
         comune_geo = sorted(italy_geo, key= lambda d: distance(d['lng'], d['lat'] , longitude, latitude))[:1]
         num_istat = [ sub['istat'] for sub in comune_geo ] 
         istat = str(num_istat[0]).zfill(6)
@@ -151,7 +151,7 @@ class dpcWarningsSensor(dpcSensor):
 
 class dpcUpdater:
     def __init__(self, istat, scan_interval):
-        self._istat = istat
+        self._istat = istat.zfill(6)
         self.dpc_output = None
         self.async_update = Throttle(scan_interval)(self._async_update)
 
@@ -192,7 +192,7 @@ class dpcUpdater:
                 if k_date > date.today() and 'domani' in url:
                     jsondata[k['risk'] + '_domani'] = k
                 if k_date < date.today() and'oggi' in url:
-                    jsondata[k['risk'] + '_domani'] = {'alert': 'BIANCO', 'date': k['date'], 'update': 'ore 17:00'}
+                    jsondata[k['risk'] + '_domani'] = {'alert': 'BIANCA', 'date': k['date'], 'update': 'ore 17:00'}
 
                 ris = json.loads(json.dumps(jsondata))
 
