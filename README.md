@@ -1,5 +1,3 @@
-[![hacs][hacsbadge]][hacs]
-
 # Home-Assistant-custom-components-DPC-Alert
 Italy METEO-HYDRO ALERT
 To get more detailed information about parameters of warnings visit [*Civil Protection Department*](http://www.protezionecivile.gov.it/risk-activities/meteo-hydro/activities/prediction-prevention/central-functional-centre-meteo-hydrogeological/meteo-hydro-alert).
@@ -27,20 +25,37 @@ To get more detailed information about parameters of warnings visit [*Civil Prot
 | `idraulico_domani` | Enables Hydraulic risk monitoring tomorrow |
 | `idrogeologico_domani` | Enables Hydrogeological risk monitoring tomorrow |
 
-## Example usage
+## Example usage (minimal)
 
 ```
-- platform: dpc
-  name: DPC Roma
-  istat: '58091'
-  alert: 'gialla'
-  warnings:
-    - temporali_oggi
-    - idraulico_oggi
-    - idrogeologico_oggi
-    - temporali_domani
-    - idraulico_domani
-    - idrogeologico_domani
+binary_sensor:
+  - platform: dpc
+    warnings:
+      - temporali_oggi
+      - idraulico_oggi
+      - idrogeologico_oggi
+      - temporali_domani
+      - idraulico_domani
+      - idrogeologico_domani
+```
+
+## Example usage (complete)
+
+```
+binary_sensor:
+  - platform: dpc
+    latitude: 41.9109
+    longitude: 12.4818
+    name: DPC Roma
+    istat: '58091'
+    alert: 'gialla'
+    warnings:
+      - temporali_oggi
+      - idraulico_oggi
+      - idrogeologico_oggi
+      - temporali_domani
+      - idraulico_domani
+      - idrogeologico_domani
 ```
 
 # Notice
