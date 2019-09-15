@@ -48,5 +48,7 @@ _Information provided by [*protezionecivilepop.tk*](http://www.protezionecivilep
 
 _Dati forniti dal servizio protezionecivilepop.tk di Giovanni Pirrotta - Licenza Creative Commons [*CC-BY-SA 4.0.*](https://creativecommons.org/licenses/by-sa/4.0/deed.it)_
 
+_Thanks to PiotrMachowski for inspiration._ 
+
 [hacs]: https://github.com/custom-components/hacs
 [hacsbadge]: https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge
