@@ -67,7 +67,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     istat = config.get(CONF_ISTAT)
     alert = config.get(CONF_ALERT)
     if istat is None:
-        italy_geo = json.loads(open("\config\custom_components\dpc\italy_geo.json").read())
+        italy_geo = json.loads(open("/config/custom_components/dpc/italy_geo.json").read())
         comune_geo = sorted(italy_geo, key= lambda d: distance(d['lng'], d['lat'] , longitude, latitude))[:1]
         num_istat = [ sub['istat'] for sub in comune_geo ] 
         istat = str(num_istat[0]).zfill(6)
