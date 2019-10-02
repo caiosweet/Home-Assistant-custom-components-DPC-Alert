@@ -1,8 +1,18 @@
-[![hacs][hacsbadge]](hacs)
+[![hacs][hacsbadge]][hacs]
+
+## breaking change (2/10/2019)
+ISTAT number is now required.
+Rename codice to level in attributes.
 
 # Home-Assistant-custom-components-DPC-Alert
 Italy METEO-HYDRO ALERT
 To get more detailed information about parameters of warnings visit [*Civil Protection Department*](http://www.protezionecivile.gov.it/risk-activities/meteo-hydro/activities/prediction-prevention/central-functional-centre-meteo-hydrogeological/meteo-hydro-alert).
+
+**This component will set up the following platforms.**
+
+Platform | Description
+-- | --
+`binary_sensor` | Show METEO-HYDRO ALERT `True` or `False`.
 
 
 ## Configuration options
@@ -12,7 +22,7 @@ To get more detailed information about parameters of warnings visit [*Civil Prot
 | `name` | `string` | `False` | `dpc` | Name of sensor |
 | `latitude` | `float` | `False` | Latitude of home | Latitude of monitored point |
 | `longitude` | `float` | `False` | Longitude of home | Longitude of monitored point |
-| `istat` | `string` | `False` | Self with local coordinates | Number data warehouse I.Stat |
+| `istat` | `positive.int` | `True` | None | Number data warehouse I.Stat |
 | `alert` | `string` | `False` | GIALLA | (Verde,Gialla,Arancione,Rossa) |
 | `warnings` | `list` | `False` | - | List of monitored warnings |
 
@@ -32,6 +42,7 @@ To get more detailed information about parameters of warnings visit [*Civil Prot
 ```
 binary_sensor:
   - platform: dpc
+    istat: 58091
     warnings:
       - temporali_oggi
       - idraulico_oggi
