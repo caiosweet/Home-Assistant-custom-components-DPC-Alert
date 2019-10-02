@@ -1,3 +1,7 @@
+## breaking change (2/10/2019)
+ISTAT number is now required.
+Rename codice to level in attributes.
+
 # Home-Assistant-custom-components-DPC-Alert
 Italy METEO-HYDRO ALERT
 To get more detailed information about parameters of warnings visit [*Civil Protection Department*](http://www.protezionecivile.gov.it/risk-activities/meteo-hydro/activities/prediction-prevention/central-functional-centre-meteo-hydrogeological/meteo-hydro-alert).
@@ -16,7 +20,7 @@ Platform | Description
 | `name` | `string` | `False` | `dpc` | Name of sensor |
 | `latitude` | `float` | `False` | Latitude of home | Latitude of monitored point |
 | `longitude` | `float` | `False` | Longitude of home | Longitude of monitored point |
-| `istat` | `string` | `False` | Self with local coordinates | Number data warehouse I.Stat |
+| `istat` | `positive.int` | `True` | None | Number data warehouse I.Stat |
 | `alert` | `string` | `False` | GIALLA | (Verde,Gialla,Arancione,Rossa) |
 | `warnings` | `list` | `False` | - | List of monitored warnings |
 
@@ -36,6 +40,7 @@ Platform | Description
 ```
 binary_sensor:
   - platform: dpc
+    istat: 58091
     warnings:
       - temporali_oggi
       - idraulico_oggi
@@ -66,7 +71,7 @@ binary_sensor:
 
 ## Note
 
-The istat number is not mandatory, but if you want, you can easily find it [here](https://www.paginebianche.it/codice-istat)
+The istat number is required, you can easily find it [here](https://www.paginebianche.it/codice-istat)
 or you can download the complete list [here](https://www.istat.it/storage/codici-unita-amministrative/Elenco-codici-statistici-e-denominazioni-delle-unita-territoriali.zip)
 
 
