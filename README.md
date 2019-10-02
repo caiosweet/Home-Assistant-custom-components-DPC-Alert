@@ -1,4 +1,4 @@
-[![hacs][hacsbadge]](hacs)
+[![hacs][hacsbadge]][hacs]
 
 ## breaking change (2/10/2019)
 ISTAT number is now required.
