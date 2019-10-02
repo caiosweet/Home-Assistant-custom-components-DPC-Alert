@@ -49,7 +49,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
     vol.Optional(CONF_WARNINGS, default=[]):
         vol.All(cv.ensure_list, [vol.In(WARNING_TYPES)]),
-    vol.Optional(CONF_ISTAT): cv.string,
+    vol.Required(CONF_ISTAT): cv.positive_int,
     vol.Optional(CONF_ALERT, default='GIALLA'): cv.string,
     vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): cv.time_period
 })
@@ -64,13 +64,8 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     latitude = float(config.get(CONF_LATITUDE, hass.config.latitude))
     longitude = float(config.get(CONF_LONGITUDE, hass.config.longitude))
     warnings = config.get(CONF_WARNINGS)
-    istat = config.get(CONF_ISTAT)
+    istat = str(config.get(CONF_ISTAT)).zfill(6)
     alert = config.get(CONF_ALERT)
-    if istat is None:
-        italy_geo = json.loads(open("/config/custom_components/dpc/italy_geo.json").read())
-        comune_geo = sorted(italy_geo, key= lambda d: distance(d['lng'], d['lat'] , longitude, latitude))[:1]
-        num_istat = [ sub['istat'] for sub in comune_geo ] 
-        istat = str(num_istat[0]).zfill(6)
     scan_interval = config.get(CONF_SCAN_INTERVAL)
     sensors = []
     sensor_name = '{} - '.format(name)
@@ -93,7 +88,6 @@ class dpcSensor(BinarySensorDevice):
     def device_state_attributes(self):
         output = dict()
         data = self._updater.dpc_output[self._warning_key]
-        #output['data'] = parse(data['date']).date().strftime("%d-%m-%Y")
         if 'update' in data:
             output['Prossimo Aggiornamento'] = data['update']
         output[ATTR_ATTRIBUTION] = ATTRIBUTION
@@ -133,7 +127,7 @@ class dpcWarningsSensor(dpcSensor):
             output['zona_info'] = data['civil_protection_zone_info']
             output['longitudine'] = data['longitude']
             output['latitudine'] = data['latitude']
-            output['codice'] = self._alert
+            output['level'] = self._alert
         return output
 
     @property
@@ -146,7 +140,6 @@ class dpcWarningsSensor(dpcSensor):
 
     @property
     def name(self):
-        #return self._name + WARNING_TYPES[self._warning_type][1]
         return WARNING_TYPES[self._warning_type][1]
 
 class dpcUpdater:
@@ -164,7 +157,7 @@ class dpcUpdater:
                 url_base + self._istat + '&rischio=' + 'idrogeologico' + '&allerta=' + 'verde' + '&giorno=' + 'domani' + '&formato=json',
                 url_base + self._istat + '&rischio=' + 'temporali' + '&allerta=' + 'verde' + '&giorno=' + 'oggi' + '&formato=json',
                 url_base + self._istat + '&rischio=' + 'idraulico' + '&allerta=' + 'verde' + '&giorno=' + 'oggi' + '&formato=json',
-                url_base + self._istat + '&rischio=' + 'idrogeologico' + '&allerta=' + 'verde' + '&giorno=' + 'oggi' + '&formato=json'                    
+                url_base + self._istat + '&rischio=' + 'idrogeologico' + '&allerta=' + 'verde' + '&giorno=' + 'oggi' + '&formato=json'
                ]
 
         # Doing a request
