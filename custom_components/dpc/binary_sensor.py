@@ -87,9 +87,10 @@ class dpcSensor(BinarySensorDevice):
     @property
     def device_state_attributes(self):
         output = dict()
-        data = self._updater.dpc_output[self._warning_key]
-        if 'update' in data:
-            output['Prossimo Aggiornamento'] = data['update']
+        if self._updater.dpc_output is not None:
+            data = self._updater.dpc_output[self._warning_key]
+            if 'update' in data:
+                output['Prossimo Aggiornamento'] = data['update']
         output[ATTR_ATTRIBUTION] = ATTRIBUTION
         return output
 
