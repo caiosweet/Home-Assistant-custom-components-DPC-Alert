@@ -1,7 +1,6 @@
 """Binary Sensor for Protezione Civile"""
 from datetime import date, timedelta
 from dateutil.parser import parse
-from math import cos
 import json
 import logging
 import requests
@@ -49,15 +48,10 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
     vol.Optional(CONF_WARNINGS, default=[]):
         vol.All(cv.ensure_list, [vol.In(WARNING_TYPES)]),
-    vol.Required(CONF_ISTAT): cv.positive_int,
+    vol.Required(CONF_ISTAT): cv.string,
     vol.Optional(CONF_ALERT, default='GIALLA'): cv.string,
     vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): cv.time_period
 })
-
-def distance(lon1, lat1, lon2, lat2):
-    x = (lon2 - lon1) * cos(0.001*(lat2+lat1))
-    y = (lat2 - lat1)
-    return x*x + y*y
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     name = config.get(CONF_NAME)
@@ -91,6 +85,8 @@ class dpcSensor(BinarySensorDevice):
             data = self._updater.dpc_output[self._warning_key]
             if 'update' in data:
                 output['Prossimo Aggiornamento'] = data['update']
+        if self._updater.dpc_output is None:
+                output['Error setting up dpc'] = 'Check the istat number or data not found'
         output[ATTR_ATTRIBUTION] = ATTRIBUTION
         return output
 
@@ -106,16 +102,20 @@ class dpcWarningsSensor(dpcSensor):
     
     @property
     def is_on(self):
-        data = self._updater.dpc_output[self._warning_key]
-        k_date = parse(data['date']).date()
-        return data is not None and WARNING_ALERT.get(data['alert']) >= self._alert and k_date >= date.today()
+        value = False
+        if self._updater.dpc_output is not None:
+            data = self._updater.dpc_output[self._warning_key]
+            k_date = parse(data['date']).date()
+            if WARNING_ALERT.get(data['alert']) >= self._alert and k_date >= date.today():
+                value = data
+        return value 
 
     @property
     def device_state_attributes(self):
         output = super().device_state_attributes
         if self.is_on:
             data = self._updater.dpc_output[self._warning_key]
-            output['data'] = parse(data['date']).date().strftime("%d-%m-%Y")
+            output['data'] = parse(data['date']).date().strftime('%d-%m-%Y')
             output['rischio'] = data['risk'].capitalize()
             output['info'] = data['info']
             output['allerta'] = data['alert']
@@ -145,7 +145,7 @@ class dpcWarningsSensor(dpcSensor):
 
 class dpcUpdater:
     def __init__(self, istat, scan_interval):
-        self._istat = istat.zfill(6)
+        self._istat = istat
         self.dpc_output = None
         self.async_update = Throttle(scan_interval)(self._async_update)
 
@@ -167,16 +167,16 @@ class dpcUpdater:
                 try:
                     data = requests.get(url, timeout=10)
                 except requests.exceptions.Timeout:
-                    _LOGGER.error("Connection to the site timed out at URL %s", url)
+                    _LOGGER.error('Connection to the site timed out at URL %s', url)
                     return False
                 if data.status_code != 200:
-                    _LOGGER.error("Connection failed with http code %s", data.status_code)
+                    _LOGGER.error('Connection failed with http code %s', data.status_code)
                     return False
                 try:
                     k = data.json()['previsione']
                 except ValueError:
                     # If json decoder could not parse the response
-                    _LOGGER.error("Failed to parse response from site")
+                    _LOGGER.error('Failed to parse response from site. Check the istat number %s', self._istat)
                     return False
                 
                 # Parsing response
@@ -192,4 +192,4 @@ class dpcUpdater:
 
             self.dpc_output = ris
         except:
-            _LOGGER.error('Error setting up dpc: %s - %s', ris, data)
+            _LOGGER.error('Error setting up dpc - Check the istat number %s', self._istat)

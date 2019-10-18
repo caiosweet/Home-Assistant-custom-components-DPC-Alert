@@ -1,3 +1,4 @@
+
 ## breaking change (2/10/2019)
 ISTAT number is now required.
 Rename codice to level in attributes.
@@ -20,7 +21,7 @@ Platform | Description
 | `name` | `string` | `False` | `dpc` | Name of sensor |
 | `latitude` | `float` | `False` | Latitude of home | Latitude of monitored point |
 | `longitude` | `float` | `False` | Longitude of home | Longitude of monitored point |
-| `istat` | `positive.int` | `True` | None | Number data warehouse I.Stat |
+| `istat` | `string` | `True` | None | Number data warehouse I.Stat |
 | `alert` | `string` | `False` | GIALLA | (Verde,Gialla,Arancione,Rossa) |
 | `warnings` | `list` | `False` | - | List of monitored warnings |
 
@@ -43,11 +44,6 @@ binary_sensor:
     istat: 58091
     warnings:
       - temporali_oggi
-      - idraulico_oggi
-      - idrogeologico_oggi
-      - temporali_domani
-      - idraulico_domani
-      - idrogeologico_domani
 ```
 
 ## Example usage (complete)
@@ -58,7 +54,7 @@ binary_sensor:
     latitude: 41.9109
     longitude: 12.4818
     name: DPC Roma
-    istat: '58091'
+    istat: '058091'
     alert: 'gialla'
     warnings:
       - temporali_oggi
@@ -73,7 +69,7 @@ binary_sensor:
 
 The istat number is required, you can easily find it [here](https://www.paginebianche.it/codice-istat)
 or you can download the complete list [here](https://www.istat.it/storage/codici-unita-amministrative/Elenco-codici-statistici-e-denominazioni-delle-unita-territoriali.zip)
-
+If the Istat number starts with zero, it must be entered between the quotes.
 
 ## License
 
