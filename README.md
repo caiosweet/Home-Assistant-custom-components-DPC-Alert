@@ -20,8 +20,6 @@ Platform | Description
 | Key | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
 | `name` | `string` | `False` | `dpc` | Name of sensor |
-| `latitude` | `float` | `False` | Latitude of home | Latitude of monitored point |
-| `longitude` | `float` | `False` | Longitude of home | Longitude of monitored point |
 | `istat` | `string` | `True` | None | Number data warehouse I.Stat |
 | `alert` | `string` | `False` | GIALLA | (Verde,Gialla,Arancione,Rossa) |
 | `warnings` | `list` | `False` | - | List of monitored warnings |
@@ -52,8 +50,6 @@ binary_sensor:
 ```
 binary_sensor:
   - platform: dpc
-    latitude: 41.9109
-    longitude: 12.4818
     name: DPC Roma
     istat: '058091'
     alert: 'gialla'
