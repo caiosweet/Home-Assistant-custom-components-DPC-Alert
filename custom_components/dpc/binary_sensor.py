@@ -128,7 +128,7 @@ class dpcWarningsSensor(dpcSensor):
             output['zona_info'] = data['civil_protection_zone_info']
             output['longitudine'] = data['longitude']
             output['latitudine'] = data['latitude']
-            output['level'] = self._alert
+            output['level'] = WARNING_ALERT.get(data['alert'])
         return output
 
     @property
