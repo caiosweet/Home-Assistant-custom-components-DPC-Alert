@@ -165,7 +165,7 @@ class dpcUpdater:
         try:
             for url in URLs:
                 try:
-                    data = requests.get(url, timeout=10)
+                    data = await hass.async_add_executor_job(requests.get(url, timeout=10))
                 except requests.exceptions.Timeout:
                     _LOGGER.error('Connection to the site timed out at URL %s', url)
                     return False
