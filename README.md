@@ -1,9 +1,5 @@
 [![hacs][hacsbadge]][hacs]
 
-## breaking change (2/10/2019)
-ISTAT number is now required.
-Rename codice to level in attributes.
-
 # Home-Assistant-custom-components-DPC-Alert
 Italy METEO-HYDRO ALERT
 To get more detailed information about parameters of warnings visit [*Civil Protection Department*](http://www.protezionecivile.gov.it/risk-activities/meteo-hydro/activities/prediction-prevention/central-functional-centre-meteo-hydrogeological/meteo-hydro-alert).
