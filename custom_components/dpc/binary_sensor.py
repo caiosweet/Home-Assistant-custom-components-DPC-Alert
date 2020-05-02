@@ -1,13 +1,14 @@
 """Binary Sensor for Protezione Civile"""
+from aiohttp import ClientSession
 from datetime import date, timedelta
 from dateutil.parser import parse
+import asyncio
 import json
 import logging
-import requests
 
 import voluptuous as vol
 from homeassistant.components.binary_sensor import PLATFORM_SCHEMA, ENTITY_ID_FORMAT
-from homeassistant.const import CONF_NAME, ATTR_ATTRIBUTION, CONF_SCAN_INTERVAL, CONF_LATITUDE, CONF_LONGITUDE
+from homeassistant.const import CONF_NAME, ATTR_ATTRIBUTION, CONF_SCAN_INTERVAL
 import homeassistant.helpers.config_validation as cv
 from homeassistant.components.binary_sensor import BinarySensorDevice
 from homeassistant.helpers.entity import async_generate_entity_id
@@ -31,7 +32,7 @@ WARNING_TYPES = {
     'idrogeologico_oggi': ['idrogeologico_oggi', 'Rischio Idrogeologico Oggi', 'mdi:waves'],
     'temporali_domani': ['temporali_domani', 'Rischio Temporali Domani', 'mdi:weather-lightning'],
     'idraulico_domani': ['idraulico_domani', 'Rischio Idraulico Domani', 'mdi:home-flood'],
-    'idrogeologico_domani': ['idrogeologico_domani', 'Rischio Idrogeologico Domani', 'mdi:waves'],    
+    'idrogeologico_domani': ['idrogeologico_domani', 'Rischio Idrogeologico Domani', 'mdi:waves'],
 }
 
 WARNING_ALERT = {
@@ -43,20 +44,16 @@ WARNING_ALERT = {
 }
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
-    vol.Optional(CONF_LATITUDE): cv.string,
-    vol.Optional(CONF_LONGITUDE): cv.string,
+    vol.Required(CONF_ISTAT): cv.string,
+    vol.Optional(CONF_ALERT, default='GIALLA'): cv.string,
     vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
     vol.Optional(CONF_WARNINGS, default=[]):
         vol.All(cv.ensure_list, [vol.In(WARNING_TYPES)]),
-    vol.Required(CONF_ISTAT): cv.string,
-    vol.Optional(CONF_ALERT, default='GIALLA'): cv.string,
     vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): cv.time_period
 })
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     name = config.get(CONF_NAME)
-    latitude = float(config.get(CONF_LATITUDE, hass.config.latitude))
-    longitude = float(config.get(CONF_LONGITUDE, hass.config.longitude))
     warnings = config.get(CONF_WARNINGS)
     istat = str(config.get(CONF_ISTAT)).zfill(6)
     alert = config.get(CONF_ALERT)
@@ -150,46 +147,50 @@ class dpcUpdater:
         self.async_update = Throttle(scan_interval)(self._async_update)
 
     async def _async_update(self):
-        jsondata = {}
-        url_base = 'http://www.protezionecivilepop.tk/allerte?citta='
-        URLs = [
-                url_base + self._istat + '&rischio=' + 'temporali' + '&allerta=' + 'verde' + '&giorno=' + 'domani' + '&formato=json',
-                url_base + self._istat + '&rischio=' + 'idraulico' + '&allerta=' + 'verde' + '&giorno=' + 'domani' + '&formato=json',
-                url_base + self._istat + '&rischio=' + 'idrogeologico' + '&allerta=' + 'verde' + '&giorno=' + 'domani' + '&formato=json',
-                url_base + self._istat + '&rischio=' + 'temporali' + '&allerta=' + 'verde' + '&giorno=' + 'oggi' + '&formato=json',
-                url_base + self._istat + '&rischio=' + 'idraulico' + '&allerta=' + 'verde' + '&giorno=' + 'oggi' + '&formato=json',
-                url_base + self._istat + '&rischio=' + 'idrogeologico' + '&allerta=' + 'verde' + '&giorno=' + 'oggi' + '&formato=json'
-               ]
+        url_base = f"http://www.protezionecivilepop.tk/allerte?citta={self._istat}&rischio="
+        URL_LIST = [
+            url_base + 'temporali' + '&allerta=' + 'verde' + '&giorno=' + 'domani' + '&formato=json',
+            url_base + 'idraulico' + '&allerta=' + 'verde' + '&giorno=' + 'domani' + '&formato=json',
+            url_base + 'idrogeologico' + '&allerta=' + 'verde' + '&giorno=' + 'domani' + '&formato=json',
+            url_base + 'temporali' + '&allerta=' + 'verde' + '&giorno=' + 'oggi' + '&formato=json',
+            url_base + 'idraulico' + '&allerta=' + 'verde' + '&giorno=' + 'oggi' + '&formato=json',
+            url_base + 'idrogeologico' + '&allerta=' + 'verde' + '&giorno=' + 'oggi' + '&formato=json'
+        ]
+        dataList = await self.fetch_all(URL_LIST)
+        self.dpc_output = {k:v for element in dataList for k,v in element.items()}
 
-        # Doing a request
-        try:
-            for url in URLs:
-                try:
-                    data = requests.get(url, timeout=10)
-                except requests.exceptions.Timeout:
-                    _LOGGER.error('Connection to the site timed out at URL %s', url)
-                    return False
-                if data.status_code != 200:
-                    _LOGGER.error('Connection failed with http code %s', data.status_code)
-                    return False
-                try:
-                    k = data.json()['previsione']
-                except ValueError:
-                    # If json decoder could not parse the response
-                    _LOGGER.error('Failed to parse response from site. Check the istat number %s', self._istat)
-                    return False
-                
-                # Parsing response
-                k_date = parse(k['date']).date()
-                if k_date == date.today() and ('oggi' in url or 'domani' in url):
-                    jsondata[k['risk'] + '_oggi'] = k
-                if k_date > date.today() and 'domani' in url:
-                    jsondata[k['risk'] + '_domani'] = k
-                if k_date < date.today() and'oggi' in url:
-                    jsondata[k['risk'] + '_domani'] = {'alert': 'BIANCA', 'date': k['date'], 'update': 'ore 17:00'}
+    async def fetch_all(self, urls):
+        """Launch requests for all url."""
+        tasks = []
+        async with ClientSession() as session:
+            for url in urls:
+                task = asyncio.ensure_future(self.fetch(url, session))
+                tasks.append(task)
+            responses = await asyncio.gather(*tasks)
+            return responses
 
-                ris = json.loads(json.dumps(jsondata))
+    async def fetch(self, url, session):
+        """Fetch a url, using specified ClientSession."""
+        async with session.get(url, timeout=5) as response:
+            data = await response.json()
+            if response.status != 200:
+                _LOGGER.error('Connection failed with http code: %s', response.status)
+                return False
+            try:
+                k = data['previsione']
+            except ValueError:
+                # If json decoder could not parse the response
+                _LOGGER.error('Failed to parse response from site. Check the istat number: %s', self._istat)
+                return False
 
-            self.dpc_output = ris
-        except:
-            _LOGGER.error('Error setting up dpc - Check the istat number %s', self._istat)
+            # Parsing response
+            jsondata = {}
+            k_date = parse(k['date']).date()
+            if k_date == date.today() and ('oggi' in url or 'domani' in url):
+                jsondata[k['risk'] + '_oggi'] = k
+            if k_date > date.today() and 'domani' in url:
+                jsondata[k['risk'] + '_domani'] = k
+            if k_date < date.today() and'oggi' in url:
+                jsondata[k['risk'] + '_domani'] = {'alert': 'BIANCA', 'date': k['date'], 'update': 'ore 17:00'}
+            resp = json.loads(json.dumps(jsondata))
+            return resp 
