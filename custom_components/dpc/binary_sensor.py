@@ -186,7 +186,8 @@ class dpcUpdater:
                 elif k_date > date.today():
                     self.dpc_output[k['risk'] + '_domani'] = k
                 else:
-                    return {}
+                    day = '_domani' if 'oggi' in url and k_date < date.today() + timedelta(days=1) else '_oggi'
+                    self.dpc_output[k['risk'] + day] = {}
                 _LOGGER.debug('DATA response: %s\n', k)
                 json.loads(json.dumps(self.dpc_output))
                 return url, data
