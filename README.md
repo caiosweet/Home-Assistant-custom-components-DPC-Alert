@@ -1,4 +1,11 @@
 [![hacs][hacsbadge]][hacs]
+![hacs_validate](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/workflows/Validate%20with%20HACS/badge.svg)
+![Validate with hassfest](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/workflows/Validate%20with%20hassfest/badge.svg)
+
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/caiosweet/Home-Assistant-custom-components-DPC-Alert)](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/releases)
+![GitHub Release Date](https://img.shields.io/github/release-date/caiosweet/Home-Assistant-custom-components-DPC-Alert)
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-Yes-brightgreen.svg)](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/graphs/commit-activity)
+[![GitHub issues](https://img.shields.io/github/issues/caiosweet/Home-Assistant-custom-components-DPC-Alert)](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/issues)
 
 # Home-Assistant-custom-components-DPC-Alert
 Italy METEO-HYDRO ALERT
@@ -8,7 +15,7 @@ To get more detailed information about parameters of warnings visit [*Civil Prot
 
 Platform | Description
 -- | --
-`binary_sensor` | Show METEO-HYDRO ALERT `True` or `False`.
+`binary_sensor` | Show METEO-HYDRO ALERT `on` or `off`.
 
 
 ## Configuration options
@@ -80,3 +87,14 @@ _Thanks to PiotrMachowski for inspiration._
 
 [hacs]: https://github.com/custom-components/hacs
 [hacsbadge]: https://img.shields.io/badge/HACS-Default-orange.svg
+
+![Validate with hassfest](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/workflows/Validate%20with%20hassfest/badge.svg)
+
+
+![hacs_validate](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/workflows/Validate%20with%20HACS/badge.svg)
+
+
+
+
+
+![semantic_release](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/workflows/semantic_release/badge.svg)
