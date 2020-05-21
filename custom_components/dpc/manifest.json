@@ -1,7 +1,6 @@
 {
   "domain": "dpc",
   "name": "DPC (Dipartimento Protezione Civile)",
-  "homeassistant": "0.98.0",
   "documentation": "https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert",
   "dependencies": [],
   "codeowners": ["CaioSweet"],
