@@ -92,9 +92,3 @@ _Thanks to PiotrMachowski for inspiration._
 
 
 ![hacs_validate](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/workflows/Validate%20with%20HACS/badge.svg)
-
-
-
-
-
-![semantic_release](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/workflows/semantic_release/badge.svg)
