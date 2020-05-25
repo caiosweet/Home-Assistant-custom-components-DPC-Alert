@@ -161,7 +161,7 @@ filter:
 ## Image ([Online Article])
 
 <p align="center">
-<img src="./example-card-auto-entities.jpg" width="350px">
+<img src="https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/v1.2.5beta_icon_logo/example-card-auto-entities.jpg" width="350px">
 <br><br>
 Cards: card-mod, auto-entities
 <br><br>
@@ -169,7 +169,7 @@ Cards: card-mod, auto-entities
 
 
 <p align="center">
-<img src="./example-card-markdown.jpg" width="350px">
+<img src="https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/v1.2.5beta_icon_logo/example-card-markdown.jpg" width="350px">
 <br><br>
 Cards: card-mod, markdown 
 </p>
