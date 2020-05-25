@@ -142,10 +142,10 @@ filter:
       - service: notify.telegram
         data_template:
           title: >-
-            *Protezione Civile -
+            Protezione Civile -
             {% if trigger.from_state.state == 'off' %}
             {{ trigger.to_state.attributes.friendly_name }}.
-            {% else %} AGGIORNAMENTO DPC. {% endif %}*
+            {% else %} AGGIORNAMENTO DPC. {% endif %}
           message: |
             {% if trigger.from_state.state == 'off' %}
             Bollettino Protezione Civile
