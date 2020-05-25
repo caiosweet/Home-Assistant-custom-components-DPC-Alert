@@ -161,7 +161,7 @@ filter:
 ## Image ([Online Article])
 
 <p align="center">
-<img src="./example-card-auto-entities.jpg" width="50% height="50%">
+<img src="./example-card-auto-entities.jpg" width="350px">
 <br><br>
 Cards: card-mod, auto-entities
 <br><br>
@@ -169,7 +169,7 @@ Cards: card-mod, auto-entities
 
 
 <p align="center">
-<img src="./example-card-markdown.jpg" width="50%">
+<img src="./example-card-markdown.jpg" width="350px">
 <br><br>
 Cards: card-mod, markdown 
 </p>
