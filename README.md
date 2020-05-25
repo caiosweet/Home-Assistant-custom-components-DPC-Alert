@@ -9,16 +9,13 @@
 
 
 # Home-Assistant-custom-components-DPC-Alert
-Italy METEO-HYDRO ALERT
-
-To get more detailed information about parameters of warnings visit [*Civil Protection Department*](http://www.protezionecivile.gov.it/risk-activities/meteo-hydro/activities/prediction-prevention/central-functional-centre-meteo-hydrogeological/meteo-hydro-alert).
+Italy METEO-HYDRO ALERT - To get more detailed information about parameters of warnings visit [*Civil Protection Department*](http://www.protezionecivile.gov.it/risk-activities/meteo-hydro/activities/prediction-prevention/central-functional-centre-meteo-hydrogeological/meteo-hydro-alert).
 
 **This component will set up the following platforms.**
 
 Platform | Description
 -- | --
 `binary_sensor` | Show METEO-HYDRO ALERT `on` or `off`.
-
 
 ## Configuration options
 
@@ -46,9 +43,7 @@ The istat number is required, you can easily find it [here](https://www.paginebi
 or you can download the complete list [here](https://www.istat.it/storage/codici-unita-amministrative/Elenco-codici-statistici-e-denominazioni-delle-unita-territoriali.zip)
 If the Istat number starts with zero, it must be entered between the quotes.
 
-
 ## Example usage (minimal)
-
 
 ```
 binary_sensor:
@@ -59,7 +54,6 @@ binary_sensor:
 ```
 
 ## Example usage (complete)
-
 
 ```
 binary_sensor:
@@ -76,10 +70,10 @@ binary_sensor:
       - idrogeologico_domani
 ```
 
-
 ## Example Lovelace markdown card
 
 ```
+
 type: markdown
 style: |
   ha-card {background: none; border-radius: 0px; box-shadow: none;}
@@ -96,12 +90,13 @@ content: >
 
   [Protezione Civile](http://www.protezionecivile.it/home) ~ [Vigilanza Meteo](http://www.protezionecivile.gov.it/dettaglio/-/journal_content/56/20182/1131180?refererPlid=42041&controlPanelCategory=current_site.content)
   ~ [Criticità Idro](http://www.protezionecivile.gov.it/attivita-rischi/meteo-idro/attivita/previsione-prevenzione/centro-funzionale-centrale-rischio-meteo-idrogeologico/previsionale/bollettini-criticita/bollettino-odierno) ~ [Radar](http://www.protezionecivile.gov.it/radar-dpc)
-```
 
+```
 
 ## Example Lovelace card auto-entities and card-mod
 
 ```
+
 type: 'custom:auto-entities'
 card:
   type: entities
@@ -123,12 +118,13 @@ filter:
             color: var(--color);
             --paper-item-icon-color: var(--color);
           }
-```
 
+```
 
 ## Example Automation
 
 ```
+
   - id: natural_events_protezione_civile_notifications
     alias: natural_events_protezione_civile_notifications
     initial_state: true
@@ -162,8 +158,8 @@ filter:
             Info {{trigger.to_state.attributes.info}}.
 
             [Bollettino di criticità]({{trigger.to_state.attributes.link}})
-```
 
+```
 
 ## Image ([Online Article])
 
@@ -174,13 +170,11 @@ Cards: card-mod, auto-entities
 <br><br>
 </p>
 
-
 <p align="center">
 <img src="https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/v1.2.5beta_icon_logo/example-card-markdown.jpg" width="350px">
 <br><br>
 Cards: card-mod, markdown 
 </p>
-
 
 ## License
 
@@ -188,13 +182,12 @@ _Information provided by [*protezionecivilepop.tk*](http://www.protezionecivilep
 
 _Dati forniti dal servizio protezionecivilepop.tk di Giovanni Pirrotta - Licenza Creative Commons [*CC-BY-SA 4.0.*](https://creativecommons.org/licenses/by-sa/4.0/deed.it)_
 
-
 ## Contributions are welcome!
 
 _Thanks to PiotrMachowski for inspiration._ 
 
-
 ***
+
 [Online Article]: https://hassiohelp.eu/2019/10/06/package-eventi-naturali/
 
 [hacs]: https://github.com/custom-components/hacs
