@@ -157,6 +157,24 @@ filter:
             [Bollettino di criticità]({{trigger.to_state.attributes.link}})
 ```
 
+
+## Image ([Online Article])
+
+<p align="center">
+<img src="./example-card-auto-entities.jpg" width="50% height="50%">
+<br><br>
+Cards: card-mod, auto-entities
+<br><br>
+</p>
+
+
+<p align="center">
+<img src="./example-card-markdown.jpg" width="50%">
+<br><br>
+Cards: card-mod, markdown 
+</p>
+
+
 ## License
 
 _Information provided by [*protezionecivilepop.tk*](http://www.protezionecivilepop.tk/) Giovanni Pirrotta's Creative Commons Licenses [*CC-BY-SA 4.0.*](https://creativecommons.org/licenses/by-sa/4.0/)_
