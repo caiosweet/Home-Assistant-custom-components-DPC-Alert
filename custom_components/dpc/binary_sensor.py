@@ -28,6 +28,7 @@ from homeassistant.util import Throttle
 from .const import (
     ATTRIBUTION,
     BASE_URL,
+    BULLETTIN_URL,
     FEED_URL,
     CONF_ALERT,
     CONF_ISTAT,
@@ -140,7 +141,7 @@ class dpcSensor(BinarySensorEntity):
         """Return name."""
         return WARNING_TYPES[self._warning_type][1]
 
-    # @asyncio.coroutine
+    @asyncio.coroutine
     async def async_update(self):
         """Update data."""
         await self._updater.async_update()
@@ -169,7 +170,7 @@ class dpcUpdater:
             self.newlink = entry.link
         except:
             _LOGGER.error("NEW LINK DATE: %s \n", self.newlink)
-            self.newlink = None
+            self.newlink = BULLETTIN_URL
 
     async def fetch_all(self):
         """Launch requests for all url."""
