@@ -103,7 +103,6 @@ card:
   show_empty: false
   style: |
     ha-card {background: none; border-radius: 0px; box-shadow: none;}
-    # .card-content {padding: 0}
 filter:
   include:
     - entity_id: binary_sensor.dpc*
