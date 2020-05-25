@@ -49,6 +49,7 @@ If the Istat number starts with zero, it must be entered between the quotes.
 
 ## Example usage (minimal)
 
+
 ```
 binary_sensor:
   - platform: dpc
@@ -58,6 +59,7 @@ binary_sensor:
 ```
 
 ## Example usage (complete)
+
 
 ```
 binary_sensor:
@@ -74,12 +76,13 @@ binary_sensor:
       - idrogeologico_domani
 ```
 
+
 ## Example Lovelace markdown card
+
 ```
 type: markdown
 style: |
   ha-card {background: none; border-radius: 0px; box-shadow: none;}
-  .card-content {padding: 0}
 content: >
   {% set color = {0:'White', 1:'Green', 2:'Yellow', 3:'Orange', 4:'Red'} %}
   {% for e in config.entities %}
@@ -95,7 +98,9 @@ content: >
   ~ [Criticità Idro](http://www.protezionecivile.gov.it/attivita-rischi/meteo-idro/attivita/previsione-prevenzione/centro-funzionale-centrale-rischio-meteo-idrogeologico/previsionale/bollettini-criticita/bollettino-odierno) ~ [Radar](http://www.protezionecivile.gov.it/radar-dpc)
 ```
 
+
 ## Example Lovelace card auto-entities and card-mod
+
 ```
 type: 'custom:auto-entities'
 card:
@@ -120,7 +125,9 @@ filter:
           }
 ```
 
+
 ## Example Automation
+
 ```
   - id: natural_events_protezione_civile_notifications
     alias: natural_events_protezione_civile_notifications
