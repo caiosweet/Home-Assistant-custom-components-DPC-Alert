@@ -11,11 +11,11 @@
 
 <img src="/assets/brand/icon.png" width="150px"> 
 
-Italy METEO-HYDRO ALERT - To get more detailed information about parameters of warnings visit [*Civil Protection Department*](http://www.protezionecivile.gov.it/risk-activities/meteo-hydro/activities/prediction-prevention/central-functional-centre-meteo-hydrogeological/meteo-hydro-alert).
+###### ITALY METEO-HYDRO ALERT - To get more detailed information about parameters of warnings visit [*Civil Protection Department*](http://www.protezionecivile.gov.it/risk-activities/meteo-hydro/activities/prediction-prevention/central-functional-centre-meteo-hydrogeological/meteo-hydro-alert).
 
-# Configuration
+<br>
 
-This component will set up the following platforms.
+**This component will set up the following platforms.**
 
 Platform | Description
   -- | --
@@ -125,6 +125,8 @@ If the Istat number starts with zero, it must be entered between the quotes.
 
   ```yaml
     - alias: Natural Events Protezione Civile Notifications
+      mode: queued
+      max_exceeded: silent
       initial_state: true
       trigger:
         platform: state
@@ -135,30 +137,33 @@ If the Istat number starts with zero, it must be entered between the quotes.
           - binary_sensor.dpc_idrogeologico_domani
           - binary_sensor.dpc_idraulico_domani
           - binary_sensor.dpc_temporali_domani
-      condition:
-        - condition: template
-          value_template: "{{ trigger.to_state.state == 'on' and (trigger.from_state.state == 'off' 
-            or (trigger.to_state.attributes != trigger.from_state.attributes) and not trigger.to_state.attributes.link)}}"
+      condition: >-
+        {{ trigger.to_state.state == 'on' and (trigger.from_state.state == 'off' 
+        or (trigger.to_state.attributes != trigger.from_state.attributes))}}
       action:
+        - variables:
+            name: "{{trigger.to_state.attributes.friendly_name}}"
+            rischio: "{{trigger.to_state.attributes.rischio}}"
+            allerta: "{{trigger.to_state.attributes.allerta}}"
+            info: "{{trigger.to_state.attributes.info}}"
         - service: notify.telegram
-          data_template:
+          data:
+            call_no_annuncio: 1
             title: >-
-              Protezione Civile -
-              {% if trigger.from_state.state == 'off' %}
-              {{ trigger.to_state.attributes.friendly_name }}.
-              {% else %} AGGIORNAMENTO DPC. {% endif %}
+              Protezione Civile - {{rischio}}
+              {% if trigger.from_state.state == 'on' %}
+              AGGIORNAMENTO
+              {% endif %}
             message: |
-              {% if trigger.from_state.state == 'off' %}
-              Bollettino Protezione Civile
-              {% else %} Aggiornamento bollettino. {% endif %}
-              Rischio {{trigger.to_state.attributes.rischio}}. 
-              Allerta {{trigger.to_state.attributes.allerta}} 
-              Info {{trigger.to_state.attributes.info}}.
+              {% set color = {'VERDE':'🟢', 'GIALLA':'🟡', 'ARANCIONE':'🟠', 'ROSSA':'🔴'} %}
+              {% set risk = {'Temporali':'⚡', 'Idraulico':'💧', 'Idrogeologico':'🌊'} %}
+              {{risk[rischio]}} {{name}}. 
+              {{color[allerta]}} Allerta {{allerta}} {{info}}.
 
               [Bollettino di criticità]({{trigger.to_state.attributes.link}})
   ```
 
-## Image [See guide on hassiohelp][guide]
+## Preview [See guide on hassiohelp][guide]
 
 <p align="center">
 <img src="/assets/images/example-card-auto-entities.png" width="350px" /> 
