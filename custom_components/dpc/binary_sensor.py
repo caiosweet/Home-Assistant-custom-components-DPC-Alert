@@ -59,7 +59,7 @@ _LOGGER = logging.getLogger(__name__)
 @asyncio.coroutine
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Setup."""
-    _LOGGER.debug("start async setup platform")
+    _LOGGER.debug("[%s] start async setup platform", DEFAULT_NAME)
     name = config.get(CONF_NAME)
     warnings = config.get(CONF_WARNINGS)
     istat = str(config.get(CONF_ISTAT)).zfill(6)
@@ -155,13 +155,13 @@ class dpcUpdater:
         self._istat = istat
         self._warnings = warnings
         self.dpc_output = None
-        self.newlink = None
+        self.newlink = BULLETTIN_URL
         self.async_update = Throttle(scan_interval)(self.async_update)
 
     async def async_update(self):
         await self._hass.async_add_executor_job(self.new_feed)
         self.dpc_output = await self.fetch_all()
-        _LOGGER.debug("ASYNC UPDATE: %s\n", self.dpc_output)
+        _LOGGER.debug("[%s] ASYNC UPDATE: %s\n", DEFAULT_NAME, self.dpc_output)
 
     def new_feed(self):
         try:
@@ -169,8 +169,8 @@ class dpcUpdater:
             entry = NewsFeed.entries[0]
             self.newlink = entry.link
         except:
-            _LOGGER.error("NEW LINK DATE: %s \n", self.newlink)
-            self.newlink = BULLETTIN_URL
+            newlink = self.newlink
+            _LOGGER.debug("[%s] Failed feedparser: %s \n", DEFAULT_NAME, newlink)
 
     async def fetch_all(self):
         """Launch requests for all url."""
@@ -190,8 +190,9 @@ class dpcUpdater:
         try:
             async with session.get(url, timeout=10) as response:
                 if response.status != 200:
-                    _LOGGER.error(
-                        "Connection failed with http code: %s with url: %s",
+                    _LOGGER.warning(
+                        "[%s] Connection failed with http code: %s with url: %s",
+                        DEFAULT_NAME,
                         response.status,
                         url,
                     )
@@ -200,8 +201,9 @@ class dpcUpdater:
                     data = await response.json()
                 except aiohttp.ContentTypeError:
                     # If json decoder could not parse the response
-                    _LOGGER.error(
-                        "Failed to parse response from site. Check the istat number: %s - URL: %s",
+                    _LOGGER.warning(
+                        "[%s] Failed to parse response from site. Check the istat number: %s - URL: %s",
+                        DEFAULT_NAME,
                         self._istat,
                         url,
                     )
@@ -225,8 +227,8 @@ class dpcUpdater:
                         else "_oggi"
                     )
                     jsondata[prevision["risk"] + day] = {"link": prevision["link"]}
-                _LOGGER.debug("JSON DATA: %s\n", jsondata)
+                # _LOGGER.debug("JSON DATA: %s\n", jsondata)
                 return json.loads(json.dumps(jsondata))
         except aiohttp.client_exceptions.ClientConnectorError:
-            _LOGGER.error("Cannot connect to: %s", url)
+            _LOGGER.error("[%s] Cannot connect to: %s", DEFAULT_NAME, url)
             return {}

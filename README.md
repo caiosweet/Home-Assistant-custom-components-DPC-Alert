@@ -1,3 +1,11 @@
+# Home Assistant - Custom Components DPC Alert
+
+<img src="/assets/brand/icon.png" width="150px"> 
+
+###### ITALY METEO-HYDRO ALERT - To get more detailed information about parameters of warnings visit [*Civil Protection Department*](http://www.protezionecivile.gov.it/risk-activities/meteo-hydro/activities/prediction-prevention/central-functional-centre-meteo-hydrogeological/meteo-hydro-alert).
+
+<br>
+
 [![hacs][hacsbadge]][hacs] ![hacs_validate] ![Validate with hassfest]
 
 [![GitHub latest release]][githubrelease] ![GitHub Release Date]
@@ -7,13 +15,7 @@
 [![Websitebadge]][website] [![Forum][forumbadge]][forum]
 [![telegrambadge]][telegram] [![facebookbadge]][facebook] 
 
-# Home Assistant - Custom Components DPC Alert
 
-<img src="/assets/brand/icon.png" width="150px"> 
-
-###### ITALY METEO-HYDRO ALERT - To get more detailed information about parameters of warnings visit [*Civil Protection Department*](http://www.protezionecivile.gov.it/risk-activities/meteo-hydro/activities/prediction-prevention/central-functional-centre-meteo-hydrogeological/meteo-hydro-alert).
-
-<br>
 
 **This component will set up the following platforms.**
 
@@ -148,7 +150,6 @@ If the Istat number starts with zero, it must be entered between the quotes.
             info: "{{trigger.to_state.attributes.info}}"
         - service: notify.telegram
           data:
-            call_no_annuncio: 1
             title: >-
               Protezione Civile - {{rischio}}
               {% if trigger.from_state.state == 'on' %}
