@@ -45,7 +45,7 @@ If the Istat number starts with zero, it must be entered between the quotes.
 
 ## Example usage (minimal)
 
-  ```
+  ```yaml
   binary_sensor:
     - platform: dpc
       istat: 58091
@@ -55,7 +55,7 @@ If the Istat number starts with zero, it must be entered between the quotes.
 
 ## Example usage (complete)
 
-  ```
+  ```yaml
   binary_sensor:
     - platform: dpc
       name: DPC Roma
@@ -72,7 +72,7 @@ If the Istat number starts with zero, it must be entered between the quotes.
 
 ## Example Lovelace markdown card
 
-  ```
+  ```yaml
   type: markdown
   style: |
     ha-card {background: none; border-radius: 0px; box-shadow: none;}
@@ -93,7 +93,7 @@ If the Istat number starts with zero, it must be entered between the quotes.
 
 ## Example Lovelace card auto-entities and card-mod
 
-  ```
+  ```yaml
   type: 'custom:auto-entities'
   card:
     type: entities
@@ -119,9 +119,8 @@ If the Istat number starts with zero, it must be entered between the quotes.
 
 ## Example Automation
 
-  ```
-    - id: natural_events_protezione_civile_notifications
-      alias: natural_events_protezione_civile_notifications
+  ```yaml
+    - alias: Natural Events Protezione Civile Notifications
       initial_state: true
       trigger:
         platform: state
@@ -155,7 +154,7 @@ If the Istat number starts with zero, it must be entered between the quotes.
               [Bollettino di criticità]({{trigger.to_state.attributes.link}})
   ```
 
-## Image ([Online Article])
+## Image [See guide on hassiohelp][guide]
 
 <p align="center">
 <img src="https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/v1.2.5beta_icon_logo/example-card-auto-entities.jpg" width="350px">
@@ -182,7 +181,7 @@ _Thanks to PiotrMachowski for inspiration._
 
 ***
 
-[Online Article]: https://hassiohelp.eu/2019/10/06/package-eventi-naturali/
+[guide]: <https://hassiohelp.eu/2019/10/06/package-eventi-naturali/>
 
 [hacs]: https://github.com/custom-components/hacs
 [hacsbadge]: https://img.shields.io/badge/HACS-Default-orange.svg
