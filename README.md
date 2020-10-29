@@ -4,12 +4,11 @@
 [![Maintenancebadge]][Maintenance]
 [![GitHub issuesbadge]][GitHub issues]
 
-[![Websitebadge]][website] [![Forum][forumbadge]][forum]
-[![telegrambadge]][telegram] [![facebookbadge]][facebook] 
+
 
 # Home Assistant - Custom Components DPC Alert
 
-<img src="/assets/brand/icon.png" width="150px">
+<img src="/assets/brand/icon.png" width="150px"> [![Websitebadge]][website] [![Forum][forumbadge]][forum] [![telegrambadge]][telegram] [![facebookbadge]][facebook] 
 
 Italy METEO-HYDRO ALERT - To get more detailed information about parameters of warnings visit [*Civil Protection Department*](http://www.protezionecivile.gov.it/risk-activities/meteo-hydro/activities/prediction-prevention/central-functional-centre-meteo-hydrogeological/meteo-hydro-alert).
 
@@ -19,7 +18,7 @@ Platform | Description
   -- | --
   `binary_sensor` | Show METEO-HYDRO ALERT `on` or `off`.
 
-## Configuration options
+# Configuration variables
 
   | Key | Type | Required | Default | Description |
   | --- | --- | --- | --- | --- |
@@ -28,7 +27,7 @@ Platform | Description
   | `alert` | `string` | `False` | GIALLA | (Verde,Gialla,Arancione,Rossa) |
   | `warnings` | `list` | `False` | - | List of monitored warnings |
 
-### Possible monitored warnings
+## Possible monitored warnings
 
   | Key | Description |
   | --- | --- | 
@@ -39,7 +38,7 @@ Platform | Description
   | `idraulico_domani` | Enables Hydraulic risk monitoring tomorrow |
   | `idrogeologico_domani` | Enables Hydrogeological risk monitoring tomorrow |
 
-## Important
+# Important
 
 The istat number is required, you can easily find it [here](https://www.paginebianche.it/codice-istat)
 or you can download the complete list [here](https://www.istat.it/storage/codici-unita-amministrative/Elenco-codici-statistici-e-denominazioni-delle-unita-territoriali.zip)
@@ -159,14 +158,14 @@ If the Istat number starts with zero, it must be entered between the quotes.
 ## Image [See guide on hassiohelp][guide]
 
 <p align="center">
-<img src="assets/images/example-card-auto-entities.jpg" width="350px" />
+<img src="/assets/images/example-card-auto-entities.png" width="350px" /> 
 <br><br>
 Cards: card-mod, auto-entities
 <br><br>
 </p>
 
 <p align="center">
-<img src="/assets/images/example-card-markdown.jpg" width="350px" />
+<img src="/assets/images/example-card-markdown.png" width="350px" />
 <br><br>
 Cards: card-mod, markdown 
 </p>
@@ -177,15 +176,17 @@ _Information provided by [*protezionecivilepop.tk*](http://www.protezionecivilep
 
 _Dati forniti dal servizio protezionecivilepop.tk di Giovanni Pirrotta - Licenza Creative Commons [*CC-BY-SA 4.0.*](https://creativecommons.org/licenses/by-sa/4.0/deed.it)_
 
-All product names, trademarks and registered trademarks in the images in this repository, are property of their respective owners. 
-All images in this repository are used by the author for identification purposes only.
-The use of these names, trademarks and brands appearing in these image files, do not imply endorsement.
-
 ## Contributions are welcome!
 
 _Thanks to PiotrMachowski for inspiration._ 
 
 ***
+
+## Trademark Legal Notices
+
+All product names, trademarks and registered trademarks in the images in this repository, are property of their respective owners. 
+All images in this repository are used by the author for identification purposes only.
+The use of these names, trademarks and brands appearing in these image files, do not imply endorsement.
 
 [guide]: <https://hassiohelp.eu/2019/10/06/package-eventi-naturali/>
 
