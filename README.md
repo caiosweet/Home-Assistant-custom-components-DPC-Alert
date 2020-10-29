@@ -4,15 +4,18 @@
 [![Maintenancebadge]][Maintenance]
 [![GitHub issuesbadge]][GitHub issues]
 
-
+[![Websitebadge]][website] [![Forum][forumbadge]][forum]
+[![telegrambadge]][telegram] [![facebookbadge]][facebook] 
 
 # Home Assistant - Custom Components DPC Alert
 
-<img src="/assets/brand/icon.png" width="150px"> [![Websitebadge]][website] [![Forum][forumbadge]][forum] [![telegrambadge]][telegram] [![facebookbadge]][facebook] 
+<img src="/assets/brand/icon.png" width="150px"> 
 
 Italy METEO-HYDRO ALERT - To get more detailed information about parameters of warnings visit [*Civil Protection Department*](http://www.protezionecivile.gov.it/risk-activities/meteo-hydro/activities/prediction-prevention/central-functional-centre-meteo-hydrogeological/meteo-hydro-alert).
 
-**This component will set up the following platforms.**
+# Configuration
+
+This component will set up the following platforms.
 
 Platform | Description
   -- | --
