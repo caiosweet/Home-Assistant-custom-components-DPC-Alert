@@ -1,6 +1,6 @@
 # Home Assistant - Custom Components DPC Alert
 
-<img src="/assets/brand/icon.png" width="150px"> 
+<img src="https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/assets/brand/icon.png" width="150px"> 
 
 ###### ITALY METEO-HYDRO ALERT - To get more detailed information about parameters of warnings visit [*Civil Protection Department*](http://www.protezionecivile.gov.it/risk-activities/meteo-hydro/activities/prediction-prevention/central-functional-centre-meteo-hydrogeological/meteo-hydro-alert).
 
@@ -8,13 +8,9 @@
 
 [![hacs][hacsbadge]][hacs] ![hacs_validate] ![Validate with hassfest]
 
-[![GitHub latest release]][githubrelease] ![GitHub Release Date]
-[![Maintenancebadge]][Maintenance]
-[![GitHub issuesbadge]][GitHub issues]
+[![GitHub latest release]][githubrelease] ![GitHub Release Date] [![Maintenancebadge]][Maintenance] [![GitHub issuesbadge]][GitHub issues]
 
-[![Websitebadge]][website] [![Forum][forumbadge]][forum]
-[![telegrambadge]][telegram] [![facebookbadge]][facebook] 
-
+[![Websitebadge]][website] [![Forum][forumbadge]][forum] [![telegrambadge]][telegram] [![facebookbadge]][facebook] 
 
 
 **This component will set up the following platforms.**
@@ -167,14 +163,14 @@ If the Istat number starts with zero, it must be entered between the quotes.
 ## Preview [See guide on hassiohelp][guide]
 
 <p align="center">
-<img src="/assets/images/example-card-auto-entities.png" width="350px" /> 
+<img src="https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/assets/images/example-card-auto-entities.png" width="350px" /> 
 <br><br>
 Cards: card-mod, auto-entities
 <br><br>
 </p>
 
 <p align="center">
-<img src="/assets/images/example-card-markdown.png" width="350px" />
+<img src="https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/assets/images/example-card-markdown.png" width="350px" />
 <br><br>
 Cards: card-mod, markdown 
 </p>
