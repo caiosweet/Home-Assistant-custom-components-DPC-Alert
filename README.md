@@ -12,6 +12,7 @@
 
 [![Websitebadge]][website] [![Forum][forumbadge]][forum] [![telegrambadge]][telegram] [![facebookbadge]][facebook] 
 
+[![Don't buy me a coffee](https://img.shields.io/static/v1.svg?label=Don't%20buy%20me%20a%20coffee&message=🔔&color=black&logo=buy%20me%20a%20coffee&logoColor=white&labelColor=6f4e37)](https://paypal.me/hassiohelp)
 
 **This component will set up the following platforms.**
 
@@ -122,13 +123,14 @@ If the Istat number starts with zero, it must be entered between the quotes.
 ## Example Automation
 
   ```yaml
-    - alias: Natural Events Protezione Civile Notifications
+  automation:
+    - alias: Protezione Civile Notifications
       mode: queued
       max_exceeded: silent
       initial_state: true
       trigger:
         platform: state
-        entity_id: 
+        entity_id:
           - binary_sensor.dpc_idrogeologico_oggi
           - binary_sensor.dpc_idraulico_oggi
           - binary_sensor.dpc_temporali_oggi
@@ -140,25 +142,44 @@ If the Istat number starts with zero, it must be entered between the quotes.
         or (trigger.to_state.attributes != trigger.from_state.attributes))}}
       action:
         - variables:
-            name: "{{trigger.to_state.attributes.friendly_name}}"
-            rischio: "{{trigger.to_state.attributes.rischio}}"
-            allerta: "{{trigger.to_state.attributes.allerta}}"
-            info: "{{trigger.to_state.attributes.info}}"
+            attr: "{{trigger.to_state.attributes}}"
+            alert:
+              0:
+                color: "⚪"
+                text: "Bianca"
+              1:
+                color: "🟢"
+                text: "Verde"
+              2:
+                color: "🟡"
+                text: "Gialla"
+              3:
+                color: "🟠"
+                text: "Arancione"
+              4:
+                color: "🔴"
+                text: "Rossa"
+            dpc_tts_msg: >-
+              Attenzione. {{attr.get('friendly_name')}}. Allerta {{attr.get('allerta')}} {{attr.get('info')}}.
         - service: notify.telegram
           data:
             title: >-
-              Protezione Civile - {{rischio}}
-              {% if trigger.from_state.state == 'on' %}
-              AGGIORNAMENTO
-              {% endif %}
+              Protezione Civile - {{attr.get('rischio')}}{% if trigger.from_state.state == 'on' %} - Revisione{% endif %}
             message: |
-              {% set color = {'VERDE':'🟢', 'GIALLA':'🟡', 'ARANCIONE':'🟠', 'ROSSA':'🔴'} %}
-              {% set risk = {'Temporali':'⚡', 'Idraulico':'💧', 'Idrogeologico':'🌊'} %}
-              {{risk[rischio]}} {{name}}. 
-              {{color[allerta]}} Allerta {{allerta}} {{info}}.
-
+              {% set risk = {none: '❌', 'Temporali':'⚡', 'Idraulico':'💧', 'Idrogeologico':'🌊'} %}
+              {{risk[attr.get('rischio')]}} {{attr.get('friendly_name')}}. 
+              {{alert[attr.get('level', 0)].color}} Allerta {{attr.get('allerta')}} {{attr.get('info')}}.
+              
               [Bollettino di criticità]({{trigger.to_state.attributes.link}})
+        - service: notify.alexa_media
+            data:
+              message: "{{dpc_tts_msg}}"
+              data: 
+                type: tts
+              target: "media_player.studio"
   ```
+
+## Other Lovelace Examples [HA Card weather conditions](https://github.com/r-renato/ha-card-weather-conditions#display-the-alert-layer) [@r-renato](https://github.com/r-renato)
 
 ## Preview [See guide on hassiohelp][guide]
 

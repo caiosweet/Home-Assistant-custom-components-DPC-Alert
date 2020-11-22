@@ -4,5 +4,5 @@
   "documentation": "https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert",
   "issue_tracker": "https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/issues",
   "codeowners": ["@caiosweet"],
-  "requirements": ["feedparser==5.2.1"]
+  "requirements": ["feedparser==6.0.2"]
 }
