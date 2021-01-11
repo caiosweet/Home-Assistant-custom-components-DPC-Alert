@@ -8,6 +8,7 @@ BULLETTIN_URL = "http://www.protezionecivile.gov.it/attivita-rischi/meteo-idro/a
 CONF_ALERT = "alert"
 CONF_ISTAT = "istat"
 CONF_WARNINGS = "warnings"
+ISSUES_RESOURCE_URL = "https://github.com/gpirrotta/protezionecivilepop/issues"
 
 DEFAULT_DEVICE_CLASS = "safety"
 DEFAULT_NAME = "dpc"
