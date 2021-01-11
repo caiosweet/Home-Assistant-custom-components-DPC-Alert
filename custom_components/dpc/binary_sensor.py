@@ -35,6 +35,7 @@ from .const import (
     CONF_WARNINGS,
     DEFAULT_DEVICE_CLASS,
     DEFAULT_NAME,
+    ISSUES_RESOURCE_URL,
     WARNING_TYPES,
     WARNING_ALERT,
 )
@@ -211,7 +212,17 @@ class dpcUpdater:
                 jsondata = {}
                 # Parsing response
                 prevision = data.get("previsione", {})  # data["previsione"]
-                prevision_date = parse(prevision["date"]).date()
+                try:
+                    prevision_date = parse(prevision["date"]).date()
+                except KeyError:
+                    _LOGGER.warning(
+                        "[%s] Missing data for %s - URL: %s \n Please, open issue here --> %s",
+                        DEFAULT_NAME,
+                        self._istat,
+                        url,
+                        ISSUES_RESOURCE_URL,
+                    )
+                    return {}
 
                 if self.newlink:
                     prevision["link"] = self.newlink
