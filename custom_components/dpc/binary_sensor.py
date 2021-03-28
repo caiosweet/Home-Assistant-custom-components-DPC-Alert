@@ -189,7 +189,7 @@ class dpcUpdater:
     async def fetch(self, url, session):
         """Fetch a url, using specified ClientSession."""
         try:
-            async with session.get(url, timeout=10) as response:
+            async with session.get(url, timeout=20) as response:
                 if response.status != 200:
                     _LOGGER.warning(
                         "[%s] Connection failed with http code: %s with url: %s",
@@ -242,4 +242,7 @@ class dpcUpdater:
                 return json.loads(json.dumps(jsondata))
         except aiohttp.client_exceptions.ClientConnectorError:
             _LOGGER.error("[%s] Cannot connect to: %s", DEFAULT_NAME, url)
+            return {}
+        except asyncio.TimeoutError:
+            _LOGGER.error("[%s] TIMEOUT ERROR FOR: %s", DEFAULT_NAME, url)
             return {}
