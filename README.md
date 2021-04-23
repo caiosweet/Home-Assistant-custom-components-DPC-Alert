@@ -48,140 +48,32 @@ If the Istat number starts with zero, it must be entered between the quotes.
 
 ## Example usage (minimal)
 
-  ```yaml
-  binary_sensor:
-    - platform: dpc
-      istat: 58091
-      warnings:
-        - temporali_oggi
-  ```
+```yaml
+binary_sensor:
+  - platform: dpc
+    istat: 58091
+    warnings:
+      - temporali_oggi
+```
 
 ## Example usage (complete)
 
-  ```yaml
-  binary_sensor:
-    - platform: dpc
-      name: DPC Roma
-      istat: '058091'
-      alert: 'gialla'
-      warnings:
-        - temporali_oggi
-        - idraulico_oggi
-        - idrogeologico_oggi
-        - temporali_domani
-        - idraulico_domani
-        - idrogeologico_domani
-  ```
+```yaml
+binary_sensor:
+  - platform: dpc
+    name: DPC Roma
+    istat: '058091'
+    alert: 'gialla'
+    warnings:
+      - temporali_oggi
+      - idraulico_oggi
+      - idrogeologico_oggi
+      - temporali_domani
+      - idraulico_domani
+      - idrogeologico_domani
+```
 
-## Example Lovelace markdown card
-
-  ```yaml
-  type: markdown
-  style: |
-    ha-card {background: none; border-radius: 0px; box-shadow: none;}
-  content: >
-    {% set color = {0:'White', 1:'Green', 2:'Yellow', 3:'Orange', 4:'Red'} %}
-    {% for e in config.entities %}
-
-
-    <font color= {{color[state_attr(e.entity, 'level')|int]}}>
-    <ha-icon icon="{{ 'mdi:numeric-' ~ state_attr(e.entity, 'level')|int ~ '-box'}}" style="width: 36px; height: 36px;"></ha-icon> 
-    {{state_attr(e.entity, 'friendly_name')}} - {{state_attr(e.entity, 'allerta')}} {{state_attr(e.entity, 'info')}}</font>
-    {%- endfor %}
-
-
-    [Protezione Civile](http://www.protezionecivile.it/home) ~ [Vigilanza Meteo](http://www.protezionecivile.gov.it/dettaglio/-/journal_content/56/20182/1131180?refererPlid=42041&controlPanelCategory=current_site.content)
-    ~ [Criticità Idro](http://www.protezionecivile.gov.it/attivita-rischi/meteo-idro/attivita/previsione-prevenzione/centro-funzionale-centrale-rischio-meteo-idrogeologico/previsionale/bollettini-criticita/bollettino-odierno) ~ [Radar](http://www.protezionecivile.gov.it/radar-dpc)
-  ```
-
-## Example Lovelace card auto-entities and card-mod
-
-  ```yaml
-  type: 'custom:auto-entities'
-  card:
-    type: entities
-    show_empty: false
-    style: |
-      ha-card {background: none; border-radius: 0px; box-shadow: none;}
-  filter:
-    include:
-      - entity_id: binary_sensor.dpc*
-        state: 'on'
-        options:
-          entity: this.entity_id
-          secondary_info: last-changed
-          style: |
-            :host {
-              --color:
-                {% set color = {0:'White', 1:'Green', 2:'Yellow', 3:'Orange', 4:'Red'} %}
-                {{color[state_attr(config.entity, 'level')|int]}}
-              color: var(--color);
-              --paper-item-icon-color: var(--color);
-            }
-  ```
-
-## Example Automation
-
-  ```yaml
-  automation:
-    - alias: Protezione Civile Notifications
-      mode: queued
-      max_exceeded: silent
-      initial_state: true
-      trigger:
-        platform: state
-        entity_id:
-          - binary_sensor.dpc_idrogeologico_oggi
-          - binary_sensor.dpc_idraulico_oggi
-          - binary_sensor.dpc_temporali_oggi
-          - binary_sensor.dpc_idrogeologico_domani
-          - binary_sensor.dpc_idraulico_domani
-          - binary_sensor.dpc_temporali_domani
-      condition: >-
-        {{ trigger.to_state.state == 'on' and (trigger.from_state.state == 'off' 
-        or (trigger.to_state.attributes != trigger.from_state.attributes))}}
-      action:
-        - variables:
-            attr: "{{trigger.to_state.attributes}}"
-            alert:
-              0:
-                color: "⚪"
-                text: "Bianca"
-              1:
-                color: "🟢"
-                text: "Verde"
-              2:
-                color: "🟡"
-                text: "Gialla"
-              3:
-                color: "🟠"
-                text: "Arancione"
-              4:
-                color: "🔴"
-                text: "Rossa"
-            dpc_tts_msg: >-
-              Attenzione. {{attr.get('friendly_name')}}. Allerta {{attr.get('allerta')}} {{attr.get('info')}}.
-        - service: notify.telegram
-          data:
-            title: >-
-              Protezione Civile - {{attr.get('rischio')}}{% if trigger.from_state.state == 'on' %} - Revisione{% endif %}
-            message: |
-              {% set risk = {none: '❌', 'Temporali':'⚡', 'Idraulico':'💧', 'Idrogeologico':'🌊'} %}
-              {{risk[attr.get('rischio')]}} {{attr.get('friendly_name')}}. 
-              {{alert[attr.get('level', 0)].color}} Allerta {{attr.get('allerta')}} {{attr.get('info')}}.
-              
-              [Bollettino di criticità]({{trigger.to_state.attributes.link}})
-        - service: notify.alexa_media
-            data:
-              message: "{{dpc_tts_msg}}"
-              data: 
-                type: tts
-              target: "media_player.studio"
-  ```
-
-## Other Lovelace Examples [HA Card weather conditions](https://github.com/r-renato/ha-card-weather-conditions#display-the-alert-layer) [@r-renato](https://github.com/r-renato)
-
-## Preview [See guide on hassiohelp][guide]
+## Preview [From my Natural Events project.][guide]
 
 <p align="center">
 <img src="https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/assets/images/example-card-auto-entities.png" width="350px" /> 
@@ -195,6 +87,207 @@ Cards: card-mod, auto-entities
 <br><br>
 Cards: card-mod, markdown 
 </p>
+
+## Example Lovelace entities card
+
+```yaml
+type: entities
+entities:
+  - entity: binary_sensor.dpc_temporali_oggi
+  - entity: binary_sensor.dpc_idraulico_oggi
+  - entity: binary_sensor.dpc_idrogeologico_oggi
+  - entity: binary_sensor.dpc_temporali_domani
+  - entity: binary_sensor.dpc_idraulico_domani
+  - entity: binary_sensor.dpc_idrogeologico_domani
+state_color: true
+
+```
+
+## Example Lovelace markdown card
+
+```yaml
+type: entity-filter
+state_filter:
+  - 'on'
+entities:
+  - binary_sensor.dpc_temporali_oggi
+  - binary_sensor.dpc_idraulico_oggi
+  - binary_sensor.dpc_idrogeologico_oggi
+  - binary_sensor.dpc_temporali_domani
+  - binary_sensor.dpc_idraulico_domani
+  - binary_sensor.dpc_idrogeologico_domani
+card:
+  type: markdown
+  content: >-
+      #### PROTEZIONE CIVILE
+
+      {% set color = {0:'White', 1:'Green', 2:'Yellow', 3:'Orange', 4:'Red'} %}
+      {% for e in config.entities %}
+
+      <font color="{{color[state_attr(e.entity, 'level')|int]}}">
+      <ha-icon icon="{{ 'mdi:numeric-' ~ state_attr(e.entity, 'level')|int ~ '-box'}}" style="width: 36px; height: 36px;"></ha-icon> 
+      <ha-icon icon="{{ state_attr(e.entity, 'icon')}}" style="width: 36px; height: 36px;"></ha-icon> 
+      {{state_attr(e.entity, 'friendly_name')}} - {{state_attr(e.entity, 'allerta')}} {{state_attr(e.entity, 'info')}}</font>
+      {%- endfor %}
+
+      [Protezione Civile](http://www.protezionecivile.it/home) ~ [Vigilanza Meteo](http://www.protezionecivile.gov.it/dettaglio/-/journal_content/56/20182/1131180?refererPlid=42041&controlPanelCategory=current_site.content)
+      ~ [Criticità Idro](http://www.protezionecivile.gov.it/attivita-rischi/meteo-idro/attivita/previsione-prevenzione/centro-funzionale-centrale-rischio-meteo-idrogeologico/previsionale/bollettini-criticita/bollettino-odierno) ~ [Radar](http://www.protezionecivile.gov.it/radar-dpc)
+
+```
+
+## Example of card markdown without using the entity-filter card
+
+```yaml
+type: vertical-stack
+cards:
+  - type: markdown
+    content: >-
+      #### PROTEZIONE CIVILE 1
+      {% set color = {0:'White', 1:'Green', 2:'Yellow', 3:'Orange', 4:'Red'} %} 
+      {% for e in states.binary_sensor %} 
+      {%- if e.object_id.startswith('dpc_') and e.state == 'on' %}
+
+      <font color= {{color[e.attributes.level|int]}}>
+      <ha-icon icon="{{ 'mdi:numeric-' ~ e.attributes.level|int ~ '-box'}}" style="width: 36px; height: 36px;"></ha-icon> 
+      {{e.name}} - {{e.attributes.allerta}} {{e.attributes.info}}</font> 
+      {%- endif -%} 
+      {% endfor %}
+
+      <br>
+      [Protezione Civile](http://www.protezionecivile.it/home) ~
+      [Vigilanza Meteo](http://www.protezionecivile.gov.it/dettaglio/-/journal_content/56/20182/1131180?refererPlid=42041&controlPanelCategory=current_site.content) ~ 
+      [Criticità Idro](http://www.protezionecivile.gov.it/attivita-rischi/meteo-idro/attivita/previsione-prevenzione/centro-funzionale-centrale-rischio-meteo-idrogeologico/previsionale/bollettini-criticita/bollettino-odierno) ~ 
+      [Radar](http://www.protezionecivile.gov.it/radar-dpc)
+```
+
+## Example Lovelace card auto-entities and card-mod
+
+```yaml
+type: 'custom:auto-entities'
+card:
+  type: entities
+  show_empty: false
+  title: Protezione Civile
+  style: |
+    ha-card {background: none; border-radius: 0px; box-shadow: none;}
+filter:
+  include:
+    - entity_id: binary_sensor.dpc*
+      state: 'on'
+      options:
+        entity: this.entity_id
+        secondary_info: last-changed
+        style: |
+          :host {
+            --color:
+              {% set color = {0:'White', 1:'Green', 2:'Yellow', 3:'Orange', 4:'Red'} %}
+              {{color[state_attr(config.entity, 'level')|int]}}
+            color: var(--color);
+            --paper-item-icon-color: var(--color);
+          }
+```
+
+## Example Lovelace card auto-entities + markdown + card-mod
+
+```yaml
+
+type: "custom:auto-entities" # DPC conditional divider markdown
+show_empty: false
+filter:
+  include:
+    - entity_id: binary_sensor.dpc_*
+      state: "on"
+      # attributes:
+      #   level: '> 0'
+card:
+  type: markdown
+  entity_id: this.entity_id
+  card_mod:
+    style: |
+      ha-card {background: none; border-radius: 0px; box-shadow: none;}
+      # .card-content {padding: 0}
+  content: >
+    ___
+
+    #### PROTEZIONE CIVILE
+
+    {% set color = {0:'White', 1:'Green', 2:'Yellow', 3:'Orange', 4:'Red'} %}
+    {% for e in config.entities %}
+
+
+    <font color="{{color[state_attr(e.entity, 'level')|int]}}">
+    <ha-icon icon="{{ 'mdi:numeric-' ~ state_attr(e.entity, 'level')|int ~ '-box'}}" style="width: 36px; height: 36px;"></ha-icon> 
+    <ha-icon icon="{{ state_attr(e.entity, 'icon')}}" style="width: 36px; height: 36px;"></ha-icon> 
+    {{state_attr(e.entity, 'friendly_name')}} - {{state_attr(e.entity, 'allerta')}} {{state_attr(e.entity, 'info')}}</font>
+    {%- endfor %}
+
+
+    [Protezione Civile](http://www.protezionecivile.it/home) ~ [Vigilanza Meteo](http://www.protezionecivile.gov.it/dettaglio/-/journal_content/56/20182/1131180?refererPlid=42041&controlPanelCategory=current_site.content)
+    ~ [Criticità Idro](http://www.protezionecivile.gov.it/attivita-rischi/meteo-idro/attivita/previsione-prevenzione/centro-funzionale-centrale-rischio-meteo-idrogeologico/previsionale/bollettini-criticita/bollettino-odierno) ~ [Radar](http://www.protezionecivile.gov.it/radar-dpc)
+
+
+```
+
+## Example Automation Yaml
+
+```yaml
+automation:
+  - alias: Protezione Civile Notifications
+    mode: queued
+    max_exceeded: silent
+    initial_state: true
+    trigger:
+      platform: state
+      entity_id:
+        - binary_sensor.dpc_idrogeologico_oggi
+        - binary_sensor.dpc_idraulico_oggi
+        - binary_sensor.dpc_temporali_oggi
+        - binary_sensor.dpc_idrogeologico_domani
+        - binary_sensor.dpc_idraulico_domani
+        - binary_sensor.dpc_temporali_domani
+    condition: >-
+      {{ trigger.to_state.state == 'on' and (trigger.from_state.state == 'off' 
+      or (trigger.to_state.attributes != trigger.from_state.attributes))}}
+    action:
+      - variables:
+          attr: "{{trigger.to_state.attributes}}"
+          alert:
+            0:
+              color: "⚪"
+              text: "Bianca"
+            1:
+              color: "🟢"
+              text: "Verde"
+            2:
+              color: "🟡"
+              text: "Gialla"
+            3:
+              color: "🟠"
+              text: "Arancione"
+            4:
+              color: "🔴"
+              text: "Rossa"
+          dpc_tts_msg: >-
+            Attenzione. {{attr.get('friendly_name')}}. Allerta {{attr.get('allerta')}} {{attr.get('info')}}.
+      - service: notify.telegram
+        data:
+          title: >-
+            Protezione Civile - {{attr.get('rischio')}}{% if trigger.from_state.state == 'on' %} - Revisione{% endif %}
+          message: |
+            {% set risk = {none: '❌', 'Temporali':'⚡', 'Idraulico':'💧', 'Idrogeologico':'🌊'} %}
+            {{risk[attr.get('rischio')]}} {{attr.get('friendly_name')}}. 
+            {{alert[attr.get('level', 0)].color}} Allerta {{attr.get('allerta')}} {{attr.get('info')}}.
+
+            [Bollettino di criticità]({{trigger.to_state.attributes.link}})
+      - service: notify.alexa_media
+          data:
+            message: "{{dpc_tts_msg}}"
+            data: 
+              type: tts
+            target: "media_player.studio"
+```
+
+## Other Lovelace Examples [HA Card weather conditions](https://github.com/r-renato/ha-card-weather-conditions#display-the-alert-layer) [@r-renato](https://github.com/r-renato)
 
 ## License
 
