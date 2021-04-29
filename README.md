@@ -6,7 +6,7 @@
 
 <br>
 
-[![hacs][hacsbadge]][hacs] ![hacs_validate] ![Validate with hassfest]
+[![hacs][hacsbadge]][hacs] [![Validate](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/actions/workflows/validate.yaml/badge.svg)](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/actions/workflows/validate.yaml)
 
 [![GitHub latest release]][githubrelease] ![GitHub Release Date] [![Maintenancebadge]][Maintenance] [![GitHub issuesbadge]][GitHub issues]
 
@@ -311,8 +311,6 @@ The use of these names, trademarks and brands appearing in these image files, do
 
 [hacs]: https://github.com/custom-components/hacs
 [hacsbadge]: https://img.shields.io/badge/HACS-Default-orange.svg
-[hacs_validate]: https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/workflows/Validate%20with%20HACS/badge.svg
-[Validate with hassfest]: https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/workflows/Validate%20with%20hassfest/badge.svg
 
 [GitHub latest release]: https://img.shields.io/github/v/release/caiosweet/Home-Assistant-custom-components-DPC-Alert
 [githubrelease]: https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/releases
