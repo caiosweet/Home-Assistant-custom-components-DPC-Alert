@@ -228,10 +228,13 @@ card:
 
 ```
 
-## Example Automation Yaml
+## Example Automation 
+
+#### configuration.yaml
 
 ```yaml
-automation:
+
+automation manual:
   - alias: Protezione Civile Notifications
     mode: queued
     max_exceeded: silent
@@ -269,7 +272,8 @@ automation:
               text: "Rossa"
           dpc_tts_msg: >-
             Attenzione. {{attr.get('friendly_name')}}. Allerta {{attr.get('allerta')}} {{attr.get('info')}}.
-      - service: notify.telegram
+
+      - service: notify.pushover
         data:
           title: >-
             Protezione Civile - {{attr.get('rischio')}}{% if trigger.from_state.state == 'on' %} - Revisione{% endif %}
@@ -279,6 +283,12 @@ automation:
             {{alert[attr.get('level', 0)].color}} Allerta {{attr.get('allerta')}} {{attr.get('info')}}.
 
             [Bollettino di criticità]({{trigger.to_state.attributes.link}})
+
+      - service: tts.google_translate_say
+        data:
+          message: "{{dpc_tts_msg}}"
+          entity_id: "media_player.red"
+
       - service: notify.alexa_media
           data:
             message: "{{dpc_tts_msg}}"
