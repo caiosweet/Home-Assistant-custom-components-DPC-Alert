@@ -230,65 +230,53 @@ card:
 
 ## Example Automation 
 
-#### configuration.yaml
 
 ```yaml
 
-automation manual:
+automation:
   - alias: Protezione Civile Notifications
     mode: queued
     max_exceeded: silent
     initial_state: true
+    max: 10
     trigger:
-      platform: state
-      entity_id:
-        - binary_sensor.dpc_idrogeologico_oggi
-        - binary_sensor.dpc_idraulico_oggi
-        - binary_sensor.dpc_temporali_oggi
-        - binary_sensor.dpc_idrogeologico_domani
-        - binary_sensor.dpc_idraulico_domani
-        - binary_sensor.dpc_temporali_domani
-    condition: >-
-      {{ trigger.to_state.state == 'on' and (trigger.from_state.state == 'off' 
-      or (trigger.to_state.attributes != trigger.from_state.attributes))}}
+      - platform: state
+        entity_id:
+          - binary_sensor.dpc_idrogeologico_oggi
+          - binary_sensor.dpc_idraulico_oggi
+          - binary_sensor.dpc_temporali_oggi
+          - binary_sensor.dpc_idrogeologico_domani
+          - binary_sensor.dpc_idraulico_domani
+          - binary_sensor.dpc_temporali_domani
+    condition:
+      - condition: template
+        value_template: >-
+          {{ trigger.to_state.state == 'on' and (trigger.from_state.state == 'off' 
+          or (trigger.to_state.attributes != trigger.from_state.attributes))}}
     action:
       - variables:
-          attr: "{{trigger.to_state.attributes}}"
-          alert:
-            0:
-              color: "⚪"
-              text: "Bianca"
-            1:
-              color: "🟢"
-              text: "Verde"
-            2:
-              color: "🟡"
-              text: "Gialla"
-            3:
-              color: "🟠"
-              text: "Arancione"
-            4:
-              color: "🔴"
-              text: "Rossa"
+          bulletin: >-
+            http://www.protezionecivile.gov.it/attivita-rischi/meteo-idro/attivita/previsione-prevenzione/centro-funzionale-centrale-rischio-meteo-idrogeologico/previsionale/bollettini-criticita/bollettino-odierno
+          attr: |
+            {{ trigger.to_state.attributes if trigger.to_state is defined else ({}) }}
           dpc_tts_msg: >-
-            Attenzione. {{attr.get('friendly_name')}}. Allerta {{attr.get('allerta')}} {{attr.get('info')}}.
-
+            Attenzione. {{attr.get('friendly_name','Test DPC')}}. 
+            Allerta {{attr.get('allerta','Bianca')}} {{attr.get('info','Nessuna info')}}.
       - service: notify.pushover
         data:
-          title: >-
-            Protezione Civile - {{attr.get('rischio')}}{% if trigger.from_state.state == 'on' %} - Revisione{% endif %}
+          title: 'Protezione Civile - {{attr.get(''rischio'')}}'
           message: |
+            {% set alert = {'0': '⚪', '1':'🟢', '2':'🟡', '3':'🟠', '4': '🔴'} %}
             {% set risk = {none: '❌', 'Temporali':'⚡', 'Idraulico':'💧', 'Idrogeologico':'🌊'} %}
-            {{risk[attr.get('rischio')]}} {{attr.get('friendly_name')}}. 
-            {{alert[attr.get('level', 0)].color}} Allerta {{attr.get('allerta')}} {{attr.get('info')}}.
+            {{risk[attr.get('rischio')]}} {{attr.get('friendly_name','Test DPC')}}.  
+            {{alert[attr.get('level', 0)|string]}} Allerta {{attr.get('allerta','Bianca')}}
+            {{attr.get('info','No info')}}.
 
-            [Bollettino di criticità]({{trigger.to_state.attributes.link}})
-
+            Bollettino di criticità {{attr.get('link', bulletin)}}
       - service: tts.google_translate_say
         data:
-          message: "{{dpc_tts_msg}}"
-          entity_id: "media_player.red"
-
+          message: '{{dpc_tts_msg}}'
+          entity_id: media_player.red
       - service: notify.alexa_media
           data:
             message: "{{dpc_tts_msg}}"
