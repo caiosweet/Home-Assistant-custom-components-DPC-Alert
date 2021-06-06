@@ -1,8 +1,8 @@
 # Home Assistant - Custom Components DPC Alert
 
-<img src="https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/assets/brand/icon.png" width="150px"> 
+<img src="https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/assets/brand/icon.png" width="150px">
 
-###### ITALY METEO-HYDRO ALERT - To get more detailed information about parameters of warnings visit [*Civil Protection Department*](http://www.protezionecivile.gov.it/risk-activities/meteo-hydro/activities/prediction-prevention/central-functional-centre-meteo-hydrogeological/meteo-hydro-alert).
+###### ITALY METEO-HYDRO ALERT - To get more detailed information about parameters of warnings visit [*Civil Protection Department*](https://rischi.protezionecivile.gov.it/en/meteo-hydro/alert). [*Dipartimento Protezione Civile*](https://rischi.protezionecivile.gov.it/it/meteo-idro/allertamento).
 
 <br>
 
@@ -25,14 +25,15 @@ Platform | Description
   | Key | Type | Required | Default | Description |
   | --- | --- | --- | --- | --- |
   | `name` | `string` | `False` | `dpc` | Name of sensor |
-  | `istat` | `string` | `True` | None | Number data warehouse I.Stat |
+  | `latitude` | `float` | `False` | Latitude of home | Monitored point Decimal Degrees (DD) |
+  | `longitude` | `float` | `False` | Latitude of home | Monitored point Decimal Degrees (DD) |
   | `alert` | `string` | `False` | GIALLA | (Verde,Gialla,Arancione,Rossa) |
   | `warnings` | `list` | `False` | - | List of monitored warnings |
 
 ## Possible monitored warnings
 
   | Key | Description |
-  | --- | --- | 
+  | --- | --- |
   | `temporali_oggi` | Enables thunderstorms risk monitoring today |
   | `idraulico_oggi` | Enables Hydraulic risk monitoring today |
   | `idrogeologico_oggi` | Enables Hydrogeological risk monitoring today |
@@ -40,18 +41,11 @@ Platform | Description
   | `idraulico_domani` | Enables Hydraulic risk monitoring tomorrow |
   | `idrogeologico_domani` | Enables Hydrogeological risk monitoring tomorrow |
 
-# Important
-
-The istat number is required, you can easily find it [here](https://www.paginebianche.it/codice-istat)
-or you can download the complete list [here](https://www.istat.it/storage/codici-unita-amministrative/Elenco-codici-statistici-e-denominazioni-delle-unita-territoriali.zip)
-If the Istat number starts with zero, it must be entered between the quotes.
-
 ## Example usage (minimal)
 
 ```yaml
 binary_sensor:
   - platform: dpc
-    istat: 58091
     warnings:
       - temporali_oggi
 ```
@@ -60,17 +54,19 @@ binary_sensor:
 
 ```yaml
 binary_sensor:
-  - platform: dpc
-    name: DPC Roma
-    istat: '058091'
-    alert: 'gialla'
-    warnings:
-      - temporali_oggi
-      - idraulico_oggi
-      - idrogeologico_oggi
-      - temporali_domani
-      - idraulico_domani
-      - idrogeologico_domani
+ - platform: dpc
+   name: DPC Roma
+   latitude: 41.9109
+   longitude: 12.4818
+   alert: 'gialla'
+   warnings:
+     - temporali_oggi
+     - idraulico_oggi
+     - idrogeologico_oggi
+     - temporali_domani
+     - idraulico_domani
+     - idrogeologico_domani
+   scan_interval: 900
 ```
 
 ## Preview [From my Natural Events project.][guide]
@@ -130,8 +126,10 @@ card:
       {{state_attr(e.entity, 'friendly_name')}} - {{state_attr(e.entity, 'allerta')}} {{state_attr(e.entity, 'info')}}</font>
       {%- endfor %}
 
-      [Protezione Civile](http://www.protezionecivile.it/home) ~ [Vigilanza Meteo](http://www.protezionecivile.gov.it/dettaglio/-/journal_content/56/20182/1131180?refererPlid=42041&controlPanelCategory=current_site.content)
-      ~ [Criticità Idro](http://www.protezionecivile.gov.it/attivita-rischi/meteo-idro/attivita/previsione-prevenzione/centro-funzionale-centrale-rischio-meteo-idrogeologico/previsionale/bollettini-criticita/bollettino-odierno) ~ [Radar](http://www.protezionecivile.gov.it/radar-dpc)
+      [Protezione Civile](https://www.protezionecivile.gov.it/it/) 
+      ~ [Vigilanza Meteo](https://mappe.protezionecivile.it/it/mappe-rischi/bollettino-di-vigilanza)
+      ~ [Criticità Idro](https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-criticita) 
+      ~ [Radar](https://mappe.protezionecivile.it/it/mappe-rischi/piattaforma-radar)
 
 ```
 
@@ -154,10 +152,10 @@ cards:
       {% endfor %}
 
       <br>
-      [Protezione Civile](http://www.protezionecivile.it/home) ~
-      [Vigilanza Meteo](http://www.protezionecivile.gov.it/dettaglio/-/journal_content/56/20182/1131180?refererPlid=42041&controlPanelCategory=current_site.content) ~ 
-      [Criticità Idro](http://www.protezionecivile.gov.it/attivita-rischi/meteo-idro/attivita/previsione-prevenzione/centro-funzionale-centrale-rischio-meteo-idrogeologico/previsionale/bollettini-criticita/bollettino-odierno) ~ 
-      [Radar](http://www.protezionecivile.gov.it/radar-dpc)
+      [Protezione Civile](https://www.protezionecivile.gov.it/it/) 
+      ~ [Vigilanza Meteo](https://mappe.protezionecivile.it/it/mappe-rischi/bollettino-di-vigilanza)
+      ~ [Criticità Idro](https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-criticita) 
+      ~ [Radar](https://mappe.protezionecivile.it/it/mappe-rischi/piattaforma-radar)
 ```
 
 ## Example Lovelace card auto-entities and card-mod
@@ -222,8 +220,10 @@ card:
     {%- endfor %}
 
 
-    [Protezione Civile](http://www.protezionecivile.it/home) ~ [Vigilanza Meteo](http://www.protezionecivile.gov.it/dettaglio/-/journal_content/56/20182/1131180?refererPlid=42041&controlPanelCategory=current_site.content)
-    ~ [Criticità Idro](http://www.protezionecivile.gov.it/attivita-rischi/meteo-idro/attivita/previsione-prevenzione/centro-funzionale-centrale-rischio-meteo-idrogeologico/previsionale/bollettini-criticita/bollettino-odierno) ~ [Radar](http://www.protezionecivile.gov.it/radar-dpc)
+    [Protezione Civile](https://www.protezionecivile.gov.it/it/) 
+    ~ [Vigilanza Meteo](https://mappe.protezionecivile.it/it/mappe-rischi/bollettino-di-vigilanza)
+    ~ [Criticità Idro](https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-criticita) 
+    ~ [Radar](https://mappe.protezionecivile.it/it/mappe-rischi/piattaforma-radar)
 
 
 ```
@@ -255,8 +255,7 @@ automation:
           or (trigger.to_state.attributes != trigger.from_state.attributes))}}
     action:
       - variables:
-          bulletin: >-
-            http://www.protezionecivile.gov.it/attivita-rischi/meteo-idro/attivita/previsione-prevenzione/centro-funzionale-centrale-rischio-meteo-idrogeologico/previsionale/bollettini-criticita/bollettino-odierno
+          bulletin: "https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-criticita"
           attr: |
             {{ trigger.to_state.attributes if trigger.to_state is defined else ({}) }}
           dpc_tts_msg: >-
@@ -289,9 +288,9 @@ automation:
 
 ## License
 
-_Information provided by [*protezionecivilepop.tk*](http://www.protezionecivilepop.tk/) Giovanni Pirrotta's Creative Commons Licenses [*CC-BY-SA 4.0.*](https://creativecommons.org/licenses/by-sa/4.0/)_
+_Information provided by [*Department of Civil Protection - Presidency of the Council of Ministers*](https://www.protezionecivile.gov.it/en/) Creative Commons Licenses [*CC-BY-SA 4.0.*](https://creativecommons.org/licenses/by-sa/4.0/)_
 
-_Dati forniti dal servizio protezionecivilepop.tk di Giovanni Pirrotta - Licenza Creative Commons [*CC-BY-SA 4.0.*](https://creativecommons.org/licenses/by-sa/4.0/deed.it)_
+_Dati forniti dal servizio [*Dipartimento della Protezione Civile-Presidenza del Consiglio dei Ministri*](https://www.protezionecivile.gov.it/it/) Licenza Creative Commons [*CC-BY-SA 4.0.*](https://creativecommons.org/licenses/by-sa/4.0/deed.it)_
 
 ## Contributions are welcome!
 

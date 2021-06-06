@@ -1,10 +1,14 @@
 """Constants"""
 
-ATTRIBUTION = "Information provided by protezionecivilepop.tk"
+ATTRIBUTION = "Information provided by Civil Protection Department"
 
-BASE_URL = "http://www.protezionecivilepop.tk/allerte?citta={}&rischio={}&allerta=verde&giorno={}&formato=json"
-FEED_URL = "http://www.protezionecivile.gov.it/web/guest/dettaglio/-/journal/rss/351565?doAsGroupId=20182&refererPlid=42041&controlPanelCategory=current_site.content&_15_groupId=20182"
-BULLETTIN_URL = "http://www.protezionecivile.gov.it/attivita-rischi/meteo-idro/attivita/previsione-prevenzione/centro-funzionale-centrale-rischio-meteo-idrogeologico/previsionale/bollettini-criticita/bollettino-odierno"
+BASE_URL = (
+    "https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Criticita-Idrogeologica-Idraulica/master/files"
+    "/geojson/{}_{}.json"
+)
+BULLETTIN_URL = (
+    "https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-criticita"
+)
 CONF_ALERT = "alert"
 CONF_ISTAT = "istat"
 CONF_WARNINGS = "warnings"
