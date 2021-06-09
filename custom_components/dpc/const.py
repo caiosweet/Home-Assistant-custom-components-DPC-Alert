@@ -9,6 +9,7 @@ BASE_URL = (
 BULLETTIN_URL = (
     "https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-criticita"
 )
+IMAGE_URL = "https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Criticita-Idrogeologica-Idraulica/master/files/preview/{}_{}.png"
 CONF_ALERT = "alert"
 CONF_ISTAT = "istat"
 CONF_WARNINGS = "warnings"
@@ -18,32 +19,12 @@ DEFAULT_DEVICE_CLASS = "safety"
 DEFAULT_NAME = "dpc"
 
 WARNING_TYPES = {
-    "temporali_oggi": [
-        "temporali_oggi",
-        "Rischio Temporali Oggi",
-        "mdi:weather-lightning",
-    ],
-    "idraulico_oggi": ["idraulico_oggi", "Rischio Idraulico Oggi", "mdi:home-flood"],
-    "idrogeologico_oggi": [
-        "idrogeologico_oggi",
-        "Rischio Idrogeologico Oggi",
-        "mdi:waves",
-    ],
-    "temporali_domani": [
-        "temporali_domani",
-        "Rischio Temporali Domani",
-        "mdi:weather-lightning",
-    ],
-    "idraulico_domani": [
-        "idraulico_domani",
-        "Rischio Idraulico Domani",
-        "mdi:home-flood",
-    ],
-    "idrogeologico_domani": [
-        "idrogeologico_domani",
-        "Rischio Idrogeologico Domani",
-        "mdi:waves",
-    ],
+    "idraulico_oggi": ["Rischio Idraulico Oggi", "mdi:home-flood"],
+    "temporali_oggi": ["Rischio Temporali Oggi", "mdi:weather-lightning"],
+    "idrogeologico_oggi": ["Rischio Idrogeologico Oggi", "mdi:waves"],
+    "idraulico_domani": ["Rischio Idraulico Domani", "mdi:home-flood"],
+    "temporali_domani": ["Rischio Temporali Domani", "mdi:weather-lightning"],
+    "idrogeologico_domani": ["Rischio Idrogeologico Domani", "mdi:waves"],
 }
 
 WARNING_ALERT = {
