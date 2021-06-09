@@ -2,9 +2,9 @@
   "domain": "dpc",
   "iot_class": "cloud_polling",
   "name": "DPC (Dipartimento Protezione Civile)",
-  "version": "2021.3.1",
+  "version": "2021.6.1",
   "documentation": "https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert",
   "issue_tracker": "https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/issues",
   "codeowners": ["@caiosweet"],
-  "requirements": ["feedparser==6.0.2"]
+  "requirements": ["beautifulsoup4==4.9.3", "geojson_utils==0.0.2"]
 }
