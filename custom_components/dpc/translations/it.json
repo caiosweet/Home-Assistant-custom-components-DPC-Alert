@@ -1,0 +1,37 @@
+{
+    "config": {
+        "flow_title": "{name}",
+        "step": {
+            "user": {
+                "title": "Dipartimento Protezione Civile",
+                "description": "Se hai bisogno di aiuto con la configurazione dai un'occhiata qui: https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert",
+                "data": {
+                    "name": "Nome",
+                    "latitude": "Latitudine",
+                    "longitude": "Longitudine"
+                }
+            }
+        },
+        "error": {
+            "coordinates": "Latitudine/Longitudine è errata."
+        },
+        "abort": {
+            "single_instance_allowed": "È consentita una sola istanza.",
+            "already_configured": "Il dispositivo \u00e8 gi\u00e0 configurato"
+        }
+    },
+    "options": {
+        "step": {
+            "user": {
+                "title": "Opzioni DPC",
+                "description": "Soglia minima di allerta: 1 (verde/nessuna allerta), 2 (giallo/ordinaria), 3 (arancione/moderata), 4 (rosso/elevata). Con la scelta del livello minimo di allerta il sensore sarà attivo solo se il livllo è maggiore o uguale a quello scelto.",
+                "data": {
+                    "binary_sensor": "Sensore binario abilitato",
+                    "sensor": "Sensore abilitato",
+                    "scan_interval": "Intervallo di aggiornamento (minuti, default 30)",
+                    "warning_level": "Livello minimo di avviso"
+                }
+            }
+        }
+    }
+}

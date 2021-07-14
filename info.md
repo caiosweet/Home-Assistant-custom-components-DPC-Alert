@@ -1,8 +1,14 @@
+{% if prerelease %}
+### NB!: This is a Beta version!
+{% endif %}
+
 # Home Assistant - Custom Components DPC Alert
 
 <img src="https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/assets/brand/icon.png" width="150px">
 
-###### ITALY METEO-HYDRO ALERT - To get more detailed information about parameters of warnings visit [*Civil Protection Department*](https://rischi.protezionecivile.gov.it/en/meteo-hydro/alert). [*Dipartimento Protezione Civile*](https://rischi.protezionecivile.gov.it/it/meteo-idro/allertamento).
+## ITALY METEO-HYDRO ALERT
+
+#### To get more detailed information about parameters of warnings visit [*Civil Protection Department*](https://rischi.protezionecivile.gov.it/en/meteo-hydro/alert). [*Dipartimento Protezione Civile*](https://rischi.protezionecivile.gov.it/it/meteo-idro/allertamento).
 
 <br>
 
@@ -10,64 +16,55 @@
 
 [![GitHub latest release]][githubrelease] ![GitHub Release Date] [![Maintenancebadge]][Maintenance] [![GitHub issuesbadge]][GitHub issues]
 
-[![Websitebadge]][website] [![Forum][forumbadge]][forum] [![telegrambadge]][telegram] [![facebookbadge]][facebook] 
+[![Websitebadge]][website] [![Forum][forumbadge]][forum] [![telegrambadge]][telegram] [![facebookbadge]][facebook]
 
-[![Don't buy me a coffee](https://img.shields.io/static/v1.svg?label=Don't%20buy%20me%20a%20coffee&message=🔔&color=black&logo=buy%20me%20a%20coffee&logoColor=white&labelColor=6f4e37)](https://paypal.me/hassiohelp)
+This custom integration retrieves data from [*Civil Protection Department*](https://rischi.protezionecivile.gov.it/en/meteo-hydro/alert)
+This custom component gathers regular and special meteo alerts from DPC (valid only for Italy, Republic of San Marino, Vatican City State).
 
-**This component will set up the following platforms.**
+{% if installed %}
 
-Platform | Description
-  -- | --
-  `binary_sensor` | Show METEO-HYDRO ALERT `on` or `off`.
+## Changes as compared to your installed version:
 
-# Configuration variables
+{% if version_installed.replace("v", "").replace(".","") | int < 2021070  %}
 
-  | Key | Type | Required | Default | Description |
-  | --- | --- | --- | --- | --- |
-  | `name` | `string` | `False` | `dpc` | Name of sensor |
-  | `latitude` | `float` | `False` | Latitude of home | Monitored point Decimal Degrees (DD) |
-  | `longitude` | `float` | `False` | Latitude of home | Monitored point Decimal Degrees (DD) |
-  | `alert` | `string` | `False` | GIALLA | (Verde,Gialla,Arancione,Rossa) |
-  | `warnings` | `list` | `False` | - | List of monitored warnings |
+### Breaking Changes
 
-## Possible monitored warnings
+**Integration now available to set up from the UI.**
 
-  | Key | Description |
-  | --- | --- |
-  | `temporali_oggi` | Enables thunderstorms risk monitoring today |
-  | `idraulico_oggi` | Enables Hydraulic risk monitoring today |
-  | `idrogeologico_oggi` | Enables Hydrogeological risk monitoring today |
-  | `temporali_domani` | Enables thunderstorms risk monitoring tomorrow |
-  | `idraulico_domani` | Enables Hydraulic risk monitoring tomorrow |
-  | `idrogeologico_domani` | Enables Hydrogeological risk monitoring tomorrow |
+The yaml configuration is no longer supported. 
+Please read the [README](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/README.md) file and remove the yaml config.
 
-## Example usage (minimal)
+For binary sensors, the attributes in Italian language (allerta, data, rischio, zona_info) have been replaced in English (alert, date, risk, zone_name).
 
-```yaml
-binary_sensor:
-  - platform: dpc
-    warnings:
-      - temporali_oggi
-```
+### Changes
 
-## Example usage (complete)
+- Added `sensor`
+- Added new extra attributes in binary sensor (id, publication_date, expires, last_update, image_url)
 
-```yaml
-binary_sensor:
- - platform: dpc
-   name: DPC Roma
-   latitude: 41.9109
-   longitude: 12.4818
-   alert: 'gialla'
-   warnings:
-     - temporali_oggi
-     - idraulico_oggi
-     - idrogeologico_oggi
-     - temporali_domani
-     - idraulico_domani
-     - idrogeologico_domani
-   scan_interval: 900
-```
+{% endif %}
+
+---
+{% endif %}
+
+{% if not installed %}
+
+## Installation
+
+1. In the HomeAssistant left menu, click `Configuration`
+2. Click `Integrations`
+3. Click `ADD INTEGRATION`
+4. Type `Dpc` and select it
+5. Enter the details:
+    1. **Name**: Your location name or name of sensor
+    2. **Latitude**: Latitude of monitored point
+    3. **Longitude**: Longitude of monitored point
+6. Optional:
+    1. Binary sensor enable/disable (default enabled)
+    2. Sensor enabled/disable (default enabled)
+    3. Update interval (minutes, default 30)
+    4. Minimum level of warning. (int, default 2)
+
+{% endif %}
 
 ## Preview [From my Natural Events project.][guide]
 
@@ -81,228 +78,8 @@ Cards: card-mod, auto-entities
 <p align="center">
 <img src="https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/assets/images/example-card-markdown.png" width="350px" />
 <br><br>
-Cards: card-mod, markdown 
+Cards: card-mod, markdown
 </p>
-
-## Example Lovelace entities card
-
-```yaml
-type: entities
-entities:
-  - entity: binary_sensor.dpc_temporali_oggi
-  - entity: binary_sensor.dpc_idraulico_oggi
-  - entity: binary_sensor.dpc_idrogeologico_oggi
-  - entity: binary_sensor.dpc_temporali_domani
-  - entity: binary_sensor.dpc_idraulico_domani
-  - entity: binary_sensor.dpc_idrogeologico_domani
-state_color: true
-
-```
-
-## Example Lovelace markdown card
-
-```yaml
-type: entity-filter
-state_filter:
-  - 'on'
-entities:
-  - binary_sensor.dpc_temporali_oggi
-  - binary_sensor.dpc_idraulico_oggi
-  - binary_sensor.dpc_idrogeologico_oggi
-  - binary_sensor.dpc_temporali_domani
-  - binary_sensor.dpc_idraulico_domani
-  - binary_sensor.dpc_idrogeologico_domani
-card:
-  type: markdown
-  content: >-
-      #### PROTEZIONE CIVILE
-
-      {% set color = {0:'White', 1:'Green', 2:'Yellow', 3:'Orange', 4:'Red'} %}
-      {% for e in config.entities %}
-
-      <font color="{{color[state_attr(e.entity, 'level')|int]}}">
-      <ha-icon icon="{{ 'mdi:numeric-' ~ state_attr(e.entity, 'level')|int ~ '-box'}}" style="width: 36px; height: 36px;"></ha-icon> 
-      <ha-icon icon="{{ state_attr(e.entity, 'icon')}}" style="width: 36px; height: 36px;"></ha-icon> 
-      {{state_attr(e.entity, 'friendly_name')}} - {{state_attr(e.entity, 'allerta')}} {{state_attr(e.entity, 'info')}}</font>
-      {%- endfor %}
-
-      [Protezione Civile](https://www.protezionecivile.gov.it/it/) 
-      ~ [Vigilanza Meteo](https://mappe.protezionecivile.it/it/mappe-rischi/bollettino-di-vigilanza)
-      ~ [Criticità Idro](https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-criticita) 
-      ~ [Radar](https://mappe.protezionecivile.it/it/mappe-rischi/piattaforma-radar)
-
-```
-
-## Example of card markdown without using the entity-filter card
-
-```yaml
-type: vertical-stack
-cards:
-  - type: markdown
-    content: >-
-      #### PROTEZIONE CIVILE 1
-      {% set color = {0:'White', 1:'Green', 2:'Yellow', 3:'Orange', 4:'Red'} %} 
-      {% for e in states.binary_sensor %} 
-      {%- if e.object_id.startswith('dpc_') and e.state == 'on' %}
-
-      <font color= {{color[e.attributes.level|int]}}>
-      <ha-icon icon="{{ 'mdi:numeric-' ~ e.attributes.level|int ~ '-box'}}" style="width: 36px; height: 36px;"></ha-icon> 
-      {{e.name}} - {{e.attributes.allerta}} {{e.attributes.info}}</font> 
-      {%- endif -%} 
-      {% endfor %}
-
-      <br>
-      [Protezione Civile](https://www.protezionecivile.gov.it/it/) 
-      ~ [Vigilanza Meteo](https://mappe.protezionecivile.it/it/mappe-rischi/bollettino-di-vigilanza)
-      ~ [Criticità Idro](https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-criticita) 
-      ~ [Radar](https://mappe.protezionecivile.it/it/mappe-rischi/piattaforma-radar)
-```
-
-## Example Lovelace card auto-entities and card-mod
-
-```yaml
-type: 'custom:auto-entities'
-card:
-  type: entities
-  show_empty: false
-  title: Protezione Civile
-  style: |
-    ha-card {background: none; border-radius: 0px; box-shadow: none;}
-filter:
-  include:
-    - entity_id: binary_sensor.dpc*
-      state: 'on'
-      options:
-        entity: this.entity_id
-        secondary_info: last-changed
-        style: |
-          :host {
-            --color:
-              {% set color = {0:'White', 1:'Green', 2:'Yellow', 3:'Orange', 4:'Red'} %}
-              {{color[state_attr(config.entity, 'level')|int]}}
-            color: var(--color);
-            --paper-item-icon-color: var(--color);
-          }
-```
-
-## Example Lovelace card auto-entities + markdown + card-mod
-
-```yaml
-
-type: "custom:auto-entities" # DPC conditional divider markdown
-show_empty: false
-filter:
-  include:
-    - entity_id: binary_sensor.dpc_*
-      state: "on"
-      # attributes:
-      #   level: '> 0'
-card:
-  type: markdown
-  entity_id: this.entity_id
-  card_mod:
-    style: |
-      ha-card {background: none; border-radius: 0px; box-shadow: none;}
-      # .card-content {padding: 0}
-  content: >
-    ___
-
-    #### PROTEZIONE CIVILE
-
-    {% set color = {0:'White', 1:'Green', 2:'Yellow', 3:'Orange', 4:'Red'} %}
-    {% for e in config.entities %}
-
-
-    <font color="{{color[state_attr(e.entity, 'level')|int]}}">
-    <ha-icon icon="{{ 'mdi:numeric-' ~ state_attr(e.entity, 'level')|int ~ '-box'}}" style="width: 36px; height: 36px;"></ha-icon> 
-    <ha-icon icon="{{ state_attr(e.entity, 'icon')}}" style="width: 36px; height: 36px;"></ha-icon> 
-    {{state_attr(e.entity, 'friendly_name')}} - {{state_attr(e.entity, 'allerta')}} {{state_attr(e.entity, 'info')}}</font>
-    {%- endfor %}
-
-
-    [Protezione Civile](https://www.protezionecivile.gov.it/it/) 
-    ~ [Vigilanza Meteo](https://mappe.protezionecivile.it/it/mappe-rischi/bollettino-di-vigilanza)
-    ~ [Criticità Idro](https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-criticita) 
-    ~ [Radar](https://mappe.protezionecivile.it/it/mappe-rischi/piattaforma-radar)
-
-
-```
-
-## Example Automation 
-
-
-```yaml
-
-automation:
-  - alias: Protezione Civile Notifications
-    mode: queued
-    max_exceeded: silent
-    initial_state: true
-    max: 10
-    trigger:
-      - platform: state
-        entity_id:
-          - binary_sensor.dpc_idrogeologico_oggi
-          - binary_sensor.dpc_idraulico_oggi
-          - binary_sensor.dpc_temporali_oggi
-          - binary_sensor.dpc_idrogeologico_domani
-          - binary_sensor.dpc_idraulico_domani
-          - binary_sensor.dpc_temporali_domani
-    condition:
-      - condition: template
-        value_template: >-
-          {{ trigger.to_state.state == 'on' and (trigger.from_state.state == 'off' 
-          or (trigger.to_state.attributes != trigger.from_state.attributes))}}
-    action:
-      - variables:
-          bulletin: "https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-criticita"
-          attr: |
-            {{ trigger.to_state.attributes if trigger.to_state is defined else ({}) }}
-          dpc_tts_msg: >-
-            Attenzione. {{attr.get('friendly_name','Test DPC')}}. 
-            Allerta {{attr.get('allerta','Bianca')}} {{attr.get('info','Nessuna info')}}.
-      - service: notify.pushover
-        data:
-          title: 'Protezione Civile - {{attr.get(''rischio'')}}'
-          message: |
-            {% set alert = {'0': '⚪', '1':'🟢', '2':'🟡', '3':'🟠', '4': '🔴'} %}
-            {% set risk = {none: '❌', 'Temporali':'⚡', 'Idraulico':'💧', 'Idrogeologico':'🌊'} %}
-            {{risk[attr.get('rischio')]}} {{attr.get('friendly_name','Test DPC')}}.  
-            {{alert[attr.get('level', 0)|string]}} Allerta {{attr.get('allerta','Bianca')}}
-            {{attr.get('info','No info')}}.
-
-            Bollettino di criticità {{attr.get('link', bulletin)}}
-      - service: tts.google_translate_say
-        data:
-          message: '{{dpc_tts_msg}}'
-          entity_id: media_player.red
-      - service: notify.alexa_media
-          data:
-            message: "{{dpc_tts_msg}}"
-            data: 
-              type: tts
-            target: "media_player.studio"
-```
-
-## Other Lovelace Examples [HA Card weather conditions](https://github.com/r-renato/ha-card-weather-conditions#display-the-alert-layer) [@r-renato](https://github.com/r-renato)
-
-## License
-
-_Information provided by [*Department of Civil Protection - Presidency of the Council of Ministers*](https://www.protezionecivile.gov.it/en/) Creative Commons Licenses [*CC-BY-SA 4.0.*](https://creativecommons.org/licenses/by-sa/4.0/)_
-
-_Dati forniti dal servizio [*Dipartimento della Protezione Civile-Presidenza del Consiglio dei Ministri*](https://www.protezionecivile.gov.it/it/) Licenza Creative Commons [*CC-BY-SA 4.0.*](https://creativecommons.org/licenses/by-sa/4.0/deed.it)_
-
-## Contributions are welcome!
-
-_Thanks to PiotrMachowski for inspiration._ 
-
-***
-
-## Trademark Legal Notices
-
-All product names, trademarks and registered trademarks in the images in this repository, are property of their respective owners. 
-All images in this repository are used by the author for identification purposes only.
-The use of these names, trademarks and brands appearing in these image files, do not imply endorsement.
 
 [guide]: <https://hassiohelp.eu/2019/10/06/package-eventi-naturali/>
 

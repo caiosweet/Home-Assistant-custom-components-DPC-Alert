@@ -1,31 +1,28 @@
-"""Constants"""
+"""Constants for Dpc."""
+import logging
 
-ATTRIBUTION = "Information provided by Civil Protection Department"
+from homeassistant.components.binary_sensor import DOMAIN as BINARY_SENSOR_DOMAIN
+from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 
-BASE_URL = (
-    "https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Criticita-Idrogeologica-Idraulica/master/files"
-    "/geojson/{}_{}.json"
+LOGGER = logging.getLogger(__package__)
+PLATFORMS = [BINARY_SENSOR_DOMAIN, SENSOR_DOMAIN]
+
+# Base component constants
+ATTRIBUTION = "Data provided by Civil Protection Department"
+DOMAIN = "dpc"
+ISSUE_URL = (
+    "https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/issues"
 )
-BULLETTIN_URL = (
-    "https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-criticita"
-)
-IMAGE_URL = "https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Criticita-Idrogeologica-Idraulica/master/files/preview/{}_{}.png"
-CONF_ALERT = "alert"
-CONF_ISTAT = "istat"
-CONF_WARNINGS = "warnings"
-ISSUES_RESOURCE_URL = "https://github.com/gpirrotta/protezionecivilepop/issues"
+NAME = "Dipartimento Protezione Civile"
+MANUFACTURER = "Italian Government"
+VERSION = "2021.7.0"
 
-DEFAULT_DEVICE_CLASS = "safety"
-DEFAULT_NAME = "dpc"
+CONF_WARNING_LEVEL = "warning_level"
 
-WARNING_TYPES = {
-    "idraulico_oggi": ["Rischio Idraulico Oggi", "mdi:home-flood"],
-    "temporali_oggi": ["Rischio Temporali Oggi", "mdi:weather-lightning"],
-    "idrogeologico_oggi": ["Rischio Idrogeologico Oggi", "mdi:waves"],
-    "idraulico_domani": ["Rischio Idraulico Domani", "mdi:home-flood"],
-    "temporali_domani": ["Rischio Temporali Domani", "mdi:weather-lightning"],
-    "idrogeologico_domani": ["Rischio Idrogeologico Domani", "mdi:waves"],
-}
+# Defaults
+DEFAULT_NAME = "DPC"
+DEFAULT_WARNING_LEVEL = 2
+DEFAULT_SCAN_INTERVAL = 30  # min
 
 WARNING_ALERT = {
     "BIANCA": 0,
@@ -34,3 +31,21 @@ WARNING_ALERT = {
     "ARANCIONE": 3,
     "ROSSA": 4,
 }
+WARNING_TYPES = [
+    "idraulico_oggi",
+    "temporali_oggi",
+    "idrogeologico_oggi",
+    "idraulico_domani",
+    "temporali_domani",
+    "idrogeologico_domani",
+]
+
+STARTUP_MESSAGE = f"""
+-------------------------------------------------------------------
+{NAME}
+Version: {VERSION}
+This is a custom integration!
+If you have any issues with this you need to open an issue here:
+{ISSUE_URL}
+-------------------------------------------------------------------
+"""
