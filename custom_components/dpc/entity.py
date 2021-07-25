@@ -31,7 +31,7 @@ class DpcEntity(CoordinatorEntity):
                 )
             },
             ATTR_NAME: f"{NAME} {self.config_entry.data.get(CONF_NAME)}",
-            ATTR_MODEL: f"Criticality Bulletin {DOMAIN}",  # TODO Vigilance Bullettin
+            ATTR_MODEL: f"Criticality and Vigilance Bulletin {DOMAIN}",
             ATTR_MANUFACTURER: MANUFACTURER,
             ATTR_SW_VERSION: VERSION,
         }

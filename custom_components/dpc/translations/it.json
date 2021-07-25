@@ -29,7 +29,8 @@
                     "binary_sensor": "Sensore binario abilitato",
                     "sensor": "Sensore abilitato",
                     "scan_interval": "Intervallo di aggiornamento (minuti, default 30)",
-                    "warning_level": "Livello minimo di avviso"
+                    "warning_level": "Livello minimo di avviso",
+                    "radius": "Raggio (Km, default 50)"
                 }
             }
         }

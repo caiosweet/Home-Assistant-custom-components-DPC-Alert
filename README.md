@@ -136,6 +136,39 @@ icon: mdi:waves
 device_class: safety
 ```
 
+### Example Lovelace markdown card for sensor Vigilance
+
+```yaml
+type: markdown
+content: >-
+  #### PROTEZIONE CIVILE VIGILANZA METEO
+
+  {%- set entity = 'sensor.dpc_vigilance' %}
+  {%- set day = {'today':'OGGI: ', 'tomorrow':'DOMANI: ', 'aftertomorrow':
+  'DOPODOMANI: '} %} 
+
+  {%- for status in ['today', 'tomorrow','aftertomorrow'] %}
+  {%- set v = state_attr(entity, status) %}
+  {% if v %} 
+  {{ day[status] }}
+  {%- if  v['level'] >= 1 -%}
+  Allerta {{ v['level'] }} 
+  Quantitativi previsti: {{ v['precipitation'] }}
+  {%- endif %}
+
+  {% if v.phenomena %} 
+   Fenomeni nelle vicinanze:
+  {%- for d in v.phenomena %} 
+
+  <ha-icon icon="{{ d['icon'] }}" style="width: 36px; height: 36px;"/></ha-icon>
+  {{ d['event'] }}: {{ d['value'] }} 
+
+  Distanza: {{ d['distance'] }} Km {{ d['direction'] }}{%- endfor %} 
+  {%- endif %}
+  {%- endif %}
+  {%- endfor -%}
+```
+
 ### Example Lovelace markdown card for sensor
 
 ```yaml
