@@ -155,15 +155,14 @@ class DpcSensorCriticality(DpcEntity):
         return attrs
 
 
-# async def async_update(self):
-#     """Update Dpc Sensor Entity."""
-#     await self.coordinator.async_request_refresh()
+async def async_update(self):
+    """Update Dpc Sensor Entity."""
+    await self.coordinator.async_request_refresh()
 
-# async def async_added_to_hass(self):
-#     """Subscribe to updates."""
-#     self.async_on_remove(
-#         self.coordinator.async_add_listener(self.async_write_ha_state)
-#     )
+
+async def async_added_to_hass(self):
+    """Subscribe to updates."""
+    self.async_on_remove(self.coordinator.async_add_listener(self.async_write_ha_state))
 
 
 class DpcSensorVigilance(DpcEntity):
@@ -244,12 +243,12 @@ class DpcSensorVigilance(DpcEntity):
 
         return attrs
 
-    # async def async_update(self):
-    #     """Update Dpc Sensor Entity."""
-    #     await self.coordinator.async_request_refresh()
+    async def async_update(self):
+        """Update Dpc Sensor Entity."""
+        await self.coordinator.async_request_refresh()
 
-    # async def async_added_to_hass(self):
-    #     """Subscribe to updates."""
-    #     self.async_on_remove(
-    #         self.coordinator.async_add_listener(self.async_write_ha_state)
-    #     )
+    async def async_added_to_hass(self):
+        """Subscribe to updates."""
+        self.async_on_remove(
+            self.coordinator.async_add_listener(self.async_write_ha_state)
+        )

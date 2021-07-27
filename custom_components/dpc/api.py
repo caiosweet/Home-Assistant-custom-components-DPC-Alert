@@ -29,7 +29,6 @@ from .const import (
     ATTR_ZONE_NAME,
     LOGGER,
     WARNING_ALERT,
-    WARNING_TYPES,
 )
 
 CRIT_BULLETIN_URL = (
@@ -56,14 +55,12 @@ VIGI_PATTERN_URL = (
     "Meteorologica/master/files/geojson/{}_{}.json"
 )
 
-# HEADERS = {"Content-type": "application/json; charset=UTF-8"}
-
 OGGI = "oggi"
 DOMANI = "domani"
 DOPODOMANI = "dopodomani"
 RISKS = ["idraulico", "temporali", "idrogeologico"]
 TIMEOUT = 20
-
+DEFAULT_ICON = "mdi:hazard-lights"
 VIGI_ICON = {
     1: "mdi:numeric-1-circle",
     2: "mdi:numeric-2-circle",
@@ -71,14 +68,13 @@ VIGI_ICON = {
     4: "mdi:numeric-4-circle",
     5: "mdi:numeric-5-circle",
 }
-DEFAULT_ICON = "mdi:hazard-lights"
 PHENOMENA_ICON = {
     1: "mdi:water",
     2: "mdi:water-plus",
     3: "mdi:snowflake",
     4: "mdi:snowflake-alert",
-    5: "mdi:flash",
-    6: "mdi:lightning-bolt-outline",
+    5: "mdi:lightning-bolt",
+    6: "mdi:flash",
     7: "mdi:flash-alert",
     10: "mdi:weather-windy-variant",
     11: "mdi:weather-windy",
@@ -161,30 +157,27 @@ class DpcApiClient:
         self._pub_date = None
         self._id_crit = None
         self._id_vigi = None
-        self._data_vigi = {}
-        self._data_crit = {}  # criticality
+        self._cache_vigi = {}
+        self._cache_crit = {}
         self._data = {}
-        self._update_vigi = False
-        self._update_crit = False
+        self._point = {"type": "Point", "coordinates": [longitude, latitude]}
 
     async def async_get_data(self):
         """Get data from the API."""
         now = dt.datetime.now()
         midnight = dt.datetime.combine(now.date(), dt.time())
         midnight_first_update = midnight + self._interval
-
         between_midnight_next_update = bool(midnight <= now <= midnight_first_update)
-        one_day = dt.timedelta(days=1)
         date_today = dt.date.today()
-        # tomorrow = date_today + one_day
-        point = {"type": "Point", "coordinates": [self._longitude, self._latitude]}
 
-        self._data[ATTR_LAST_UPDATE] = now.isoformat()  ### TODO
+        self._data[ATTR_LAST_UPDATE] = now.isoformat()
 
-        ## VIGILANCE
-        parse_vigilance = await self.api_fetch("soup", VIGI_BULLETIN_URL)
+        urls = []
+        id = await self.fetch_id([VIGI_BULLETIN_URL, CRIT_BULLETIN_URL])
+
+        ## ID VIGILANCE
+        parse_vigilance = id[0]
         soup_vigilance = BeautifulSoup(parse_vigilance, "html.parser")
-
         for link in soup_vigilance.find_all(href=re.compile("\.zip$")):
             id_pub_vigi = re.findall("[0-9]+", link.get("href"))
 
@@ -192,91 +185,21 @@ class DpcApiClient:
                 continue
             if self._id_vigi == id_pub_vigi[0] and not between_midnight_next_update:
                 LOGGER.debug(
-                    "[%s] Vigilance Sensor - No update needed. %s",
-                    self._location,
-                    self._id_vigi,
+                    "[%s] Vigilance not update. %s", self._location, self._id_vigi
                 )
                 self._data["vigilance"][ATTR_LAST_UPDATE] = now.isoformat()  # TODO
-                self._update_vigi = False
             else:
-                self._update_vigi = True
+                self._data["vigilance"] = {}
+                self._cache_vigi = {}
                 self._id_vigi = id_pub_vigi[0]
-            break
-
-        if self._update_vigi:
-            try:
-                self._data_vigi = {}
-
-                image_vigi_today = VIGI_IMAGE_URL.format(self._id_vigi, OGGI)
-                image_vigi_tomorrow = VIGI_IMAGE_URL.format(self._id_vigi, DOMANI)
-
                 for day in [OGGI, DOMANI, DOPODOMANI]:
                     url = VIGI_PATTERN_URL.format(self._id_vigi, day)
                     url2 = VIGI_PATTERN_URL.format(self._id_vigi, f"fenomeni_{day}")
-                    if day == OGGI:
-                        js_vi_today = await self.api_fetch("get", url)
-                        vigi_today = self.get_properties(point, js_vi_today)
-                        js_ph_today = await self.api_fetch("get", url2)
-                        pheno_today = self.get_phenomena(point, js_ph_today)
+                    urls.extend([url, url2])
+            break
 
-                    elif day == DOMANI:
-                        js_vi_1day = await self.api_fetch("get", url)
-                        vigi_1day = self.get_properties(point, js_vi_1day)
-                        js_ph_1day = await self.api_fetch("get", url2)
-                        pheno_1day = self.get_phenomena(point, js_ph_1day)
-
-                    elif day == DOPODOMANI:
-                        js_vi_2days = await self.api_fetch("get", url)
-                        vigi_2days = self.get_properties(point, js_vi_2days)
-                        ph_2days = await self.api_fetch("get", url2)
-                        pheno_2days = self.get_phenomena(point, ph_2days)
-
-                self._data_vigi.update(
-                    {
-                        ATTR_ID: self._id_vigi,
-                        ATTR_ZONE_NAME: vigi_today["Nome_Zona"],
-                        ATTR_LAST_UPDATE: now.isoformat(),
-                        ATTR_TODAY: {
-                            "icon": VIGI_ICON.get(vigi_today["id_classificazione"]),
-                            ATTR_IMAGE_URL: image_vigi_today,
-                            ATTR_LEVEL: vigi_today["id_classificazione"],
-                            ATTR_PRECIPITATION: vigi_today["Quantitativi_previsti"],
-                            ATTR_PHENOMENA: pheno_today,
-                        },
-                        ATTR_TOMORROW: {
-                            "icon": VIGI_ICON.get(vigi_1day["id_classificazione"]),
-                            ATTR_IMAGE_URL: image_vigi_tomorrow,
-                            ATTR_LEVEL: vigi_1day["id_classificazione"],
-                            ATTR_PRECIPITATION: vigi_1day["Quantitativi_previsti"],
-                            ATTR_PHENOMENA: pheno_1day,
-                        },
-                        ATTR_AFTERTOMORROW: {
-                            "icon": VIGI_ICON.get(vigi_2days["id_classificazione"]),
-                            ATTR_LEVEL: vigi_2days["id_classificazione"],
-                            ATTR_PRECIPITATION: vigi_2days["Quantitativi_previsti"],
-                            ATTR_PHENOMENA: pheno_2days,
-                        },
-                    }
-                )
-
-                # swap data at modinight
-                if (
-                    between_midnight_next_update
-                    or str(date_today).replace("-", "") != self._id_vigi
-                ):
-                    self._data_vigi[ATTR_TODAY] = self._data_vigi[ATTR_TOMORROW]
-                    self._data_vigi[ATTR_TOMORROW] = self._data_vigi[ATTR_AFTERTOMORROW]
-                    self._data_vigi.pop(ATTR_AFTERTOMORROW, None)
-
-                self._data["vigilance"] = self._data_vigi
-
-            except Exception as exception:
-                LOGGER.error("Vigilance Exception! - %s", exception)
-                pass
-            LOGGER.debug("[%s] VIGILANCE: %s", self._location, self._data_vigi)
-
-        ## CRITICAL
-        parse_criticality = await self.api_fetch("soup", CRIT_BULLETIN_URL)
+        ## ID CRITICALITY
+        parse_criticality = id[1]
         soup_criticality = BeautifulSoup(parse_criticality, "html.parser")
         for link in soup_criticality.find_all(href=re.compile("shp\.zip$")):
             id_pub_date = re.findall("[0-9]+_[0-9]+", link.get("href"))
@@ -285,100 +208,76 @@ class DpcApiClient:
                 continue
             if self._id_crit == id_pub_date[0] and not between_midnight_next_update:
                 LOGGER.debug(
-                    "[%s] Criticality Sensor - No update needed. %s",
-                    self._location,
-                    self._id_crit,
+                    "[%s] Criticality Not update. %s", self._location, self._id_crit
                 )
                 self._data["criticality"][ATTR_LAST_UPDATE] = now.isoformat()
-                self._update_crit = False
             else:
-                self._update_crit = True
-                self._id_crit = id_pub_date[0]  # string
+                self._data["criticality"] = {}
+                self._cache_crit = {}
+                self._id_crit = id_pub_date[0]
+                urls.extend(
+                    [
+                        CRIT_PATTERN_URL.format(self._id_crit, "today"),
+                        CRIT_PATTERN_URL.format(self._id_crit, "tomorrow"),
+                    ]
+                )
             break
 
-        if self._update_crit:
-            try:
-                self._pub_date = dt.datetime.strptime(self._id_crit, "%Y%m%d_%H%M")
+        if urls:
+            await self.fetch_all(urls)
 
-                self._data_crit = {}  # Delete cache
-                self._data_crit[ATTR_ID] = self._id_crit
-                self._data_crit[ATTR_LAST_UPDATE] = now.isoformat()
-                self._data_crit[ATTR_LINK] = CRIT_BULLETIN_URL
-                self._data_crit[ATTR_PUBLICATION_DATE] = self._pub_date
-
-                for warning in WARNING_TYPES:
-                    self._data_crit[warning] = {}  # default_data
-
-                expiration_date = dt.datetime.combine(
-                    self._pub_date, dt.datetime.min.time()
+            # VIGILANCE swap data at modinight...
+            if (
+                between_midnight_next_update
+                or str(date_today).replace("-", "") != self._id_vigi
+            ):
+                self._cache_vigi[ATTR_TODAY] = self._cache_vigi.get(ATTR_TOMORROW, {})
+                self._cache_vigi[ATTR_TOMORROW] = self._cache_vigi.get(
+                    ATTR_AFTERTOMORROW, {}
                 )
+                self._cache_vigi.pop(ATTR_AFTERTOMORROW, None)
+                self._data["vigilance"] = self._cache_vigi
+                LOGGER.debug("[%s] Vigilance swap data...", self._location)
 
-                url_today = CRIT_PATTERN_URL.format(self._id_crit, "today")
-                url_tomorrow = CRIT_PATTERN_URL.format(self._id_crit, "tomorrow")
-                js_today = await self.api_fetch("get", url_today)
-                js_tomorrow = await self.api_fetch("get", url_tomorrow)
+            # CRITICALITY swap data at modinight...
+            if between_midnight_next_update or date_today != self._pub_date.date():
+                for risk in RISKS:
+                    day_0 = f"{risk}_{OGGI}"
+                    day_1 = f"{risk}_{DOMANI}"
+                    self._cache_crit[day_0] = self._cache_crit.get(day_1, {})
+                    self._cache_crit[day_1] = {}
+                self._cache_crit[ATTR_TODAY] = self._cache_crit.get(ATTR_TOMORROW, {})
+                self._cache_crit.pop(ATTR_TOMORROW, None)
+                self._data["criticality"] = self._cache_crit
+                LOGGER.debug("[%s] Criticality swap data...", self._location)
 
-                # for feat_today, feat_toorrow in zip(js_today["features"], js_tomorrow["features"]):
-                for idx, feature in enumerate(js_today["features"]):
-                    polygon = feature["geometry"]
-                    if not point_in_polygon(point, polygon):
-                        continue
-                    # TODAY
-                    prop_today = feature["properties"]
-                    self._data_crit[ATTR_ZONE_NAME] = prop_today["Nome zona"]
-                    image = CRIT_IMAGE_URL.format(self._id_crit, OGGI)
-
-                    self._data_crit[ATTR_TODAY] = self.get_info_level(
-                        prop_today["Rappresentata nella mappa"]
-                    )
-                    for risk in RISKS:
-                        self._data_crit[f"{risk}_{OGGI}"] = {
-                            ATTR_RISK: risk.capitalize(),
-                            ATTR_IMAGE_URL: image,
-                            ATTR_EXPIRES: expiration_date,
-                        }
-                        self._data_crit[f"{risk}_{OGGI}"].update(
-                            self.get_info_level(prop_today["Per rischio " + risk])
-                        )
-
-                    # TOMORROW
-                    prop_tomorrow = js_tomorrow["features"][idx]["properties"]
-                    image = CRIT_IMAGE_URL.format(self._id_crit, DOMANI)
-                    expiration_date += one_day
-
-                    self._data_crit[ATTR_TOMORROW] = self.get_info_level(
-                        prop_tomorrow["Rappresentata nella mappa"]
-                    )
-                    for risk in RISKS:
-                        self._data_crit[f"{risk}_{DOMANI}"] = {
-                            ATTR_RISK: risk.capitalize(),
-                            ATTR_IMAGE_URL: image,
-                            ATTR_EXPIRES: expiration_date,
-                        }
-                        self._data_crit[f"{risk}_{DOMANI}"].update(
-                            self.get_info_level(prop_tomorrow["Per rischio " + risk])
-                        )
-                    break
-
-                # swap data at modinight...
-                if between_midnight_next_update or date_today != self._pub_date.date():
-                    for risk in RISKS:
-                        day_0 = f"{risk}_{OGGI}"
-                        day_1 = f"{risk}_{DOMANI}"
-                        self._data_crit[day_0] = self._data_crit[day_1]
-                        self._data_crit[day_1] = {}
-                    self._data_crit[ATTR_TODAY] = self._data_crit[ATTR_TOMORROW]
-                    self._data_crit.pop(ATTR_TOMORROW, None)
-
-                self._data["criticality"] = self._data_crit
-
-            except Exception as exception:
-                LOGGER.error("Criticality Exception! - %s", exception)
-                pass
-            LOGGER.debug("[%s] CRITICALITY: %s", self._location, self._data_crit)
-
-        LOGGER.debug("\n\n[%s] DATA: %s", self._location, self._data)
+        LOGGER.debug("[%s] DATA: %s", self._location, self._data)
         return self._data
+
+    async def fetch_id(self, urls):
+        tasks = []
+        for url in urls:
+            task = asyncio.create_task(self.api_fetch("soup", url))
+            tasks.append(task)
+        results = await asyncio.gather(*tasks)
+        return results
+
+    async def fetch_all(self, urls):
+        tasks = []
+        for url in urls:
+            task = asyncio.create_task(self.parse_response(url))
+            tasks.append(task)
+        results = await asyncio.gather(*tasks)
+        return results
+
+    async def parse_response(self, url):
+        response = await self.api_fetch("get", url)
+        if response:
+            if "Vigilanza-Meteorologica" in url:
+                await self.get_vigilance(response, url)
+            elif "Criticita-Idrogeologica" in url:
+                await self.get_criticality(response, url)
+            return response
 
     async def api_fetch(self, method: str, url: str, headers: dict = {}) -> dict:
         """Get information from the API."""
@@ -386,15 +285,20 @@ class DpcApiClient:
             async with async_timeout.timeout(TIMEOUT, loop=asyncio.get_event_loop()):
                 if method == "soup":
                     resp = await self._session.get(url, headers=headers)
+                    resp.raise_for_status()
                     LOGGER.debug(
-                        "[%s] Response Soup %s - %s", self._location, url, resp
+                        "[%s] Response Soup %s - %s", self._location, url, resp.status
                     )
                     return await resp.text()
 
                 elif method == "get":
                     resp = await self._session.get(url, headers=headers)
+                    resp.raise_for_status()
                     LOGGER.debug(
-                        "[%s] Response Json %s - %s", self._location, url, resp
+                        "[%s] Got response [%s] for URL: %s",
+                        self._location,
+                        resp.status,
+                        url,
                     )
                     return await resp.json(content_type=None)  # not import json
 
@@ -404,21 +308,117 @@ class DpcApiClient:
                 url,
                 exception,
             )
-
         except (KeyError, TypeError) as exception:
             LOGGER.error(
                 "Error parsing information from %s - %s",
                 url,
                 exception,
             )
-        except (aiohttp.ClientError, socket.gaierror) as exception:
+
+        except (aiohttp.ClientError, aiohttp.http_exceptions.HttpProcessingError) as e:
+            status = getattr(e, "status", None)
+            message = getattr(e, "message", None)
+            LOGGER.error("aiohttp exception for %s [%s]:%s", url, status, message)
+
+        except (socket.gaierror) as exception:
             LOGGER.error(
-                "Error fetching information from %s - %s",
+                "Socket Error fetching information from %s - %s",
                 url,
                 exception,
             )
-        except Exception as exception:  # pylint: disable=broad-except
-            LOGGER.error("Something really wrong happened! - %s", exception)
+
+        except Exception as non_exp_err:
+            LOGGER.exception(
+                "Non-expected exception occured for %s:  %s",
+                url,
+                getattr(non_exp_err, "__dict__", {}),
+            )
+
+    async def get_vigilance(self, response, url):
+        now = dt.datetime.now()
+        try:
+            if "_oggi" in url:
+                day_en = ATTR_TODAY
+                image_vigi = VIGI_IMAGE_URL.format(self._id_vigi, OGGI)
+            elif "_domani" in url:
+                day_en = ATTR_TOMORROW
+                image_vigi = VIGI_IMAGE_URL.format(self._id_vigi, DOMANI)
+            elif "_dopodomani" in url:
+                day_en = ATTR_AFTERTOMORROW
+                image_vigi = None
+
+            if day_en not in self._cache_vigi:
+                self._cache_vigi[day_en] = {}
+
+            if "_fenomeni" in url:
+                phenomena = self.get_phenomena(self._point, response)
+                self._cache_vigi[day_en].update({ATTR_PHENOMENA: phenomena})
+
+            else:
+                vigi = self.get_properties(self._point, response)
+                self._cache_vigi[day_en].update(
+                    {
+                        "icon": VIGI_ICON.get(vigi["id_classificazione"]),
+                        ATTR_IMAGE_URL: image_vigi,
+                        ATTR_LEVEL: vigi["id_classificazione"],
+                        ATTR_PRECIPITATION: vigi["Quantitativi_previsti"],
+                    }
+                )
+                self._cache_vigi.update(
+                    {
+                        ATTR_ID: self._id_vigi,
+                        ATTR_ZONE_NAME: vigi["Nome_Zona"],
+                        ATTR_LAST_UPDATE: now.isoformat(),
+                    }
+                )
+
+            self._data["vigilance"] = self._cache_vigi
+
+        except Exception as exception:
+            LOGGER.error("Vigilance Exception! - %s", exception)
+            pass
+
+    async def get_criticality(self, response, url):
+
+        now = dt.datetime.now()
+        self._pub_date = dt.datetime.strptime(self._id_crit, "%Y%m%d_%H%M")
+        expiration_date = dt.datetime.combine(self._pub_date, dt.datetime.min.time())
+        try:
+            if "today" in url:
+                day_en = ATTR_TODAY
+                day_it = OGGI
+            else:
+                day_en = ATTR_TOMORROW
+                day_it = DOMANI
+                expiration_date += dt.timedelta(days=1)
+
+            self._cache_crit[ATTR_ID] = self._id_crit
+            self._cache_crit[ATTR_LAST_UPDATE] = now.isoformat()
+            self._cache_crit[ATTR_LINK] = CRIT_BULLETIN_URL
+            self._cache_crit[ATTR_PUBLICATION_DATE] = self._pub_date
+
+            prop = self.get_properties(self._point, response)
+            self._cache_crit[ATTR_ZONE_NAME] = prop["Nome zona"]
+            image = CRIT_IMAGE_URL.format(self._id_crit, day_it)
+
+            self._cache_crit[day_en] = self.get_info_level(
+                prop["Rappresentata nella mappa"]
+            )
+            for risk in RISKS:
+                self._cache_crit[f"{risk}_{day_it}"] = {
+                    ATTR_RISK: risk.capitalize(),
+                    ATTR_IMAGE_URL: image,
+                    ATTR_EXPIRES: expiration_date,
+                }
+                self._cache_crit[f"{risk}_{day_it}"].update(
+                    self.get_info_level(prop["Per rischio " + risk])
+                )
+
+            self._data["criticality"] = self._cache_crit
+
+        except Exception as exception:
+            LOGGER.error("Criticality Exception! - %s", exception)
+            pass
 
     @staticmethod
     def get_info_level(value):
@@ -444,7 +444,6 @@ class DpcApiClient:
             break
         return properties
 
-    # @staticmethod
     def get_phenomena(self, point, geojs):
         phenomena = []
         radius = self._radius * 1000  # Conv Km to Mt
@@ -491,22 +490,16 @@ def calculate_initial_compass_bearing(pointA, pointB):
     """
     if (type(pointA) != tuple) or (type(pointB) != tuple):
         raise TypeError("Only tuples are supported as arguments")
-
     lat1 = math.radians(pointA[0])
     lat2 = math.radians(pointB[0])
-
     diffLong = math.radians(pointB[1] - pointA[1])
-
     x = math.sin(diffLong) * math.cos(lat2)
     y = math.cos(lat1) * math.sin(lat2) - (
         math.sin(lat1) * math.cos(lat2) * math.cos(diffLong)
     )
-
     initial_bearing = math.atan2(x, y)
-
     initial_bearing = math.degrees(initial_bearing)
     compass_bearing = (initial_bearing + 360) % 360
-
     dirs = [
         "N",
         "NNE",
