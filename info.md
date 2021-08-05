@@ -23,7 +23,13 @@ This custom component gathers regular and special meteo alerts from DPC (valid o
 
 {% if installed %}
 
-## Changes as compared to your installed version:
+## Changes as compared to your installed version
+
+{% if version_installed.replace("v", "").replace(".","") | int < 2021080  %}
+
+Please remove the old installation and reinstall the new one. Otherwise, orphan entities could be created.
+
+{% endif %}
 
 {% if version_installed.replace("v", "").replace(".","") | int < 2021070  %}
 
@@ -94,7 +100,6 @@ Cards: card-mod, markdown
 [Maintenance]: https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/graphs/commit-activity
 [GitHub issuesbadge]: https://img.shields.io/github/issues/caiosweet/Home-Assistant-custom-components-DPC-Alert
 [GitHub issues]: https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/issues
-
 
 [website]: https://hassiohelp.eu/
 [Websitebadge]: https://img.shields.io/website?down_message=Offline&label=HssioHelp&logoColor=blue&up_message=Online&url=https%3A%2F%2Fhassiohelp.eu

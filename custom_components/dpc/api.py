@@ -1,13 +1,12 @@
 """Dpc API Client."""
 import asyncio
-import datetime as dt
-import math
+from datetime import date, datetime, time, timedelta
+from math import *
 import re
 import socket
 
 import aiohttp
 import async_timeout
-from bs4 import BeautifulSoup
 from geojson_utils import geometry_within_radius, point_distance, point_in_polygon
 
 from .const import (
@@ -59,8 +58,16 @@ OGGI = "oggi"
 DOMANI = "domani"
 DOPODOMANI = "dopodomani"
 RISKS = ["idraulico", "temporali", "idrogeologico"]
-TIMEOUT = 20
+
+CRITICALITY = "criticality"
+VIGILANCE = "vigilance"
+
 DEFAULT_ICON = "mdi:hazard-lights"
+CRIT_ICON = {
+    "idraulico": "mdi:home-flood",
+    "temporali": "mdi:weather-lightning",
+    "idrogeologico": "mdi:waves",
+}
 VIGI_ICON = {
     1: "mdi:numeric-1-circle",
     2: "mdi:numeric-2-circle",
@@ -135,6 +142,9 @@ PHENOMENA_TYPE = {
     },
 }
 
+REGEX_DPC_ID = re.compile(r'href=[\'"]?([^\'" >]+\/)([0-9]+.[0-9]+).zip', re.IGNORECASE)
+TIMEOUT = 30
+
 
 class DpcApiClient:
     def __init__(
@@ -144,17 +154,17 @@ class DpcApiClient:
         longitude: float,
         radius: int,
         session: aiohttp.ClientSession,
-        update_interval: dt.timedelta,
+        update_interval: timedelta,
     ) -> None:
         """Dpc API Client."""
-        self._location = location_name
+        self._name = location_name
         self._latitude = latitude
         self._longitude = longitude
         self._radius = radius
         self._session = session
         self._interval = update_interval
 
-        self._pub_date = None
+        self._pub_date_crit = None
         self._id_crit = None
         self._id_vigi = None
         self._cache_vigi = {}
@@ -164,179 +174,198 @@ class DpcApiClient:
 
     async def async_get_data(self):
         """Get data from the API."""
-        now = dt.datetime.now()
-        midnight = dt.datetime.combine(now.date(), dt.time())
+        now = datetime.now()
+        midnight = datetime.combine(now.date(), time())
         midnight_first_update = midnight + self._interval
-        between_midnight_next_update = bool(midnight <= now <= midnight_first_update)
-        date_today = dt.date.today()
+        between_midnight_first_update = bool(midnight <= now <= midnight_first_update)
+        date_today = date.today()
 
         self._data[ATTR_LAST_UPDATE] = now.isoformat()
 
         urls = []
-        id = await self.fetch_id([VIGI_BULLETIN_URL, CRIT_BULLETIN_URL])
+        ids_dpc = await self.scrape_urls([CRIT_BULLETIN_URL, VIGI_BULLETIN_URL])
+        id_ct, id_vg = ids_dpc.get(CRIT_BULLETIN_URL), ids_dpc.get(VIGI_BULLETIN_URL)
 
-        ## ID VIGILANCE
-        parse_vigilance = id[0]
-        soup_vigilance = BeautifulSoup(parse_vigilance, "html.parser")
-        for link in soup_vigilance.find_all(href=re.compile("\.zip$")):
-            id_pub_vigi = re.findall("[0-9]+", link.get("href"))
-
-            if not id_pub_vigi:
-                continue
-            if self._id_vigi == id_pub_vigi[0] and not between_midnight_next_update:
-                LOGGER.debug(
-                    "[%s] Vigilance not update. %s", self._location, self._id_vigi
-                )
-                self._data["vigilance"][ATTR_LAST_UPDATE] = now.isoformat()  # TODO
-            else:
-                self._data["vigilance"] = {}
-                self._cache_vigi = {}
-                self._id_vigi = id_pub_vigi[0]
-                for day in [OGGI, DOMANI, DOPODOMANI]:
-                    url = VIGI_PATTERN_URL.format(self._id_vigi, day)
-                    url2 = VIGI_PATTERN_URL.format(self._id_vigi, f"fenomeni_{day}")
-                    urls.extend([url, url2])
-            break
-
-        ## ID CRITICALITY
-        parse_criticality = id[1]
-        soup_criticality = BeautifulSoup(parse_criticality, "html.parser")
-        for link in soup_criticality.find_all(href=re.compile("shp\.zip$")):
-            id_pub_date = re.findall("[0-9]+_[0-9]+", link.get("href"))
-
-            if not id_pub_date:
-                continue
-            if self._id_crit == id_pub_date[0] and not between_midnight_next_update:
-                LOGGER.debug(
-                    "[%s] Criticality Not update. %s", self._location, self._id_crit
-                )
-                self._data["criticality"][ATTR_LAST_UPDATE] = now.isoformat()
-            else:
-                self._data["criticality"] = {}
+        if id_ct:
+            if self._id_crit != id_ct:
+                self._data[CRITICALITY] = {}
                 self._cache_crit = {}
-                self._id_crit = id_pub_date[0]
+                self._id_crit = id_ct
+                self._pub_date_crit = datetime.strptime(self._id_crit, "%Y%m%d_%H%M")
                 urls.extend(
                     [
                         CRIT_PATTERN_URL.format(self._id_crit, "today"),
                         CRIT_PATTERN_URL.format(self._id_crit, "tomorrow"),
                     ]
                 )
-            break
+            elif between_midnight_first_update:
+                self.swap_data_criticality()
+            else:
+                LOGGER.debug(
+                    "[%s] Criticality No changes. %s", self._name, self._id_crit
+                )
+            self._data[CRITICALITY][ATTR_LAST_UPDATE] = now.isoformat()
+
+        if id_vg:
+            if self._id_vigi != id_vg:
+                self._data[VIGILANCE] = {}
+                self._cache_vigi = {}
+                self._id_vigi = id_vg
+                for day in [OGGI, DOMANI, DOPODOMANI]:
+                    urls.extend(
+                        [
+                            VIGI_PATTERN_URL.format(self._id_vigi, day),
+                            VIGI_PATTERN_URL.format(self._id_vigi, f"fenomeni_{day}"),
+                        ]
+                    )
+            elif between_midnight_first_update:
+                self.swap_data_vigilance()
+            else:
+                LOGGER.debug("[%s] Vigilance No changes. %s", self._name, self._id_vigi)
+            self._data[VIGILANCE][ATTR_LAST_UPDATE] = now.isoformat()
 
         if urls:
             await self.fetch_all(urls)
+            if id_ct and (date_today != self._pub_date_crit.date()):
+                self.swap_data_criticality()
+            if id_vg and (str(date_today).replace("-", "") != self._id_vigi):
+                self.swap_data_vigilance()
 
-            # VIGILANCE swap data at modinight...
-            if (
-                between_midnight_next_update
-                or str(date_today).replace("-", "") != self._id_vigi
-            ):
-                self._cache_vigi[ATTR_TODAY] = self._cache_vigi.get(ATTR_TOMORROW, {})
-                self._cache_vigi[ATTR_TOMORROW] = self._cache_vigi.get(
-                    ATTR_AFTERTOMORROW, {}
-                )
-                self._cache_vigi.pop(ATTR_AFTERTOMORROW, None)
-                self._data["vigilance"] = self._cache_vigi
-                LOGGER.debug("[%s] Vigilance swap data...", self._location)
-
-            # CRITICALITY swap data at modinight...
-            if between_midnight_next_update or date_today != self._pub_date.date():
-                for risk in RISKS:
-                    day_0 = f"{risk}_{OGGI}"
-                    day_1 = f"{risk}_{DOMANI}"
-                    self._cache_crit[day_0] = self._cache_crit.get(day_1, {})
-                    self._cache_crit[day_1] = {}
-                self._cache_crit[ATTR_TODAY] = self._cache_crit.get(ATTR_TOMORROW, {})
-                self._cache_crit.pop(ATTR_TOMORROW, None)
-                self._data["criticality"] = self._cache_crit
-                LOGGER.debug("[%s] Criticality swap data...", self._location)
-
-        LOGGER.debug("[%s] DATA: %s", self._location, self._data)
+        LOGGER.debug("[%s] DATA: %s", self._name, self._data)
         return self._data
 
-    async def fetch_id(self, urls):
-        tasks = []
-        for url in urls:
-            task = asyncio.create_task(self.api_fetch("soup", url))
-            tasks.append(task)
-        results = await asyncio.gather(*tasks)
-        return results
+    async def scrape_urls(self, urls: list) -> dict:
+        results = await asyncio.gather(*[self.api_fetch(url) for url in urls])
+        return {k: v for element in results for k, v in element.items()}
 
-    async def fetch_all(self, urls):
-        tasks = []
-        for url in urls:
-            task = asyncio.create_task(self.parse_response(url))
-            tasks.append(task)
-        results = await asyncio.gather(*tasks)
-        return results
+    async def fetch_all(self, urls: list):
+        await asyncio.gather(*[self.fetch_and_parse(url) for url in urls])
 
-    async def parse_response(self, url):
-        response = await self.api_fetch("get", url)
+    async def fetch_and_parse(self, url: str) -> dict:
+        response = await self.api_fetch(url)
         if response:
             if "Vigilanza-Meteorologica" in url:
-                await self.get_vigilance(response, url)
+                self.get_vigilance(response, url)
             elif "Criticita-Idrogeologica" in url:
-                await self.get_criticality(response, url)
-            return response
+                self.get_criticality(response, url)
 
-    async def api_fetch(self, method: str, url: str, headers: dict = {}) -> dict:
+    async def api_fetch(self, url: str) -> dict:
         """Get information from the API."""
         try:
             async with async_timeout.timeout(TIMEOUT, loop=asyncio.get_event_loop()):
-                if method == "soup":
-                    resp = await self._session.get(url, headers=headers)
-                    resp.raise_for_status()
-                    LOGGER.debug(
-                        "[%s] Response Soup %s - %s", self._location, url, resp.status
-                    )
-                    return await resp.text()
+                if "json" in url:
+                    r = await self._session.get(url, raise_for_status=True)
+                    fetched = await r.json(content_type=None)  # not import json
+                else:
+                    r = await self._session.get(url, raise_for_status=True)
+                    fetched = {url: self.parse(await r.text())}
+                LOGGER.debug("[%s] -> Got [%s] for URL: %s", self._name, r.status, url)
+                return fetched
 
-                elif method == "get":
-                    resp = await self._session.get(url, headers=headers)
-                    resp.raise_for_status()
-                    LOGGER.debug(
-                        "[%s] Got response [%s] for URL: %s",
-                        self._location,
-                        resp.status,
-                        url,
-                    )
-                    return await resp.json(content_type=None)  # not import json
+        except asyncio.CancelledError as e:
+            LOGGER.error("Cancelled error fetching information from %s - %s", url, e)
 
-        except asyncio.TimeoutError as exception:
-            LOGGER.error(
-                "Timeout error fetching information from %s - %s",
-                url,
-                exception,
-            )
-        except (KeyError, TypeError) as exception:
-            LOGGER.error(
-                "Error parsing information from %s - %s",
-                url,
-                exception,
-            )
+        except asyncio.TimeoutError as e:
+            LOGGER.error("Timeout error fetching information from %s - %s", url, e)
+
+        except (KeyError, TypeError) as e:
+            LOGGER.error("Error parsing information from %s - %s", url, e)
 
         except (aiohttp.ClientError, aiohttp.http_exceptions.HttpProcessingError) as e:
             status = getattr(e, "status", None)
             message = getattr(e, "message", None)
             LOGGER.error("aiohttp exception for %s [%s]:%s", url, status, message)
 
-        except (socket.gaierror) as exception:
-            LOGGER.error(
-                "Socket Error fetching information from %s - %s",
-                url,
-                exception,
-            )
+        except (socket.gaierror) as e:
+            LOGGER.error("Socket Error fetching information from %s - %s", url, e)
 
-        except Exception as non_exp_err:
+        except Exception as unexpected_error:
             LOGGER.exception(
-                "Non-expected exception occured for %s:  %s",
+                "Unexpected error exception occured for %s:  %s",
                 url,
-                getattr(non_exp_err, "__dict__", {}),
+                getattr(unexpected_error, "__dict__", {}),
             )
 
-    async def get_vigilance(self, response, url):
-        now = dt.datetime.now()
+    def parse(self, html) -> str:
+        LOGGER.debug("[%s] Parse DPC Bulletin in progress...", self._name)
+        id_pub = [match[1] for match in REGEX_DPC_ID.findall(html)]
+        if id_pub:
+            return id_pub[0]
+
+    def swap_data_criticality(self):
+        for risk in RISKS:
+            day_0 = f"{risk}_{OGGI}"
+            day_1 = f"{risk}_{DOMANI}"
+            self._cache_crit[day_0] = self._cache_crit.get(day_1, {})
+            self._cache_crit[day_1] = {}
+        self._cache_crit[ATTR_TODAY] = self._cache_crit.get(ATTR_TOMORROW, {})
+        self._cache_crit.pop(ATTR_TOMORROW, None)
+        self._data[CRITICALITY] = self._cache_crit
+        LOGGER.debug("[%s] Criticality swap data...", self._name)
+
+    def swap_data_vigilance(self):
+        self._cache_vigi[ATTR_TODAY] = self._cache_vigi.get(ATTR_TOMORROW, {})
+        self._cache_vigi[ATTR_TOMORROW] = self._cache_vigi.get(ATTR_AFTERTOMORROW, {})
+        self._cache_vigi.pop(ATTR_AFTERTOMORROW, None)
+        self._data[VIGILANCE] = self._cache_vigi
+        LOGGER.debug("[%s] Vigilance swap data...", self._name)
+
+    def get_criticality(self, response: dict, url: str) -> dict:
+        LOGGER.debug("[%s] Criticality Update in progress......", self._name)
+        now = datetime.now()
+        # self._pub_date_crit = datetime.strptime(self._id_crit, "%Y%m%d_%H%M")
+        expiration_date = datetime.combine(self._pub_date_crit, datetime.min.time())
         try:
+            if "today" in url:
+                day_en = ATTR_TODAY
+                day_it = OGGI
+            else:
+                day_en = ATTR_TOMORROW
+                day_it = DOMANI
+                expiration_date += timedelta(days=1)
+
+            self._cache_crit[ATTR_ID] = self._id_crit
+            self._cache_crit[ATTR_LAST_UPDATE] = now.isoformat()
+            self._cache_crit[ATTR_LINK] = CRIT_BULLETIN_URL
+            self._cache_crit[ATTR_PUBLICATION_DATE] = self._pub_date_crit
+
+            prop = self.get_properties(self._point, response)
+            self._cache_crit[ATTR_ZONE_NAME] = prop["Nome zona"]
+            image = CRIT_IMAGE_URL.format(self._id_crit, day_it)
+
+            self._cache_crit[day_en] = self.get_info_level(
+                prop["Rappresentata nella mappa"]
+            )
+            self._cache_crit[day_en].update(
+                {
+                    ATTR_IMAGE_URL: image,
+                    ATTR_EXPIRES: expiration_date,
+                }
+            )
+
+            for risk in RISKS:
+                self._cache_crit[f"{risk}_{day_it}"] = {
+                    ATTR_RISK: risk.capitalize(),
+                    ATTR_IMAGE_URL: image,
+                    ATTR_EXPIRES: expiration_date,
+                    "icon": CRIT_ICON.get(risk),
+                }
+                self._cache_crit[f"{risk}_{day_it}"].update(
+                    self.get_info_level(prop["Per rischio " + risk])
+                )
+
+            self._data[CRITICALITY] = self._cache_crit
+
+        except Exception as exception:
+            LOGGER.error("Criticality Exception! - %s", exception)
+            pass
+
+    def get_vigilance(self, response: dict, url: str) -> dict:
+        LOGGER.debug("[%s] Vigilance Update in progress......", self._name)
+        now = datetime.now()
+        try:
+            day_en = str()
+            image_vigi = str()
             if "_oggi" in url:
                 day_en = ATTR_TODAY
                 image_vigi = VIGI_IMAGE_URL.format(self._id_vigi, OGGI)
@@ -354,99 +383,48 @@ class DpcApiClient:
                 phenomena = self.get_phenomena(self._point, response)
                 self._cache_vigi[day_en].update({ATTR_PHENOMENA: phenomena})
 
-            else:
-                vigi = self.get_properties(self._point, response)
+            elif "Vigilanza-Meteorologica" in url:
+                prop = self.get_properties(self._point, response)
                 self._cache_vigi[day_en].update(
                     {
-                        "icon": VIGI_ICON.get(vigi["id_classificazione"]),
+                        "icon": VIGI_ICON.get(prop["id_classificazione"]),
                         ATTR_IMAGE_URL: image_vigi,
-                        ATTR_LEVEL: vigi["id_classificazione"],
-                        ATTR_PRECIPITATION: vigi["Quantitativi_previsti"],
+                        ATTR_LEVEL: prop["id_classificazione"],
+                        ATTR_PRECIPITATION: prop["Quantitativi_previsti"],
                     }
                 )
                 self._cache_vigi.update(
                     {
                         ATTR_ID: self._id_vigi,
-                        ATTR_ZONE_NAME: vigi["Nome_Zona"],
+                        ATTR_ZONE_NAME: prop["Nome_Zona"],
                         ATTR_LAST_UPDATE: now.isoformat(),
                     }
                 )
 
-            self._data["vigilance"] = self._cache_vigi
+            self._data[VIGILANCE] = self._cache_vigi
 
         except Exception as exception:
             LOGGER.error("Vigilance Exception! - %s", exception)
             pass
 
-    async def get_criticality(self, response, url):
-
-        now = dt.datetime.now()
-        self._pub_date = dt.datetime.strptime(self._id_crit, "%Y%m%d_%H%M")
-        expiration_date = dt.datetime.combine(self._pub_date, dt.datetime.min.time())
-        try:
-            if "today" in url:
-                day_en = ATTR_TODAY
-                day_it = OGGI
-            else:
-                day_en = ATTR_TOMORROW
-                day_it = DOMANI
-                expiration_date += dt.timedelta(days=1)
-
-            self._cache_crit[ATTR_ID] = self._id_crit
-            self._cache_crit[ATTR_LAST_UPDATE] = now.isoformat()
-            self._cache_crit[ATTR_LINK] = CRIT_BULLETIN_URL
-            self._cache_crit[ATTR_PUBLICATION_DATE] = self._pub_date
-
-            prop = self.get_properties(self._point, response)
-            self._cache_crit[ATTR_ZONE_NAME] = prop["Nome zona"]
-            image = CRIT_IMAGE_URL.format(self._id_crit, day_it)
-
-            self._cache_crit[day_en] = self.get_info_level(
-                prop["Rappresentata nella mappa"]
-            )
-            for risk in RISKS:
-                self._cache_crit[f"{risk}_{day_it}"] = {
-                    ATTR_RISK: risk.capitalize(),
-                    ATTR_IMAGE_URL: image,
-                    ATTR_EXPIRES: expiration_date,
-                }
-                self._cache_crit[f"{risk}_{day_it}"].update(
-                    self.get_info_level(prop["Per rischio " + risk])
-                )
-
-            self._data["criticality"] = self._cache_crit
-
-        except Exception as exception:
-            LOGGER.error("Criticality Exception! - %s", exception)
-            pass
-
     @staticmethod
-    def get_info_level(value):
+    def get_info_level(value) -> dict:
         d = dict()
         d[ATTR_INFO] = value.split("/")[0].rstrip().lstrip()
-        d[ATTR_ALERT] = (
-            value.split("/")[1]
-            .replace("ALLERTA", "")
-            .replace("NESSUNA", "VERDE")
-            .rstrip()
-            .lstrip()
-        )
-        d[ATTR_LEVEL] = WARNING_ALERT.get(d[ATTR_ALERT])
+        d[ATTR_ALERT] = value.split("/")[1].lstrip()
+        d[ATTR_LEVEL] = WARNING_ALERT.get(d[ATTR_ALERT], 0)
         return d
 
     @staticmethod
-    def get_properties(point, geojs):
-        properties = {}
+    def get_properties(point, geojs) -> dict:
         for feature in geojs["features"]:
             if not point_in_polygon(point, feature["geometry"]):
                 continue
-            properties = feature["properties"]
-            break
-        return properties
+            return feature["properties"]
 
-    def get_phenomena(self, point, geojs):
+    def get_phenomena(self, point, geojs) -> list:
         phenomena = []
-        radius = self._radius * 1000  # Conv Km to Mt
+        radius = self._radius * 1000
         for feature in geojs["features"]:
             if not geometry_within_radius(feature["geometry"], point, radius):
                 continue
@@ -459,13 +437,11 @@ class DpcApiClient:
                 value = p_id_phenom.get(id_event)
                 lat, long = prop["lat"], prop["lon"]
                 bearing = calculate_initial_compass_bearing(
-                    # (point["coordinates"][1], point["coordinates"][0]),
                     (self._latitude, self._longitude),
                     (lat, long),
                 )
-                # Distance in Km
                 pointB = {"type": "Point", "coordinates": [long, lat]}
-                distance = math.floor(point_distance(point, pointB)) / 1000.00
+                distance = floor(point_distance(point, pointB) / 1000)
                 new_prop = {
                     ATTR_ID: prop["id_bollettino"],
                     "date": prop["data_bollettino"],
@@ -483,22 +459,20 @@ class DpcApiClient:
         return phenomena
 
 
-def calculate_initial_compass_bearing(pointA, pointB):
-    """
+def calculate_initial_compass_bearing(pointA, pointB) -> tuple:
+    """credits
     https://gist.github.com/jeromer/2005586
     https://gist.github.com/RobertSudwarts/acf8df23a16afdb5837f
     """
     if (type(pointA) != tuple) or (type(pointB) != tuple):
         raise TypeError("Only tuples are supported as arguments")
-    lat1 = math.radians(pointA[0])
-    lat2 = math.radians(pointB[0])
-    diffLong = math.radians(pointB[1] - pointA[1])
-    x = math.sin(diffLong) * math.cos(lat2)
-    y = math.cos(lat1) * math.sin(lat2) - (
-        math.sin(lat1) * math.cos(lat2) * math.cos(diffLong)
-    )
-    initial_bearing = math.atan2(x, y)
-    initial_bearing = math.degrees(initial_bearing)
+    lat1 = radians(pointA[0])
+    lat2 = radians(pointB[0])
+    diffLong = radians(pointB[1] - pointA[1])
+    x = sin(diffLong) * cos(lat2)
+    y = cos(lat1) * sin(lat2) - (sin(lat1) * cos(lat2) * cos(diffLong))
+    initial_bearing = atan2(x, y)
+    initial_bearing = degrees(initial_bearing)
     compass_bearing = (initial_bearing + 360) % 360
     dirs = [
         "N",
@@ -519,4 +493,4 @@ def calculate_initial_compass_bearing(pointA, pointB):
         "NNW",
     ]
     ix = round(compass_bearing / (360.0 / len(dirs)))
-    return dirs[ix % len(dirs)], math.floor(compass_bearing)
+    return dirs[ix % len(dirs)], floor(compass_bearing)

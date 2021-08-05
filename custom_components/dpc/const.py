@@ -15,7 +15,7 @@ ISSUE_URL = (
 )
 NAME = "Dipartimento Protezione Civile"
 MANUFACTURER = "Italian Government"
-VERSION = "2021.7.1"
+VERSION = "2021.8.0"
 
 # Config
 CONF_WARNING_LEVEL = "warning_level"
@@ -27,12 +27,14 @@ DEFAULT_RADIUS = 50  # Km
 DEFAULT_SCAN_INTERVAL = 30  # min
 
 WARNING_ALERT = {
-    "BIANCA": 0,
-    "VERDE": 1,
-    "GIALLA": 2,
-    "ARANCIONE": 3,
-    "ROSSA": 4,
+    "": 0,
+    "NESSUNA ALLERTA": 1,
+    "ALLERTA GIALLA": 2,
+    "ALLERTA ARANCIONE": 3,
+    "ALLERTA ROSSA": 4,
 }
+
+
 WARNING_TYPES = [
     "idraulico_oggi",
     "temporali_oggi",
@@ -70,4 +72,6 @@ ATTR_PUBLICATION_DATE = "publication_date"
 ATTR_RISK = "risk"
 ATTR_TODAY = "today"
 ATTR_TOMORROW = "tomorrow"
+ATTR_TOTAL_ALERTS = "total_alerts"
+ATTR_TOTAL_PHENOMENA = "total_phenomena"
 ATTR_ZONE_NAME = "zone_name"
