@@ -25,19 +25,19 @@ This custom component gathers regular and special meteo alerts from DPC (valid o
 
 ## Changes as compared to your installed version
 
-{% if version_installed.replace("v", "").replace(".","") | int < 2021080  %}
+{% if version_installed.replace("v", "").replace(".","") | int < 202180  %}
 
 Please remove the old installation and reinstall the new one. Otherwise, orphan entities could be created.
 
 {% endif %}
 
-{% if version_installed.replace("v", "").replace(".","") | int < 2021070  %}
+{% if version_installed.replace("v", "").replace(".","") | int < 202170  %}
 
 ### Breaking Changes
 
 **Integration now available to set up from the UI.**
 
-The yaml configuration is no longer supported. 
+The yaml configuration is no longer supported.
 Please read the [README](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/README.md) file and remove the yaml config.
 
 For binary sensors, the attributes in Italian language (allerta, data, rischio, zona_info) have been replaced in English (alert, date, risk, zone_name).
