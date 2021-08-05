@@ -6,6 +6,7 @@ from homeassistant.const import (
     CONF_LATITUDE,
     CONF_LONGITUDE,
     CONF_NAME,
+    CONF_RADIUS,
     CONF_SCAN_INTERVAL,
 )
 from homeassistant.core import callback
@@ -14,6 +15,7 @@ import homeassistant.helpers.config_validation as cv
 from .const import (
     CONF_WARNING_LEVEL,
     DEFAULT_NAME,
+    DEFAULT_RADIUS,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_WARNING_LEVEL,
     DOMAIN,
@@ -92,6 +94,10 @@ class DpcOptionsFlowHandler(config_entries.OptionsFlow):
                     CONF_WARNING_LEVEL,
                     default=self.options.get(CONF_WARNING_LEVEL, DEFAULT_WARNING_LEVEL),
                 ): vol.In(WARNING_ALERT.values()),
+                vol.Required(
+                    CONF_RADIUS,
+                    default=self.options.get(CONF_RADIUS, DEFAULT_RADIUS),
+                ): vol.Coerce(float),
             }
         )
         return self.async_show_form(step_id="user", data_schema=vol.Schema(schema))

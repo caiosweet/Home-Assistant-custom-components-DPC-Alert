@@ -6,42 +6,57 @@ from homeassistant.components.binary_sensor import (
     ENTITY_ID_FORMAT,
     BinarySensorEntity,
 )
-from homeassistant.const import ATTR_ICON, ATTR_NAME, CONF_TYPE
+from homeassistant.const import ATTR_ICON, ATTR_NAME
 from homeassistant.helpers.entity import async_generate_entity_id
 
 from . import DpcDataUpdateCoordinator
-from .const import CONF_WARNING_LEVEL, DEFAULT_WARNING_LEVEL, DOMAIN
+from .const import (
+    ATTR_ALERT,
+    ATTR_EXPIRES,
+    ATTR_ID,
+    ATTR_IMAGE_URL,
+    ATTR_INFO,
+    ATTR_LAST_UPDATE,
+    ATTR_LEVEL,
+    ATTR_LINK,
+    ATTR_PUBLICATION_DATE,
+    ATTR_RISK,
+    ATTR_ZONE_NAME,
+    CONF_WARNING_LEVEL,
+    DEFAULT_WARNING_LEVEL,
+    DOMAIN,
+)
 from .entity import DpcEntity
 
 BINARY_SENSOR_TYPES = [
     {
         ATTR_NAME: "Rischio Idraulico Oggi",
-        CONF_TYPE: "idraulico_oggi",
+        ATTR_RISK: "idraulico_oggi",
         ATTR_ICON: "mdi:home-flood",
     },
     {
         ATTR_NAME: "Rischio Temporali Oggi",
-        CONF_TYPE: "temporali_oggi",
+        ATTR_RISK: "temporali_oggi",
         ATTR_ICON: "mdi:weather-lightning",
     },
     {
         ATTR_NAME: "Rischio Idrogeologico Oggi",
-        CONF_TYPE: "idrogeologico_oggi",
+        ATTR_RISK: "idrogeologico_oggi",
         ATTR_ICON: "mdi:waves",
     },
     {
         ATTR_NAME: "Rischio Idraulico Domani",
-        CONF_TYPE: "idraulico_domani",
+        ATTR_RISK: "idraulico_domani",
         ATTR_ICON: "mdi:home-flood",
     },
     {
         ATTR_NAME: "Rischio Temporali Domani",
-        CONF_TYPE: "temporali_domani",
+        ATTR_RISK: "temporali_domani",
         ATTR_ICON: "mdi:weather-lightning",
     },
     {
         ATTR_NAME: "Rischio Idrogeologico Domani",
-        CONF_TYPE: "idrogeologico_domani",
+        ATTR_RISK: "idrogeologico_domani",
         ATTR_ICON: "mdi:waves",
     },
 ]
@@ -53,7 +68,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     sensors: list = []
     for sensor_type in BINARY_SENSOR_TYPES:
-        uid = f"{entry.unique_id}_{sensor_type[CONF_TYPE]})"
+        uid = f"{entry.unique_id}_{sensor_type[ATTR_RISK]})"
         entity_id = async_generate_entity_id(ENTITY_ID_FORMAT, uid, hass=hass)
         sensors.append(DpcBinarySensor(coordinator, entry, sensor_type, entity_id))
     async_add_entities(sensors)
@@ -78,7 +93,7 @@ class DpcBinarySensor(DpcEntity, BinarySensorEntity):
         self._level = entry.options.get(CONF_WARNING_LEVEL, DEFAULT_WARNING_LEVEL)
         self._icon = sensor_type[ATTR_ICON]
         self._name = sensor_type[ATTR_NAME]
-        self._kind = sensor_type[CONF_TYPE]
+        self._kind = sensor_type[ATTR_RISK]
         self._unique_id = f"{entry.unique_id}-{self._kind}"
 
     @property
@@ -90,7 +105,8 @@ class DpcBinarySensor(DpcEntity, BinarySensorEntity):
     def available(self) -> bool:
         """Return if entity is available."""
         return (
-            self.coordinator.last_update_success and self.coordinator.data is not None
+            self.coordinator.last_update_success
+            and self.coordinator.data.get("criticality") is not None
         )
 
     @property
@@ -121,28 +137,28 @@ class DpcBinarySensor(DpcEntity, BinarySensorEntity):
     @property
     def is_on(self):
         """Return true if the binary_sensor is on."""
-        data = self.coordinator.data
-        if data and self._kind in data and "level" in data[self._kind]:
-            return data[self._kind]["level"] >= self._level
+        data = self.coordinator.data.get("criticality")
+        if data and self._kind in data and ATTR_LEVEL in data[self._kind]:
+            return data[self._kind][ATTR_LEVEL] >= self._level
 
     @property
     def extra_state_attributes(self):
         """Return the state attributes."""
         attrs = super().extra_state_attributes
-        data = self.coordinator.data
+        data = self.coordinator.data.get("criticality")
         # if self.is_on:
-        if data and self._kind in data and "alert" in data[self._kind]:
-            attrs["id"] = data.get("id")
-            attrs["publication_date"] = data.get("publication_date")
-            attrs["expires"] = data[self._kind]["expires"]
-            attrs["last_update"] = data.get("last_update")
-            attrs["risk"] = data[self._kind]["risk"]
-            attrs["info"] = data[self._kind]["info"]
-            attrs["alert"] = data[self._kind]["alert"]
-            attrs["level"] = data[self._kind]["level"]
-            attrs["zone_name"] = data.get("zone_name")
-            attrs["image_url"] = data[self._kind]["image_url"]
-            attrs["link"] = data.get("link")
+        if data and self._kind in data and ATTR_ALERT in data[self._kind]:
+            attrs[ATTR_ID] = data.get(ATTR_ID)
+            attrs[ATTR_PUBLICATION_DATE] = data.get(ATTR_PUBLICATION_DATE)
+            attrs[ATTR_EXPIRES] = data[self._kind][ATTR_EXPIRES]
+            attrs[ATTR_LAST_UPDATE] = data.get(ATTR_LAST_UPDATE)
+            attrs[ATTR_RISK] = data[self._kind][ATTR_RISK]
+            attrs[ATTR_INFO] = data[self._kind][ATTR_INFO]
+            attrs[ATTR_ALERT] = data[self._kind][ATTR_ALERT]
+            attrs[ATTR_LEVEL] = data[self._kind][ATTR_LEVEL]
+            attrs[ATTR_ZONE_NAME] = data.get(ATTR_ZONE_NAME)
+            attrs[ATTR_IMAGE_URL] = data[self._kind][ATTR_IMAGE_URL]
+            attrs[ATTR_LINK] = data.get(ATTR_LINK)
         return attrs
 
     async def async_update(self):

@@ -14,6 +14,14 @@
 
 ---
 
+## Information
+
+> The state of the sensor will be the highest alert level.
+
+The Vigilance sensor will also report in attributes the values of all other meteo alerts and/or forecasts from next 12-48 hours, if there are any.
+
+The Criticality sensor (DPC Alert) will also report in attributes the values of all other warning and/or forecasts from next 12-24 hours, if there are any.
+
 ## Installation
 
 ### Using [Home Assistant Community Store](https://hacs.xyz/) (recommended)
@@ -70,47 +78,51 @@ Cards: card-mod, auto-entities
 Cards: card-mod, markdown
 </p>
 
+<p align="center">
+<img src="https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/assets/images/example-map.png" width="350px" />
+<br><br>
+Cards: card-mod, auto-entities, config-template-card
+</p>
+
 ## Here are some advanced examples of using the entities created with this component
 
-### Representation of the attributes present in the sensor
+### Representation of the attributes present in the sensor (DPC Alert)
 
 ```yaml
 attribution: Data provided by Civil Protection Department
 integration: dpc
-id: "20210713_1451"
-publication_date: "2021-07-13T14:51:00"
-last_update: "2021-07-13T18:35:55.009228"
+id: "20210805_1513"
+publication_date: "2021-08-05T15:13:00"
+last_update: "2021-08-05T19:48:05.000855"
 max_level: 3
+total_alerts: 2
 today:
   info: Moderata per rischio temporali
-  alert: ARANCIONE
+  alert: ALLERTA ARANCIONE
   level: 3
   image_url: >-
-    https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Criticita-Idrogeologica-Idraulica/master/files/preview/20210713_1451_oggi.png
-  expires: "2021-07-13T00:00:00"
+    https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Criticita-Idrogeologica-Idraulica/master/files/preview/20210805_1513_oggi.png
+  expires: "2021-08-05T00:00:00"
 events_today:
   - risk: Temporali
     info: Moderata
-    alert: ARANCIONE
+    alert: ALLERTA ARANCIONE
     level: 3
+    icon: mdi:weather-lightning
   - risk: Idrogeologico
-    info: Ordinaria
-    alert: GIALLA
-    level: 2
+    info: Moderata
+    alert: ALLERTA ARANCIONE
+    level: 3
+    icon: mdi:waves
 tomorrow:
-  info: Ordinaria per rischio temporali
-  alert: GIALLA
-  level: 2
+  info: Assenza di fenomeni significativi prevedibili
+  alert: NESSUNA ALLERTA
+  level: 1
   image_url: >-
-    https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Criticita-Idrogeologica-Idraulica/master/files/preview/20210713_1451_domani.png
-  expires: "2021-07-14T00:00:00"
-events_tomorrow:
-  - risk: Temporali
-    info: Ordinaria
-    alert: GIALLA
-    level: 2
-zone_name: Nodo Idraulico di Milano
-friendly_name: DPC Milano
+    https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Criticita-Idrogeologica-Idraulica/master/files/preview/20210805_1513_domani.png
+  expires: "2021-08-06T00:00:00"
+zone_name: Lario e Prealpi occidentali
+friendly_name: DPC Alert
 icon: mdi:hazard-lights
 ```
 
@@ -119,68 +131,120 @@ icon: mdi:hazard-lights
 ```yaml
 attribution: Data provided by Civil Protection Department
 integration: dpc
-id: "20210713_1451"
-publication_date: "2021-07-13T14:51:00"
-expires: "2021-07-13T00:00:00"
-last_update: "2021-07-13T19:05:55.005303"
-risk: Idrogeologico
-info: Ordinaria
-alert: GIALLA
-level: 2
-zone_name: Nodo Idraulico di Milano
-image_url: >-
-  https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Criticita-Idrogeologica-Idraulica/master/files/preview/20210713_1451_oggi.png
-link: https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-criticita
-friendly_name: Rischio Idrogeologico Oggi
-icon: mdi:waves
-device_class: safety
+aftertomorrow:
+  phenomena:
+    - id: 202108053
+      date: 2021-08-04Z
+      id_event: 1
+      event: Precipitazioni
+      value: piogge sparse o intermittenti
+      latitude: 45.926239089165264
+      longitude: 9.31893208546803
+      distance: 8
+      direction: NNE
+      degrees: 27
+      icon: mdi:water
+  icon: mdi:numeric-3-circle
+  image_url: null
+  level: 3
+  precipitation: Moderati
+tomorrow:
+  phenomena: []
+  icon: mdi:numeric-1-circle
+  image_url: >-
+    https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Vigilanza-Meteorologica/master/files/preview/20210805_domani.png
+  level: 1
+  precipitation: Assenti o non rilevanti
+today:
+  phenomena: []
+  icon: mdi:numeric-1-circle
+  image_url: >-
+    https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Vigilanza-Meteorologica/master/files/preview/20210805_oggi.png
+  level: 1
+  precipitation: Assenti o non rilevanti
+id: "20210805"
+zone_name: Piemonte settentrionale e Lombardia nord-occidentale
+last_update: "2021-08-05T20:48:05.002004"
+max_level: 3
+total_phenomena: 1
+total_alerts: 1
+friendly_name: DPC Vigilance
+icon: mdi:hazard-lights
 ```
 
-### Example Lovelace markdown card for sensor
+### Lovelace markdown card example sensor
 
 ```yaml
 type: markdown
-content: |
-  #### PROTEZIONE CIVILE
+content: |-
 
-  {%- set entity = 'sensor.dpc_milano' %}
-  {%- set day = {'today':'Oggi', 'tomorrow':'Domani'} %}
-  {%- for status in ['today', 'tomorrow'] %}
-  {%- set v = state_attr(entity, status) %}
-  {% if v %}
-  **Dominant Event {{ status }} / Evento Dominante {{ day[status] }}**
-  Criticità: {{ v['info'] }}
-  Allerta: {{ v['alert'] }}
-  {%- endif %}
-  {%- endfor -%}
-```
+  ___
 
-```yaml
-type: markdown
-content: |
-  #### PROTEZIONE CIVILE
+  {% set entity = 'sensor.dpc_alert' %}
 
-  {%- set entity = 'sensor.dpc_milano' %}
-  {%- if not is_state(entity, '0') %}
-  {%- set evnt_day = {'events_today':'Oggi', 'events_tomorrow':'Domani'} %}
-  {%- for event in ['events_today', 'events_tomorrow'] %}
-  {%- set attr = state_attr(entity, event) %}
-  {% if attr %}
-  Forecast for **{{event}}** / Previsioni per **{{ evnt_day[event] }}**
+  #### PROTEZIONE CIVILE - [CRITICITA](https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-criticita)
 
-  | &nbsp; Evento | &nbsp; Criticità | &nbsp; Allerta |
-  | :-: | :-: | :-: |
-  {%- for d in attr %}
-  | &nbsp; {{ d['risk'] }} | &nbsp; {{ d['info'] }} | &nbsp; {{ d['alert'] }} |
-  {%- endfor %}
+  ##### ZONA {{state_attr(entity, 'zone_name')}}
+
+
+  {% set color = {0:'White', 1:'Green', 2:'Gold', 3:'Orange', 4:'Red'} %}
+  {% set days_map = {'today':'Oggi.', 'tomorrow':'Domani.', 'aftertomorrow': 'Dopodomani.'} %} 
+  {%- for day in ['today', 'tomorrow'] %}
+  {% set d = state_attr(entity, day) %}
+  {%- set events = state_attr(entity, 'events_'+day) %}
+  {%- if d %} 
+  {%- if  d['level'] >= 1 %}
+
+  |   |   |
+  |:--|:--|
+  | <font color="{{ color.get(d['level']) }}"/> <ha-icon icon="{{ 'mdi:numeric-' ~ d['level'] ~ '-box'}}"/></ha-icon> | {{ days_map[day] }} {{d['info']}} {{d['alert']}}</font> |
   {% endif %}
-  {%- endfor -%}
-  {% else %}
-  Nessuna Allerta
   {%- endif %}
+  {%- if events %} 
+  {%- for ev in events %}
+
+  |   |   |   |
+  |:--|:--|:--|
+  | <font color="{{ color.get(ev['level']) }}"/> <ha-icon icon="{{ 'mdi:numeric-' ~ ev['level'] }}"/> | <font color="{{ color.get(ev['level']) }}"/> <ha-icon icon="{{ ev['icon'] }}"/> | {{ ev['alert'] }} {{ ev['info'] }} criticità per rischio {{ ev['risk'] }} |
+
+  {%- endfor %} 
+  {%- endif %}
+  {%- endfor %}
+
+  ___
+
+  {% set entity = 'sensor.dpc_vigilance' %}
+
+  #### PROTEZIONE CIVILE - [VIGILANZA METEO](https://mappe.protezionecivile.it/it/mappe-rischi/bollettino-di-vigilanza)
+
+  ##### ZONA {{state_attr(entity, 'zone_name')}}
+
+  {% set color = {0:'White', 1:'Green', 2:'Gold', 3:'Orange', 4:'Red', 5: 'BlueViolet'} %}
+  {# set color_vigilance = {0:'#FFFFFF', 1:'#008000', 2:'#C3FFFE', 3:'#50FFFF', 4:'#508BFF', 5: '#A040FF'} #}
+  {% set color_v = {0:'White', 1:'Green', 2:'LightCyan', 3:'BabyBlue', 4:'CornflowerBlue', 5: 'BlueViolet'} %}
+  {% set day = {'today':'Oggi.', 'tomorrow':'Domani.', 'aftertomorrow': 'Dopodomani.'} %} 
+  {%- for status in ['today', 'tomorrow','aftertomorrow'] %}
+  {% set v = state_attr(entity, status) %}
+  {%- if v %} 
+  {%- if v['level'] >= 1 %}
+  <font color="{{ color_v.get(v['level']) }}"/> <ha-icon icon="{{ v['icon'] }}"/></ha-icon> {{ day[status] }} Quantitativi previsti {{ v['precipitation'] }} </font>
+  {%- endif %}
+  {%- if v.phenomena %} 
+  {% for d in v.phenomena %}
+
+  |   |   |
+  |:--|:--|
+  | <ha-icon icon="{{ d['icon'] }}"/> |{{ d['event'] }} {{ d['value'] }} [{{ d['distance'] }} Km {{ d['direction'] }}] |
+
+  {%- endfor %}
+  {%- endif %}
+  {%- endif %}
+  {%- endfor %}
+
+  [Sito Web Protezione Civile](https://www.protezionecivile.gov.it/it/) ~ [Radar](https://mappe.protezionecivile.it/it/mappe-rischi/piattaforma-radar)
 ```
 
-### Example Lovelace markdown card Binary Sensor
+### Lovelace markdown card example Binary Sensor
 
 ```yaml
 type: markdown
@@ -204,130 +268,203 @@ content: >
   ~ [Criticità Idro](https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-criticita) ~ [Radar](https://mappe.protezionecivile.it/it/mappe-rischi/piattaforma-radar)
 ```
 
-### Automation example using the sensor
+### Lovelace config-template-card example to display maps
 
 ```yaml
-automation:
-  - alias: Protezione civile Notifications Sensor
-    mode: queued
-    max_exceeded: silent
-    max: 10
-    trigger:
-      - platform: state
-        entity_id:
-          - sensor.dpc
-    condition:
-      - condition: template
-        value_template: |-
-          {{ trigger.to_state.state != '0' 
-            and (trigger.to_state.state != trigger.from_state.state 
-            or trigger.to_state.attributes.id != trigger.from_state.attributes.id) }}
-    action:
-      - variables:
-          WARNING_SIGN:
-            "0": ⚪
-            "1": 🟢
-            "2": 🟡
-            "3": 🟠
-            "4": 🔴
-          BULLETIN: >-
-            https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-criticita
-          WARN_DPC:
-            none: ❌
-            Temporali: ⚡
-            Idraulico: 💧
-            Idrogeologico: 🌊
-          ENTITY: sensor.dpc
-      - alias: DPC today tomorrow
-        choose:
-          - alias: Check if events today or events tomorrow in sensor
-            conditions:
-              - condition: template
-                value_template: >-
-                  {{ state_attr(ENTITY, 'events_today') is not none or
-                  state_attr(ENTITY, 'events_tomorrow') is not none }}
-            sequence:
-              - alias: DPC today
-                choose:
-                  - alias: If events today in sensor
-                    conditions:
-                      - condition: template
-                        value_template: "{{ state_attr(ENTITY, 'events_today') is not none }}"
-                    sequence:
-                      - service: notify.telegram
-                        data:
-                          title: DPC
-                          message: Warning
-                          data:
-                            photo:
-                              url: "{{ state_attr(ENTITY, 'today').image_url }}"
-                              caption: >
-                                Protezione Civile
-
-                                {%- set attr = state_attr(ENTITY, 'events_today') %}
-
-                                Criticità per oggi
-
-                                {%- for d in attr %}
-
-                                {{ WARNING_SIGN[d['level']|string] }} {{ WARN_DPC[d['risk']] }} 
-                                {{ d['info'] }} per rischio {{ d['risk'] }}. Allerta {{ d['alert'] }}
-
-                                {%- endfor %}
-
-                                [Bollettino di criticità]({{ BULLETIN }})
-                              timeout: 90
-                      - service: tts.google_translate_say
-                        data:
-                          entity_id: media_player.red
-                          message: >-
-                            {%- set attr = state_attr(ENTITY, 'events_today') %}
-                            Protezione Civile, bollettino di criticità per oggi, 
-                            {%- for d in attr %} 
-                            {{ d['info'] }} per rischio {{ d['risk'] }}, allerta {{ d['alert'] }}, 
-                            {%- endfor %}
-              - alias: DPC tomorrow
-                choose:
-                  - alias: If events tomorrow in sensor
-                    conditions:
-                      - condition: template
-                        value_template: "{{ state_attr(ENTITY, 'events_tomorrow') is not none }}"
-                    sequence:
-                      - service: notify.telegram
-                        data:
-                          title: DPC
-                          message: Warning
-                          data:
-                            photo:
-                              url: "{{ state_attr(ENTITY, 'tomorrow').image_url }}"
-                              caption: >
-                                Protezione Civile
-
-                                {%- set attr = state_attr(ENTITY, 'events_tomorrow') %}
-
-                                Criticità per domani
-
-                                {%- for d in attr %}
-
-                                {{ WARNING_SIGN[d['level']|string]}} {{ WARN_DPC[d['risk']] }} 
-                                {{ d['info'] }} per rischio {{ d['risk'] }}. Allerta {{ d['alert'] }}
-
-                                {%- endfor %}
-
-                                [Bollettino di criticità]({{ BULLETIN }})
-                              timeout: 90
-                      - service: tts.google_translate_say
-                        data:
-                          entity_id: media_player.red
-                          message: >-
-                            {%- set attr = state_attr(ENTITY, 'events_tomorrow') %}
-                            Protezione Civile, bollettino di criticità per domani,
-                            {%- for d in attr %} 
-                            {{ d['info'] }} per rischio {{ d['risk'] }}, allerta {{ d['alert'] }}, 
-                            {%- endfor %}
+type: custom:config-template-card
+entities:
+  - sensor.date
+card:
+  type: custom:hui-iframe-card
+  card_mod:
+    style: |
+      ha-card {
+        border-radius: var(--ha-card-border-radius);
+        margin-top: 8px;
+      }
+  aspect_ratio: 100%
+  url: >- # hidden=switch
+    ${'https://servizio-mappe.protezionecivile.it/#/view/dashboard?x=11.756&y=41.495&
+    zoom=5.8&basemap=OPEN_STREET_MAP&appname=Bollettino di Vigilanza&file=
+    https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Vigilanza-Meteorologica/master/files/'
+    +states['sensor.dpc_vigilance'].attributes.id+'.json&hidden=minimap,info&fase=today'}
 ```
 
-### Automation example using the binary sensor
+```yaml
+type: custom:config-template-card
+entities:
+  - sensor.date
+card:
+  type: custom:hui-iframe-card
+  card_mod:
+    style: |
+      ha-card {
+        border-radius: var(--ha-card-border-radius);
+        margin-top: 8px;
+      }
+  aspect_ratio: 100%
+  #hidden=switch,
+  #maps...GOOGLE_SATELLITE, GOOGLE_HYBRID, GOOGLE_NORMAL OPEN_STREET_MAP, BING_AERIAL, , ORTHO_MAP, DARK_BASE_MAP
+  url: >-
+    ${'https://servizio-mappe.protezionecivile.it/#/view/dashboard?x=11.756&y=41.495&
+    zoom=5.8&basemap=BING_AERIAL&appname=BollettinodiCriticità&file=
+    https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Criticita-Idrogeologica-Idraulica/master/files/'
+    +states['sensor.dpc_alert'].attributes.id+'.json&hidden=info,minimap&fase=today'}
+```
+
+### Automation example using the sensors (Compatible with UI Automation Editor)
+
+```yaml
+alias: protezione_civile_notifications_criticita_sensor
+trigger:
+  - platform: state
+    entity_id:
+      - sensor.dpc_alert
+condition:
+  - condition: template
+    value_template: >-
+      {{ not trigger.from_state.state in ["unavailable","unknown"]  and (
+      trigger.from_state.attributes.total_alerts !=
+      trigger.to_state.attributes.total_alerts or
+          ( trigger.to_state.attributes.id != trigger.from_state.attributes.id and trigger.to_state.attributes.total_alerts > 0 )) }}
+action:
+  - variables:
+      BULLETIN: >-
+        https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-criticita
+      WARNING_SIGN:
+        "0": ⚪
+        "1": 🟢
+        "2": 🟡
+        "3": 🟠
+        "4": 🔴
+      WARN_DPC:
+        none: ❌
+        Temporali: ⚡
+        Idraulico: 💧
+        Idrogeologico: 🌊
+      ENTITY: "{{ trigger.entity_id |default('sensor.dpc', true) }}"
+      DAYS:
+        "1": today
+        "2": tomorrow
+      GIORNI:
+        "1": oggi
+        "2": domani
+  - repeat:
+      while:
+        - condition: template
+          value_template: "{{ repeat.index <= DAYS|length }}"
+      sequence:
+        - variables:
+            giorno: "{{ GIORNI[repeat.index|string] }}"
+            day: "{{ DAYS[repeat.index|string] }}"
+            event: "{{ 'events_' + day }}"
+        - choose:
+            - conditions:
+                - condition: template
+                  value_template: "{{ state_attr(ENTITY, event) is not none }}"
+              sequence:
+                - service: notify.discord
+                  data:
+                    title: DPC Criticità
+                    message: >
+                      {% set attr = state_attr(ENTITY, event) %}
+
+                      Criticità per {{giorno}}
+
+                      {%- for d in attr %}
+
+                      {{WARNING_SIGN[d['level']|string]}} {{ WARN_DPC[d['risk']]
+                      }} {{ d['info'] }} {{ d['alert'] }} per rischio {{
+                      d['risk'] }}.
+
+                      {%- endfor %}
+
+                      Zona: {{ state_attr(ENTITY, 'zone_name') }}
+mode: queued
+max_exceeded: silent
+max: 10
+```
+
+```yaml
+alias: protezione_civile_notifications_vigilance_sensor
+trigger:
+  - platform: state
+    entity_id:
+      - sensor.dpc_vigilance
+condition:
+  - condition: template
+    value_template: >-
+      {{ trigger.from_state.state not in ["unavailable","unknown"]  and (
+      trigger.from_state.attributes.total_alerts !=
+      trigger.to_state.attributes.total_alerts or
+          ( trigger.to_state.attributes.id != trigger.from_state.attributes.id and
+          ( trigger.to_state.attributes.total_phenomena > 0 or trigger.to_state.attributes.total_alerts > 0 ))) }}
+action:
+  - variables:
+      BULLETIN: >-
+        https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-vigilanza
+      ENTITY: "{{ trigger.entity_id |default('sensor.dpc_vigilance', true) }}"
+      DAYS:
+        "1": today
+        "2": tomorrow
+        "3": aftertomorrow
+      GIORNI:
+        "1": oggi
+        "2": domani
+        "3": dopodomani
+      WARNING_SIGN:
+        "0": ⚪
+        "1": 🟢
+        "2": 🟡
+        "3": 🟠
+        "4": 🔴
+  - repeat:
+      while:
+        - condition: template
+          value_template: "{{ repeat.index <= DAYS|length }}"
+      sequence:
+        - variables:
+            giorno: "{{ GIORNI[repeat.index|string] }}"
+            day: "{{ DAYS[repeat.index|string] }}"
+        - choose:
+            - conditions:
+                - condition: template
+                  value_template: "{{ state_attr(ENTITY, day) is not none }}"
+                - condition: template
+                  value_template: "{{ state_attr(ENTITY, day).level|default|int > 1 }}"
+              sequence:
+                - service: notify.pushover
+                  data:
+                    title: DPC Vigilanza Meteo
+                    message: >
+                      {% set attr = state_attr(ENTITY, day) %}
+
+                      Vigilanza meteo per {{giorno}}
+
+                      {{WARNING_SIGN[attr['level']|string]}} Quantitativi
+                      previsti {{attr['precipitation']}}
+
+                      {% if 'phenomena' in attr %}
+
+                      Fenomeni nelle vicinanze:
+
+                      {% for f in attr['phenomena'] %}
+
+                      ➡️ {{f.event}}: {{f.value}} in direzione {{f.direction}}
+                      alla distanza di {{f.distance}}km.
+
+                      {% endfor %}
+
+                      {% endif %}
+
+
+                      Zona: {{ state_attr(ENTITY, 'zone_name') }}
+mode: queued
+max_exceeded: silent
+max: 10
+```
+
+### Automation example using the binary sensor (Compatible with UI Automation Editor)
 
 ```yaml
 automation:
@@ -390,7 +527,7 @@ _Information provided by [*Department of Civil Protection - Presidency of the Co
 
 _Dati forniti dal servizio [*Dipartimento della Protezione Civile-Presidenza del Consiglio dei Ministri*](https://www.protezionecivile.gov.it/it/) Licenza Creative Commons [*CC-BY-SA 4.0.*](https://creativecommons.org/licenses/by-sa/4.0/deed.it)_
 
-## Contributions are welcome!
+## Contributions are welcome
 
 ---
 

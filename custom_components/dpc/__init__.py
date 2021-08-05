@@ -12,6 +12,7 @@ from homeassistant.const import (
     CONF_LATITUDE,
     CONF_LONGITUDE,
     CONF_NAME,
+    CONF_RADIUS,
     CONF_SCAN_INTERVAL,
 )
 from homeassistant.core import Config, HomeAssistant
@@ -20,7 +21,14 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import DpcApiClient
-from .const import DEFAULT_SCAN_INTERVAL, DOMAIN, LOGGER, PLATFORMS, STARTUP_MESSAGE
+from .const import (
+    DEFAULT_RADIUS,
+    DEFAULT_SCAN_INTERVAL,
+    DOMAIN,
+    LOGGER,
+    PLATFORMS,
+    STARTUP_MESSAGE,
+)
 
 
 async def async_setup(hass: HomeAssistant, config: Config):
@@ -40,9 +48,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     update_interval = timedelta(
         minutes=entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
     )
-
+    radius = entry.options.get(CONF_RADIUS, DEFAULT_RADIUS)
     session = async_get_clientsession(hass)
-    client = DpcApiClient(location_name, latitude, longitude, session, update_interval)
+    client = DpcApiClient(
+        location_name, latitude, longitude, radius, session, update_interval
+    )
 
     coordinator = DpcDataUpdateCoordinator(
         hass, client=client, update_interval=update_interval
