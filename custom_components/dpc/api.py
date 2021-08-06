@@ -31,7 +31,7 @@ from .const import (
 )
 
 CRIT_BULLETIN_URL = (
-    "https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-criticita"
+    "https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-criticita/"
 )
 CRIT_IMAGE_URL = (
     "https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Criticita-"
@@ -43,7 +43,7 @@ CRIT_PATTERN_URL = (
 )
 
 VIGI_BULLETIN_URL = (
-    "https://mappe.protezionecivile.it/it/mappe-rischi/bollettino-di-vigilanza"
+    "https://mappe.protezionecivile.it/it/mappe-rischi/bollettino-di-vigilanza/"
 )
 VIGI_IMAGE_URL = (
     "https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Vigilanza-"
@@ -143,7 +143,7 @@ PHENOMENA_TYPE = {
 }
 
 REGEX_DPC_ID = re.compile(r'href=[\'"]?([^\'" >]+\/)([0-9]+.[0-9]+).zip', re.IGNORECASE)
-TIMEOUT = 30
+TIMEOUT = 20
 
 
 class DpcApiClient:
