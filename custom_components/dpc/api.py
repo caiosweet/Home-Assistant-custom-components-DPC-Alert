@@ -1,6 +1,7 @@
 """Dpc API Client."""
 import asyncio
 from datetime import date, datetime, time, timedelta
+import json
 from math import *
 import re
 import socket
@@ -30,6 +31,7 @@ from .const import (
     WARNING_ALERT,
 )
 
+CRIT_API_URL = "https://api.github.com/repos/pcm-dpc/DPC-Bollettini-Criticita-Idrogeologica-Idraulica/contents/files/all"
 CRIT_BULLETIN_URL = (
     "https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-criticita/"
 )
@@ -41,7 +43,7 @@ CRIT_PATTERN_URL = (
     "https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Criticita-"
     "Idrogeologica-Idraulica/master/files/geojson/{}_{}.json"
 )
-
+VIGI_API_URL = "https://api.github.com/repos/pcm-dpc/DPC-Bollettini-Vigilanza-Meteorologica/contents/files/all"
 VIGI_BULLETIN_URL = (
     "https://mappe.protezionecivile.it/it/mappe-rischi/bollettino-di-vigilanza/"
 )
@@ -171,6 +173,8 @@ class DpcApiClient:
         self._cache_crit = {}
         self._data = {}
         self._point = {"type": "Point", "coordinates": [longitude, latitude]}
+        self._str_today = None
+        self._str_yesterday = None
 
     async def async_get_data(self):
         """Get data from the API."""
@@ -180,11 +184,26 @@ class DpcApiClient:
         between_midnight_first_update = bool(midnight <= now <= midnight_first_update)
         date_today = date.today()
 
+        date_yesterday = date_today - timedelta(days=1)
+        self._str_today = date_today.strftime("%Y%m%d")
+        self._str_yesterday = date_yesterday.strftime("%Y%m%d")
+
         self._data[ATTR_LAST_UPDATE] = now.isoformat()
 
         urls = []
-        ids_dpc = await self.scrape_urls([CRIT_BULLETIN_URL, VIGI_BULLETIN_URL])
-        id_ct, id_vg = ids_dpc.get(CRIT_BULLETIN_URL), ids_dpc.get(VIGI_BULLETIN_URL)
+        # ids_dpc = await self.scrape_urls([CRIT_BULLETIN_URL, VIGI_BULLETIN_URL])
+        # id_ct, id_vg = ids_dpc.get(CRIT_BULLETIN_URL), ids_dpc.get(VIGI_BULLETIN_URL)
+
+        try:
+            ids_dpc = await self.scrape_urls([CRIT_API_URL, VIGI_API_URL])
+            id_ct, id_vg = ids_dpc.get(CRIT_API_URL), ids_dpc.get(VIGI_API_URL)
+            LOGGER.debug("[%s] Get IDs from Api. %s - %s", self._name, id_ct, id_vg)
+        except:
+            ids_dpc = await self.scrape_urls([CRIT_BULLETIN_URL, VIGI_BULLETIN_URL])
+            id_ct, id_vg = ids_dpc.get(CRIT_BULLETIN_URL), ids_dpc.get(
+                VIGI_BULLETIN_URL
+            )
+            LOGGER.debug("[%s] Get IDs from Site. %s - %s", self._name, id_ct, id_vg)
 
         if id_ct:
             if self._id_crit != id_ct:
@@ -256,9 +275,15 @@ class DpcApiClient:
                 if "json" in url:
                     r = await self._session.get(url, raise_for_status=True)
                     fetched = await r.json(content_type=None)  # not import json
+                elif "api." in url:
+                    r = await self._session.get(url, raise_for_status=True)
+                    jdata = json.loads(await r.text())
+                    fetched = {url: self.get_id_from_api(jdata, self._str_today)}
+                    LOGGER.debug("[%s] ClientResponse ->  %s", self._name, r)
                 else:
                     r = await self._session.get(url, raise_for_status=True)
                     fetched = {url: self.parse(await r.text())}
+                    LOGGER.debug("[%s] ClientResponse ->  %s", self._name, r)
                 LOGGER.debug("[%s] -> Got [%s] for URL: %s", self._name, r.status, url)
                 return fetched
 
@@ -285,6 +310,13 @@ class DpcApiClient:
                 url,
                 getattr(unexpected_error, "__dict__", {}),
             )
+
+    def get_id_from_api(self, data, day) -> str:
+        for item in reversed(data):
+            if not item["name"].startswith(day):
+                continue
+            return re.split("_all.zip|.zip", item["name"])[0]
+        return self.get_id_from_api(data, self._str_yesterday)
 
     def parse(self, html) -> str:
         LOGGER.debug("[%s] Parse DPC Bulletin in progress...", self._name)

@@ -15,7 +15,7 @@ ISSUE_URL = (
 )
 NAME = "Dipartimento Protezione Civile"
 MANUFACTURER = "Italian Government"
-VERSION = "2021.8.1"
+VERSION = "2021.8.2"
 
 # Config
 CONF_WARNING_LEVEL = "warning_level"

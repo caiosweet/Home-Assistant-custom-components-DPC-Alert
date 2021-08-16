@@ -275,7 +275,7 @@ type: custom:config-template-card
 entities:
   - sensor.date
 card:
-  type: custom:hui-iframe-card
+  type: iframe
   card_mod:
     style: |
       ha-card {
@@ -283,7 +283,7 @@ card:
         margin-top: 8px;
       }
   aspect_ratio: 100%
-  url: >- # hidden=switch
+  url: >-
     ${'https://servizio-mappe.protezionecivile.it/#/view/dashboard?x=11.756&y=41.495&
     zoom=5.8&basemap=OPEN_STREET_MAP&appname=Bollettino di Vigilanza&file=
     https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Vigilanza-Meteorologica/master/files/'
@@ -293,9 +293,9 @@ card:
 ```yaml
 type: custom:config-template-card
 entities:
-  - sensor.date
+  - sensor.time
 card:
-  type: custom:hui-iframe-card
+  type: custom:iframe
   card_mod:
     style: |
       ha-card {
@@ -303,13 +303,12 @@ card:
         margin-top: 8px;
       }
   aspect_ratio: 100%
-  #hidden=switch,
   #maps...GOOGLE_SATELLITE, GOOGLE_HYBRID, GOOGLE_NORMAL OPEN_STREET_MAP, BING_AERIAL, , ORTHO_MAP, DARK_BASE_MAP
   url: >-
     ${'https://servizio-mappe.protezionecivile.it/#/view/dashboard?x=11.756&y=41.495&
     zoom=5.8&basemap=BING_AERIAL&appname=BollettinodiCriticità&file=
     https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Criticita-Idrogeologica-Idraulica/master/files/'
-    +states['sensor.dpc_alert'].attributes.id+'.json&hidden=info,minimap&fase=today'}
+    +states['sensor.dpc_alert'].attributes.id+'.json&hidden=switch,info,minimap&fase=tomorrow'}
 ```
 
 ### Automation example using the sensors (Compatible with UI Automation Editor)
