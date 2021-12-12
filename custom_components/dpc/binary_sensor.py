@@ -2,8 +2,8 @@
 from typing import Any, Dict
 
 from homeassistant.components.binary_sensor import (
-    DEVICE_CLASS_SAFETY,
     ENTITY_ID_FORMAT,
+    BinarySensorDeviceClass,
     BinarySensorEntity,
 )
 from homeassistant.const import ATTR_ICON, ATTR_NAME
@@ -125,9 +125,9 @@ class DpcBinarySensor(DpcEntity, BinarySensorEntity):
         return self._icon
 
     @property
-    def device_class(self):
+    def device_class(self) -> BinarySensorDeviceClass:
         """Return the class of this binary_sensor."""
-        return DEVICE_CLASS_SAFETY
+        return BinarySensorDeviceClass.SAFETY
 
     @property
     def entity_registry_enabled_default(self) -> bool:
