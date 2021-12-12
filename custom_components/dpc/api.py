@@ -1,10 +1,10 @@
 """Dpc API Client."""
 import asyncio
-from datetime import date, datetime, time, timedelta
 import json
-from math import *
 import re
 import socket
+from datetime import date, datetime, time, timedelta
+from math import *
 
 import aiohttp
 import async_timeout
@@ -271,7 +271,7 @@ class DpcApiClient:
     async def api_fetch(self, url: str) -> dict:
         """Get information from the API."""
         try:
-            async with async_timeout.timeout(TIMEOUT, loop=asyncio.get_event_loop()):
+            async with async_timeout.timeout(TIMEOUT):
                 if "json" in url:
                     r = await self._session.get(url, raise_for_status=True)
                     fetched = await r.json(content_type=None)  # not import json
