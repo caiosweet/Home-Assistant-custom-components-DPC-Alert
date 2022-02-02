@@ -167,6 +167,7 @@ class DpcApiClient:
         self._interval = update_interval
 
         self._pub_date_crit = None
+        self._pub_date_vigi = None
         self._id_crit = None
         self._id_vigi = None
         self._cache_vigi = {}
@@ -191,8 +192,6 @@ class DpcApiClient:
         self._data[ATTR_LAST_UPDATE] = now.isoformat()
 
         urls = []
-        # ids_dpc = await self.scrape_urls([CRIT_BULLETIN_URL, VIGI_BULLETIN_URL])
-        # id_ct, id_vg = ids_dpc.get(CRIT_BULLETIN_URL), ids_dpc.get(VIGI_BULLETIN_URL)
 
         try:
             ids_dpc = await self.scrape_urls([CRIT_API_URL, VIGI_API_URL])
@@ -230,6 +229,7 @@ class DpcApiClient:
                 self._data[VIGILANCE] = {}
                 self._cache_vigi = {}
                 self._id_vigi = id_vg
+                self._pub_date_vigi = datetime.strptime(self._id_vigi, "%Y%m%d")
                 for day in [OGGI, DOMANI, DOPODOMANI]:
                     urls.extend(
                         [
@@ -247,7 +247,7 @@ class DpcApiClient:
             await self.fetch_all(urls)
             if id_ct and (date_today != self._pub_date_crit.date()):
                 self.swap_data_criticality()
-            if id_vg and (str(date_today).replace("-", "") != self._id_vigi):
+            if id_vg and (date_today != self._pub_date_vigi.date()):
                 self.swap_data_vigilance()
 
         LOGGER.debug("[%s] DATA: %s", self._name, self._data)
@@ -345,7 +345,6 @@ class DpcApiClient:
     def get_criticality(self, response: dict, url: str) -> dict:
         LOGGER.debug("[%s] Criticality Update in progress......", self._name)
         now = datetime.now()
-        # self._pub_date_crit = datetime.strptime(self._id_crit, "%Y%m%d_%H%M")
         expiration_date = datetime.combine(self._pub_date_crit, datetime.min.time())
         try:
             if "today" in url:
@@ -428,6 +427,7 @@ class DpcApiClient:
                 self._cache_vigi.update(
                     {
                         ATTR_ID: self._id_vigi,
+                        ATTR_PUBLICATION_DATE: self._pub_date_vigi,
                         ATTR_ZONE_NAME: prop["Nome_Zona"],
                         ATTR_LAST_UPDATE: now.isoformat(),
                     }

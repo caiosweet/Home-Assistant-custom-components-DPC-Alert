@@ -2,7 +2,7 @@
 
 <img src="https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/assets/brand/icon.png" width="150px">
 
-###### ITALY METEO-HYDRO ALERT - To get more detailed information about parameters of warnings visit [_Civil Protection Department_](https://rischi.protezionecivile.gov.it/en/meteo-hydro/alert). [_Dipartimento Protezione Civile_](https://rischi.protezionecivile.gov.it/it/meteo-idro/allertamento)
+ITALY METEO-HYDRO ALERT - To get more detailed information about parameters of warnings visit [_Civil Protection Department_](https://rischi.protezionecivile.gov.it/en/meteo-hydro/alert). [_Dipartimento Protezione Civile_](https://rischi.protezionecivile.gov.it/it/meteo-idro/allertamento)
 
 [![hacs][hacsbadge]][hacs] [![Validate](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/actions/workflows/validate.yaml/badge.svg)](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/actions/workflows/validate.yaml)
 
@@ -66,7 +66,7 @@ Now the integration is added to HACS and available in the normal HA integration 
 ## Preview [From my Natural Events project.][guide]
 
 <p align="center">
-<img src="https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/assets/images/example-card-auto-entities.png" width="350px" /> 
+<img src="https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/assets/images/example-card-auto-entities.png" width="350px" />
 <br><br>
 Cards: card-mod, auto-entities
 <br><br>
@@ -84,9 +84,9 @@ Cards: card-mod, markdown
 Cards: card-mod, auto-entities, config-template-card
 </p>
 
-## Here are some advanced examples of using the entities created with this component
+### Representation of the attributes present in the sensor
 
-### Representation of the attributes present in the sensor (DPC Alert)
+### DPC Alert attributes
 
 ```yaml
 attribution: Data provided by Civil Protection Department
@@ -124,6 +124,53 @@ tomorrow:
 zone_name: Lario e Prealpi occidentali
 friendly_name: DPC Alert
 icon: mdi:hazard-lights
+```
+
+### DPC Vigilance attributes
+
+```yaml
+attribution: Data provided by Civil Protection Department
+integration: dpc
+tomorrow:
+  phenomena: []
+  icon: mdi:numeric-1-circle
+  image_url: >-
+    https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Vigilanza-Meteorologica/master/files/preview/20220201_domani.png
+  level: 1
+  precipitation: Assenti o non rilevanti
+aftertomorrow:
+  phenomena: []
+  icon: mdi:numeric-1-circle
+  image_url: null
+  level: 1
+  precipitation: Assenti o non rilevanti
+today:
+  phenomena:
+    - id: 202202011
+      date: 2022-01-31Z
+      id_event: 11
+      event: Venti
+      value: burrasca
+      latitude: 43.15908136602766
+      longitude: 12.860448349161915
+      distance: 46
+      direction: WSW
+      degrees: 256
+      icon: mdi:weather-windy
+  icon: mdi:numeric-2-circle
+  image_url: >-
+    https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Vigilanza-Meteorologica/master/files/preview/20220201_oggi.png
+  level: 2
+  precipitation: Deboli
+id: '20220201'
+publication_date: '2022-02-01T00:00:00'
+zone_name: Coste marchigiana meridionale e abruzzese centro-settentrionale
+last_update: '2022-02-01T17:27:04.002291'
+max_level: 2
+total_phenomena: 1
+total_alerts: 1
+icon: mdi:hazard-lights
+friendly_name: DPC Vigilance
 ```
 
 ### Representation of the attributes present in the binary sensor
@@ -171,6 +218,8 @@ total_alerts: 1
 friendly_name: DPC Vigilance
 icon: mdi:hazard-lights
 ```
+
+## Here are some advanced examples of using the entities created with this component
 
 ### Lovelace markdown card example sensor
 
@@ -268,12 +317,12 @@ content: >
   ~ [Criticità Idro](https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-criticita) ~ [Radar](https://mappe.protezionecivile.it/it/mappe-rischi/piattaforma-radar)
 ```
 
-### Lovelace config-template-card example to display maps
+### Lovelace custom [config-template-card](https://github.com/iantrich/config-template-card) example to display maps (autoupdate fase)
 
 ```yaml
 type: custom:config-template-card
 entities:
-  - sensor.date
+  - sensor.dpc_alert
 card:
   type: iframe
   card_mod:
@@ -284,16 +333,19 @@ card:
       }
   aspect_ratio: 100%
   url: >-
-    ${'https://servizio-mappe.protezionecivile.it/#/view/dashboard?x=11.756&y=41.495&
-    zoom=5.8&basemap=OPEN_STREET_MAP&appname=Bollettino di Vigilanza&file=
-    https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Vigilanza-Meteorologica/master/files/'
-    +states['sensor.dpc_vigilance'].attributes.id+'.json&hidden=minimap,info&fase=today'}
+    ${const d = new Date(); 
+    const dpc_d = new Date(String(states['sensor.dpc_alert'].attributes.publication_date));
+    var fase = (dpc_d.getDate() === d.getDate()) ? 'today' : 'tomorrow';
+    'https://servizio-mappe.protezionecivile.it/#/view/dashboard?x=11.756&y=41.495&
+    zoom=5.8&basemap=BING_AERIAL&appname=BollettinodiCriticità&file=
+    https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Criticita-Idrogeologica-Idraulica/master/files/'
+    +states['sensor.dpc_alert'].attributes.id+'.json&hidden=info,minimap&fase=' + fase}
 ```
 
 ```yaml
 type: custom:config-template-card
 entities:
-  - sensor.time
+  - sensor.dpc_vigilance
 card:
   type: iframe
   card_mod:
@@ -303,12 +355,47 @@ card:
         margin-top: 8px;
       }
   aspect_ratio: 100%
-  #maps...GOOGLE_SATELLITE, GOOGLE_HYBRID, GOOGLE_NORMAL OPEN_STREET_MAP, BING_AERIAL, , ORTHO_MAP, DARK_BASE_MAP
   url: >-
-    ${'https://servizio-mappe.protezionecivile.it/#/view/dashboard?x=11.756&y=41.495&
-    zoom=5.8&basemap=BING_AERIAL&appname=BollettinodiCriticità&file=
-    https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Criticita-Idrogeologica-Idraulica/master/files/'
-    +states['sensor.dpc_alert'].attributes.id+'.json&hidden=switch,info,minimap&fase=tomorrow'}
+    ${const d = new Date(); 
+    const dpc_d = new Date(String(states['sensor.dpc_vigilance'].attributes.publication_date));
+    var fase = (dpc_d.getDate() === d.getDate()) ? 'today' : 'tomorrow';
+    'https://servizio-mappe.protezionecivile.it/#/view/dashboard?x=11.756&y=41.495&
+    zoom=5.8&basemap=OPEN_STREET_MAP&appname=Bollettino di Vigilanza&file=
+    https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Vigilanza-Meteorologica/master/files/'
+    +states['sensor.dpc_vigilance'].attributes.id+'.json&hidden=minimap,info&fase=' + fase}
+  # #hidden=minimap,info,switch <<--- 
+```
+
+### Lovelace custom [lovelace-card-templater](https://github.com/gadgetchnnel/lovelace-card-templater) example to display maps (autoupdate fase)
+
+```yaml
+type: custom:card-templater
+card:
+  type: iframe
+  aspect_ratio: 100%
+  url_template: >-
+    {% set day = 'today' if now().day == state_attr('sensor.dpc_vigilance',
+    'publication_date').day else 'tomorrow' %}
+    {{'https://servizio-mappe.protezionecivile.it/#/view/dashboard?x=11.756&y=41.495&
+    zoom=5.8&basemap=OPEN_STREET_MAP&appname=Bollettino di Vigilanza&file=
+    https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Vigilanza-Meteorologica/master/files/'
+    + state_attr('sensor.dpc_vigilance', 'id') +
+    '.json&hidden=minimap,info,&fase=' + day}}
+```
+
+```yaml
+type: custom:card-templater
+card:
+  type: iframe
+  aspect_ratio: 100%
+  url_template: >-
+    {% set day = 'today' if now().day == state_attr('sensor.dpc_alert',
+    'publication_date').day else 'tomorrow' %}
+    {{'https://servizio-mappe.protezionecivile.it/#/view/dashboard?x=11.756&y=41.495&zoom=5.8&basemap=GOOGLE_SATELLITE&appname=Bollettino
+    di
+    Criticità&file=https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Criticita-Idrogeologica-Idraulica/master/files/'
+    + state_attr('sensor.dpc_alert', 'id') + '.json&hidden=info,minimap,&fase='
+    + day }}
 ```
 
 ### Automation example using the sensors (Compatible with UI Automation Editor)
@@ -522,9 +609,9 @@ automation:
 
 ## License
 
-_Information provided by [*Department of Civil Protection - Presidency of the Council of Ministers*](https://www.protezionecivile.gov.it/en/) Creative Commons Licenses [*CC-BY-SA 4.0.*](https://creativecommons.org/licenses/by-sa/4.0/)_
+_Information provided by [_Department of Civil Protection - Presidency of the Council of Ministers_](https://www.protezionecivile.gov.it/en/) Creative Commons Licenses [_CC-BY-SA 4.0._](https://creativecommons.org/licenses/by-sa/4.0/)_
 
-_Dati forniti dal servizio [*Dipartimento della Protezione Civile-Presidenza del Consiglio dei Ministri*](https://www.protezionecivile.gov.it/it/) Licenza Creative Commons [*CC-BY-SA 4.0.*](https://creativecommons.org/licenses/by-sa/4.0/deed.it)_
+_Dati forniti dal servizio [_Dipartimento della Protezione Civile-Presidenza del Consiglio dei Ministri_](https://www.protezionecivile.gov.it/it/) Licenza Creative Commons [_CC-BY-SA 4.0._](https://creativecommons.org/licenses/by-sa/4.0/deed.it)_
 
 ## Contributions are welcome
 
