@@ -31,7 +31,7 @@ from .const import (
     WARNING_ALERT,
 )
 
-CRIT_API_URL = "https://api.github.com/repos/pcm-dpc/DPC-Bollettini-Criticita-Idrogeologica-Idraulica/contents/files/all"
+CRIT_API_URL = "https://api.github.com/repos/pcm-dpc/DPC-Bollettini-Criticita-Idrogeologica-Idraulica/contents/files" # /all
 CRIT_BULLETIN_URL = (
     "https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-criticita/"
 )
@@ -43,7 +43,7 @@ CRIT_PATTERN_URL = (
     "https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Criticita-"
     "Idrogeologica-Idraulica/master/files/geojson/{}_{}.json"
 )
-VIGI_API_URL = "https://api.github.com/repos/pcm-dpc/DPC-Bollettini-Vigilanza-Meteorologica/contents/files/all"
+VIGI_API_URL = "https://api.github.com/repos/pcm-dpc/DPC-Bollettini-Vigilanza-Meteorologica/contents/files" # /all
 VIGI_BULLETIN_URL = (
     "https://mappe.protezionecivile.it/it/mappe-rischi/bollettino-di-vigilanza/"
 )
@@ -315,7 +315,8 @@ class DpcApiClient:
         for item in reversed(data):
             if not item["name"].startswith(day):
                 continue
-            return re.split("_all.zip|.zip", item["name"])[0]
+            # return re.split("_all.zip|.zip", item["name"])[0]
+            return re.split(".json", item["name"])[0]
         return self.get_id_from_api(data, self._str_yesterday)
 
     def parse(self, html) -> str:

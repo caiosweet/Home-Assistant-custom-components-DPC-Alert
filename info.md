@@ -1,5 +1,7 @@
 {% if prerelease %}
+
 ### NB!: This is a Beta version!
+
 {% endif %}
 
 # Home Assistant - Custom Components DPC Alert
@@ -8,7 +10,7 @@
 
 ## ITALY METEO-HYDRO ALERT
 
-#### To get more detailed information about parameters of warnings visit [*Civil Protection Department*](https://rischi.protezionecivile.gov.it/en/meteo-hydro/alert). [*Dipartimento Protezione Civile*](https://rischi.protezionecivile.gov.it/it/meteo-idro/allertamento).
+To get more detailed information about parameters of warnings visit [*Civil Protection Department*](https://rischi.protezionecivile.gov.it/en/meteo-hydro/alert). [*Dipartimento Protezione Civile*](https://rischi.protezionecivile.gov.it/it/meteo-idro/allertamento).
 
 <br>
 
