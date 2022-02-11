@@ -83,7 +83,10 @@ class DpcSensorCriticality(DpcEntity):
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
-        return self.coordinator.last_update_success and self.state is not None
+        return (
+            self.coordinator.last_update_success
+            and self.coordinator.data.get("criticality") is not None
+        )
 
     @property
     def state(self):
@@ -151,9 +154,7 @@ class DpcSensorCriticality(DpcEntity):
 
     async def async_added_to_hass(self):
         """Subscribe to updates."""
-        self.async_on_remove(
-            self.coordinator.async_add_listener(self.async_write_ha_state)
-        )
+        self.async_on_remove(self.coordinator.async_add_listener(self.async_write_ha_state))
 
 
 class DpcSensorVigilance(DpcEntity):
@@ -195,7 +196,10 @@ class DpcSensorVigilance(DpcEntity):
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
-        return self.coordinator.last_update_success and self.state is not None
+        return (
+            self.coordinator.last_update_success
+            and self.coordinator.data.get("vigilance") is not None
+        )
 
     @property
     def state(self):
@@ -248,6 +252,4 @@ class DpcSensorVigilance(DpcEntity):
 
     async def async_added_to_hass(self):
         """Subscribe to updates."""
-        self.async_on_remove(
-            self.coordinator.async_add_listener(self.async_write_ha_state)
-        )
+        self.async_on_remove(self.coordinator.async_add_listener(self.async_write_ha_state))

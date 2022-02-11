@@ -1,4 +1,6 @@
 """Dpc API Client."""
+from __future__ import annotations
+
 import asyncio
 import json
 import re
@@ -8,7 +10,6 @@ from math import *
 
 import aiohttp
 import async_timeout
-from geojson_utils import geometry_within_radius, point_distance, point_in_polygon
 
 from .const import (
     ATTR_AFTERTOMORROW,
@@ -30,8 +31,9 @@ from .const import (
     LOGGER,
     WARNING_ALERT,
 )
+from .geojson_utils import geometry_within_radius, point_distance, point_in_polygon
 
-CRIT_API_URL = "https://api.github.com/repos/pcm-dpc/DPC-Bollettini-Criticita-Idrogeologica-Idraulica/contents/files" # /all
+CRIT_API_URL = "https://api.github.com/repos/pcm-dpc/DPC-Bollettini-Criticita-Idrogeologica-Idraulica/contents/files"
 CRIT_BULLETIN_URL = (
     "https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-criticita/"
 )
@@ -43,10 +45,10 @@ CRIT_PATTERN_URL = (
     "https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Criticita-"
     "Idrogeologica-Idraulica/master/files/geojson/{}_{}.json"
 )
-VIGI_API_URL = "https://api.github.com/repos/pcm-dpc/DPC-Bollettini-Vigilanza-Meteorologica/contents/files" # /all
-VIGI_BULLETIN_URL = (
-    "https://mappe.protezionecivile.it/it/mappe-rischi/bollettino-di-vigilanza/"
+VIGI_API_URL = (
+    "https://api.github.com/repos/pcm-dpc/DPC-Bollettini-Vigilanza-Meteorologica/contents/files"
 )
+VIGI_BULLETIN_URL = "https://mappe.protezionecivile.it/it/mappe-rischi/bollettino-di-vigilanza/"
 VIGI_IMAGE_URL = (
     "https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Vigilanza-"
     "Meteorologica/master/files/preview/{}_{}.png"
@@ -154,6 +156,7 @@ class DpcApiClient:
         location_name: str,
         latitude: float,
         longitude: float,
+        comune: str,
         radius: int,
         session: aiohttp.ClientSession,
         update_interval: timedelta,
@@ -162,6 +165,7 @@ class DpcApiClient:
         self._name = location_name
         self._latitude = latitude
         self._longitude = longitude
+        self._comune = comune
         self._radius = radius
         self._session = session
         self._interval = update_interval
@@ -199,9 +203,7 @@ class DpcApiClient:
             LOGGER.debug("[%s] Get IDs from Api. %s - %s", self._name, id_ct, id_vg)
         except:
             ids_dpc = await self.scrape_urls([CRIT_BULLETIN_URL, VIGI_BULLETIN_URL])
-            id_ct, id_vg = ids_dpc.get(CRIT_BULLETIN_URL), ids_dpc.get(
-                VIGI_BULLETIN_URL
-            )
+            id_ct, id_vg = ids_dpc.get(CRIT_BULLETIN_URL), ids_dpc.get(VIGI_BULLETIN_URL)
             LOGGER.debug("[%s] Get IDs from Site. %s - %s", self._name, id_ct, id_vg)
 
         if id_ct:
@@ -219,9 +221,7 @@ class DpcApiClient:
             elif between_midnight_first_update:
                 self.swap_data_criticality()
             else:
-                LOGGER.debug(
-                    "[%s] Criticality No changes. %s", self._name, self._id_crit
-                )
+                LOGGER.debug("[%s] Criticality No changes. %s", self._name, self._id_crit)
             self._data[CRITICALITY][ATTR_LAST_UPDATE] = now.isoformat()
 
         if id_vg:
@@ -274,7 +274,8 @@ class DpcApiClient:
             async with async_timeout.timeout(TIMEOUT):
                 if "json" in url:
                     r = await self._session.get(url, raise_for_status=True)
-                    fetched = await r.json(content_type=None)  # not import json
+                    # fetched = await r.json(content_type=None)  # not import json
+                    fetched = json.loads(await r.text())
                 elif "api." in url:
                     r = await self._session.get(url, raise_for_status=True)
                     jdata = json.loads(await r.text())
@@ -361,13 +362,11 @@ class DpcApiClient:
             self._cache_crit[ATTR_LINK] = CRIT_BULLETIN_URL
             self._cache_crit[ATTR_PUBLICATION_DATE] = self._pub_date_crit
 
-            prop = self.get_properties(self._point, response)
+            prop = self.get_properties(self._comune, self._point, response)
             self._cache_crit[ATTR_ZONE_NAME] = prop["Nome zona"]
             image = CRIT_IMAGE_URL.format(self._id_crit, day_it)
 
-            self._cache_crit[day_en] = self.get_info_level(
-                prop["Rappresentata nella mappa"]
-            )
+            self._cache_crit[day_en] = self.get_info_level(prop["Rappresentata nella mappa"])
             self._cache_crit[day_en].update(
                 {
                     ATTR_IMAGE_URL: image,
@@ -390,6 +389,7 @@ class DpcApiClient:
 
         except Exception as exception:
             LOGGER.error("Criticality Exception! - %s", exception)
+            self._data.pop(CRITICALITY, None)
             pass
 
     def get_vigilance(self, response: dict, url: str) -> dict:
@@ -416,7 +416,7 @@ class DpcApiClient:
                 self._cache_vigi[day_en].update({ATTR_PHENOMENA: phenomena})
 
             elif "Vigilanza-Meteorologica" in url:
-                prop = self.get_properties(self._point, response)
+                prop = self.get_properties(self._comune, self._point, response)
                 self._cache_vigi[day_en].update(
                     {
                         "icon": VIGI_ICON.get(prop["id_classificazione"]),
@@ -438,6 +438,7 @@ class DpcApiClient:
 
         except Exception as exception:
             LOGGER.error("Vigilance Exception! - %s", exception)
+            self._data.pop(VIGILANCE, None)
             pass
 
     @staticmethod
@@ -449,11 +450,28 @@ class DpcApiClient:
         return d
 
     @staticmethod
-    def get_properties(point, geojs) -> dict:
-        for feature in geojs["features"]:
-            if not point_in_polygon(point, feature["geometry"]):
-                continue
-            return feature["properties"]
+    def get_properties(comune_conf, point, geojs) -> dict:
+        if comune_conf:
+            # from municipality
+            LOGGER.debug("Get properties from city -> [%s]", comune_conf)
+            for feature in geojs["features"]:
+                comuni = feature["properties"].get("Comuni", feature["properties"].get("comuni"))
+                comune = [city.lower() for city in comuni if comune_conf.lower() == city.lower()]
+                if not comune:
+                    continue
+                return feature["properties"]
+            LOGGER.error("City not found -> [%s]", comune_conf)
+        else:
+            # from geolocation
+            LOGGER.debug("Get properties from point_in_polygon -> [%s]", point)
+            for feature in geojs["features"]:
+                if not point_in_polygon(point, feature["geometry"]):
+                    continue
+                return feature["properties"]
+            LOGGER.error(
+                "Unable to find the location, please try to configure the City. -> [%s]",
+                comune_conf,
+            )
 
     def get_phenomena(self, point, geojs) -> list:
         phenomena = []

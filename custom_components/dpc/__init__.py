@@ -4,6 +4,8 @@ Custom integration to integrate DPC-Alert with Home Assistant.
 For more details about this integration, please refer to
 https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert
 """
+from __future__ import annotations
+
 import asyncio
 from datetime import timedelta
 
@@ -22,6 +24,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 
 from .api import DpcApiClient
 from .const import (
+    CONF_COMUNE,
     DEFAULT_RADIUS,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
@@ -29,6 +32,8 @@ from .const import (
     PLATFORMS,
     STARTUP_MESSAGE,
 )
+
+# from .testing_api import DpcApiClient
 
 
 async def async_setup(hass: HomeAssistant, config: Config):
@@ -45,18 +50,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     location_name = entry.data.get(CONF_NAME)
     latitude = entry.data.get(CONF_LATITUDE)
     longitude = entry.data.get(CONF_LONGITUDE)
+    comune = entry.options.get(CONF_COMUNE)
     update_interval = timedelta(
         minutes=entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
     )
     radius = entry.options.get(CONF_RADIUS, DEFAULT_RADIUS)
     session = async_get_clientsession(hass)
     client = DpcApiClient(
-        location_name, latitude, longitude, radius, session, update_interval
+        location_name, latitude, longitude, comune, radius, session, update_interval
     )
 
-    coordinator = DpcDataUpdateCoordinator(
-        hass, client=client, update_interval=update_interval
-    )
+    coordinator = DpcDataUpdateCoordinator(hass, client=client, update_interval=update_interval)
     await coordinator.async_refresh()
 
     if not coordinator.last_update_success:
@@ -67,9 +71,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     for platform in PLATFORMS:
         if entry.options.get(platform, True):
             coordinator.platforms.append(platform)
-            hass.async_add_job(
-                hass.config_entries.async_forward_entry_setup(entry, platform)
-            )
+            hass.async_add_job(hass.config_entries.async_forward_entry_setup(entry, platform))
 
     if not entry.update_listeners:
         entry.add_update_listener(async_reload_entry)
@@ -83,9 +85,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 class DpcDataUpdateCoordinator(DataUpdateCoordinator):
     """Class to manage fetching data from the API."""
 
-    def __init__(
-        self, hass: HomeAssistant, client: DpcApiClient, update_interval
-    ) -> None:
+    def __init__(self, hass: HomeAssistant, client: DpcApiClient, update_interval) -> None:
         """Initialize."""
         self.api = client
         self.platforms = []
@@ -97,6 +97,12 @@ class DpcDataUpdateCoordinator(DataUpdateCoordinator):
             return await self.api.async_get_data()
         except Exception as exception:
             raise UpdateFailed() from exception
+
+
+async def async_update_options(hass, config_entry):
+    """Update options."""
+    LOGGER.info("async_update_options")
+    await hass.config_entries.async_reload(config_entry.entry_id)
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -115,6 +121,16 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.data[DOMAIN].pop(entry.entry_id)
 
     return unloaded
+
+
+async def async_migrate_entry(hass, entry):
+    LOGGER.debug("Migrating DPC entry from Version %s", entry.version)
+    if entry.version == 1:
+        entry.options = dict(entry.options)
+        entry.options[CONF_COMUNE] = ""
+        entry.version = 2
+
+    return True
 
 
 async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:

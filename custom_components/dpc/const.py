@@ -10,14 +10,13 @@ PLATFORMS = [BINARY_SENSOR_DOMAIN, SENSOR_DOMAIN]
 # Base component constants
 ATTRIBUTION = "Data provided by Civil Protection Department"
 DOMAIN = "dpc"
-ISSUE_URL = (
-    "https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/issues"
-)
+ISSUE_URL = "https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/issues"
 NAME = "Dipartimento Protezione Civile"
 MANUFACTURER = "Italian Government"
-VERSION = "2022.2.0"
+VERSION = "2022.2.1"
 
 # Config
+CONF_COMUNE = "comune"
 CONF_WARNING_LEVEL = "warning_level"
 
 # Defaults
@@ -27,7 +26,6 @@ DEFAULT_RADIUS = 50  # Km
 DEFAULT_SCAN_INTERVAL = 30  # min
 
 WARNING_ALERT = {
-    "": 0,
     "NESSUNA ALLERTA": 1,
     "ALLERTA GIALLA": 2,
     "ALLERTA ARANCIONE": 3,

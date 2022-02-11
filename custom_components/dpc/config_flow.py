@@ -1,4 +1,6 @@
 """Adds config flow for Dpc."""
+from email.policy import default
+
 import voluptuous as vol
 
 from homeassistant import config_entries
@@ -13,6 +15,7 @@ from homeassistant.core import callback
 import homeassistant.helpers.config_validation as cv
 
 from .const import (
+    CONF_COMUNE,
     CONF_WARNING_LEVEL,
     DEFAULT_NAME,
     DEFAULT_RADIUS,
@@ -27,7 +30,7 @@ from .const import (
 class DpcFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Config flow for Dpc."""
 
-    VERSION = 1
+    VERSION = 2
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
     async def async_step_user(self, user_input=None):
@@ -46,9 +49,7 @@ class DpcFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                         CONF_NAME,
                         default=(DEFAULT_NAME),  # {self.hass.config.location_name}
                     ): str,
-                    vol.Required(
-                        CONF_LATITUDE, default=(self.hass.config.latitude)
-                    ): cv.latitude,
+                    vol.Required(CONF_LATITUDE, default=(self.hass.config.latitude)): cv.latitude,
                     vol.Required(
                         CONF_LONGITUDE, default=(self.hass.config.longitude)
                     ): cv.longitude,
@@ -69,6 +70,7 @@ class DpcOptionsFlowHandler(config_entries.OptionsFlow):
         """Initialize HACS options flow."""
         self.config_entry = config_entry
         self.options = dict(config_entry.options)
+        self.data = dict(config_entry.data)
 
     async def async_step_init(self, user_input=None):  # pylint: disable=unused-argument
         """Manage the options."""
@@ -81,11 +83,23 @@ class DpcOptionsFlowHandler(config_entries.OptionsFlow):
             return await self._update_options()
 
         schema = {
-            vol.Required(x, default=self.options.get(x, True)): bool
-            for x in sorted(PLATFORMS)
+            vol.Required(x, default=self.options.get(x, True)): bool for x in sorted(PLATFORMS)
         }
         schema.update(
             {
+                vol.Optional(
+                    CONF_COMUNE,
+                    default="",
+                    description={"suggested_value": self.options.get(CONF_COMUNE, "")},
+                ): str,
+                vol.Required(
+                    CONF_LATITUDE,
+                    description={"suggested_value": self.data[CONF_LATITUDE]},
+                ): cv.latitude,
+                vol.Required(
+                    CONF_LONGITUDE,
+                    description={"suggested_value": self.data[CONF_LONGITUDE]},
+                ): cv.longitude,
                 vol.Optional(
                     CONF_SCAN_INTERVAL,
                     default=self.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
