@@ -92,14 +92,6 @@ class DpcOptionsFlowHandler(config_entries.OptionsFlow):
                     default="",
                     description={"suggested_value": self.options.get(CONF_COMUNE, "")},
                 ): str,
-                vol.Required(
-                    CONF_LATITUDE,
-                    description={"suggested_value": self.data[CONF_LATITUDE]},
-                ): cv.latitude,
-                vol.Required(
-                    CONF_LONGITUDE,
-                    description={"suggested_value": self.data[CONF_LONGITUDE]},
-                ): cv.longitude,
                 vol.Optional(
                     CONF_SCAN_INTERVAL,
                     default=self.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),

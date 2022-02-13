@@ -33,8 +33,6 @@ from .const import (
     STARTUP_MESSAGE,
 )
 
-# from .testing_api import DpcApiClient
-
 
 async def async_setup(hass: HomeAssistant, config: Config):
     """Set up this integration using YAML is not supported."""
@@ -75,6 +73,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     if not entry.update_listeners:
         entry.add_update_listener(async_reload_entry)
+    # entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
     LOGGER.debug("CONFIG DATA: %s", entry.data)
     LOGGER.debug("CONFIG OPTIONS: %s", entry.options)

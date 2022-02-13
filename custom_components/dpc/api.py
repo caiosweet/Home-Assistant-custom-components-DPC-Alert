@@ -2,11 +2,11 @@
 from __future__ import annotations
 
 import asyncio
+from datetime import date, datetime, time, timedelta
 import json
+from math import *
 import re
 import socket
-from datetime import date, datetime, time, timedelta
-from math import *
 
 import aiohttp
 import async_timeout
@@ -199,12 +199,18 @@ class DpcApiClient:
 
         try:
             ids_dpc = await self.scrape_urls([CRIT_API_URL, VIGI_API_URL])
+            ids_dpc = {
+                k: self.get_id_from_api(json.loads(v), self._str_today)
+                for element in ids_dpc
+                for k, v in element.items()
+            }
             id_ct, id_vg = ids_dpc.get(CRIT_API_URL), ids_dpc.get(VIGI_API_URL)
-            LOGGER.debug("[%s] Get IDs from Api. %s - %s", self._name, id_ct, id_vg)
+            LOGGER.debug("[%s] Get IDs from Api [%s - %s]", self._name, id_ct, id_vg)
         except:
             ids_dpc = await self.scrape_urls([CRIT_BULLETIN_URL, VIGI_BULLETIN_URL])
+            ids_dpc = {k: self.parse(v) for element in ids_dpc for k, v in element.items()}
             id_ct, id_vg = ids_dpc.get(CRIT_BULLETIN_URL), ids_dpc.get(VIGI_BULLETIN_URL)
-            LOGGER.debug("[%s] Get IDs from Site. %s - %s", self._name, id_ct, id_vg)
+            LOGGER.debug("[%s] Get IDs from Site [%s - %s]", self._name, id_ct, id_vg)
 
         if id_ct:
             if self._id_crit != id_ct:
@@ -245,6 +251,7 @@ class DpcApiClient:
 
         if urls:
             await self.fetch_all(urls)
+
             if id_ct and (date_today != self._pub_date_crit.date()):
                 self.swap_data_criticality()
             if id_vg and (date_today != self._pub_date_vigi.date()):
@@ -253,40 +260,31 @@ class DpcApiClient:
         LOGGER.debug("[%s] DATA: %s", self._name, self._data)
         return self._data
 
-    async def scrape_urls(self, urls: list) -> dict:
-        results = await asyncio.gather(*[self.api_fetch(url) for url in urls])
-        return {k: v for element in results for k, v in element.items()}
+    async def scrape_urls(self, urls: list) -> list:
+        return await asyncio.gather(*[self.api_fetch(url) for url in urls])
 
     async def fetch_all(self, urls: list):
-        await asyncio.gather(*[self.fetch_and_parse(url) for url in urls])
+        fetched_all = await self.scrape_urls(urls)
 
-    async def fetch_and_parse(self, url: str) -> dict:
-        response = await self.api_fetch(url)
-        if response:
-            if "Vigilanza-Meteorologica" in url:
-                self.get_vigilance(response, url)
-            elif "Criticita-Idrogeologica" in url:
-                self.get_criticality(response, url)
+        for dic in fetched_all:
+            for url, response in dic.items():
+                response = json.loads(response)
+                if "Vigilanza-Meteorologica" in url:
+                    self.get_vigilance(response, url)
+                elif "Criticita-Idrogeologica" in url:
+                    self.get_criticality(response, url)
+                else:
+                    LOGGER.error("[NOTHING IN URL]: %s", url)
 
     async def api_fetch(self, url: str) -> dict:
         """Get information from the API."""
         try:
             async with async_timeout.timeout(TIMEOUT):
-                if "json" in url:
-                    r = await self._session.get(url, raise_for_status=True)
-                    # fetched = await r.json(content_type=None)  # not import json
-                    fetched = json.loads(await r.text())
-                elif "api." in url:
-                    r = await self._session.get(url, raise_for_status=True)
-                    jdata = json.loads(await r.text())
-                    fetched = {url: self.get_id_from_api(jdata, self._str_today)}
-                    LOGGER.debug("[%s] ClientResponse ->  %s", self._name, r)
-                else:
-                    r = await self._session.get(url, raise_for_status=True)
-                    fetched = {url: self.parse(await r.text())}
-                    LOGGER.debug("[%s] ClientResponse ->  %s", self._name, r)
-                LOGGER.debug("[%s] -> Got [%s] for URL: %s", self._name, r.status, url)
-                return fetched
+                r = await self._session.get(url, raise_for_status=True)
+                fetched = {url: await r.text()}
+                # LOGGER.debug("[%s] ClientResponse ->  %s", self._name, r)
+            LOGGER.debug("[%s] -> Got [%s] for URL: %s", self._name, r.status, url)
+            return fetched
 
         except asyncio.CancelledError as e:
             LOGGER.error("Cancelled error fetching information from %s - %s", url, e)
@@ -305,7 +303,7 @@ class DpcApiClient:
         except (socket.gaierror) as e:
             LOGGER.error("Socket Error fetching information from %s - %s", url, e)
 
-        except Exception as unexpected_error:
+        except Exception as unexpected_error:  # pylint: disable=broad-except
             LOGGER.exception(
                 "Unexpected error exception occured for %s:  %s",
                 url,
@@ -345,7 +343,7 @@ class DpcApiClient:
         LOGGER.debug("[%s] Vigilance swap data...", self._name)
 
     def get_criticality(self, response: dict, url: str) -> dict:
-        LOGGER.debug("[%s] Criticality Update in progress......", self._name)
+        LOGGER.debug("[%s] Criticality Update %s", self._name, url.split("geojson/")[1])
         now = datetime.now()
         expiration_date = datetime.combine(self._pub_date_crit, datetime.min.time())
         try:
@@ -393,7 +391,7 @@ class DpcApiClient:
             pass
 
     def get_vigilance(self, response: dict, url: str) -> dict:
-        LOGGER.debug("[%s] Vigilance Update in progress......", self._name)
+        LOGGER.debug("[%s] Vigilance Update %s", self._name, url.split("geojson/")[1])
         now = datetime.now()
         try:
             day_en = str()
@@ -452,26 +450,20 @@ class DpcApiClient:
     @staticmethod
     def get_properties(comune_conf, point, geojs) -> dict:
         if comune_conf:
-            # from municipality
-            LOGGER.debug("Get properties from city -> [%s]", comune_conf)
+            LOGGER.debug("Get properties from city -> %s", comune_conf)
             for feature in geojs["features"]:
                 comuni = feature["properties"].get("Comuni", feature["properties"].get("comuni"))
                 comune = [city.lower() for city in comuni if comune_conf.lower() == city.lower()]
                 if not comune:
                     continue
                 return feature["properties"]
-            LOGGER.error("City not found -> [%s]", comune_conf)
-        else:
-            # from geolocation
-            LOGGER.debug("Get properties from point_in_polygon -> [%s]", point)
-            for feature in geojs["features"]:
-                if not point_in_polygon(point, feature["geometry"]):
-                    continue
-                return feature["properties"]
-            LOGGER.error(
-                "Unable to find the location, please try to configure the City. -> [%s]",
-                comune_conf,
-            )
+            LOGGER.error("City not found -> %s", comune_conf)
+        LOGGER.debug("Get properties from coordinates -> %s", point)
+        for feature in geojs["features"]:
+            if not point_in_polygon(point, feature["geometry"]):
+                continue
+            return feature["properties"]
+        LOGGER.error("Not point in polygons -> %s", comune_conf)
 
     def get_phenomena(self, point, geojs) -> list:
         phenomena = []

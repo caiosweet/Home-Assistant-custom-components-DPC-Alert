@@ -29,8 +29,6 @@
                     "binary_sensor": "Sensore binario abilitato",
                     "sensor": "Sensore abilitato",
                     "comune": "Comune",
-                    "latitude": "Latitudine",
-                    "longitude": "Longitudine",
                     "scan_interval": "Intervallo di aggiornamento (minuti, default 30)",
                     "warning_level": "Livello minimo di avviso",
                     "radius": "Raggio (Km, default 50)"
