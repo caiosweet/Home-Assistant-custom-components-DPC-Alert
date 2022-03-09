@@ -19,12 +19,13 @@ from homeassistant.const import (
 )
 from homeassistant.core import Config, HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.helpers import event
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .api import DpcApiClient
+from .api import DpcApiClient, DpcApiException
 from .const import (
-    CONF_COMUNE,
+    CONF_MUNICIPALITY,
     DEFAULT_RADIUS,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
@@ -48,14 +49,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     location_name = entry.data.get(CONF_NAME)
     latitude = entry.data.get(CONF_LATITUDE)
     longitude = entry.data.get(CONF_LONGITUDE)
-    comune = entry.options.get(CONF_COMUNE)
+    municipality = entry.options.get(CONF_MUNICIPALITY)
     update_interval = timedelta(
         minutes=entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
     )
     radius = entry.options.get(CONF_RADIUS, DEFAULT_RADIUS)
     session = async_get_clientsession(hass)
     client = DpcApiClient(
-        location_name, latitude, longitude, comune, radius, session, update_interval
+        location_name, latitude, longitude, municipality, radius, session, update_interval
     )
 
     coordinator = DpcDataUpdateCoordinator(hass, client=client, update_interval=update_interval)
@@ -94,13 +95,32 @@ class DpcDataUpdateCoordinator(DataUpdateCoordinator):
         """Update data via library."""
         try:
             return await self.api.async_get_data()
-        except Exception as exception:
-            raise UpdateFailed() from exception
+        except (DpcApiException, Exception) as exception:
+            raise UpdateFailed(exception) from exception
+        finally:
+            LOGGER.debug("[%s] COORDINATOR DATA: \n%s", self.api._name, self.api._data)
+
+            # if pending update -> retry for a full update
+            if (
+                len(self.api._urls) > 0
+                or not self.api._data
+                or not self.api._id_crit
+                or not self.api._id_vigi
+            ):
+                LOGGER.warning("Error getting full data, try again in 300 seconds.")
+                event.async_call_later(
+                    self.hass,
+                    300,
+                    self._async_request_refresh_later,
+                )
+
+    async def _async_request_refresh_later(self, _now):
+        """Request async_request_refresh."""
+        await self.async_request_refresh()
 
 
 async def async_update_options(hass, config_entry):
     """Update options."""
-    LOGGER.info("async_update_options")
     await hass.config_entries.async_reload(config_entry.entry_id)
 
 
@@ -123,10 +143,10 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 
 async def async_migrate_entry(hass, entry):
-    LOGGER.debug("Migrating DPC entry from Version %s", entry.version)
+    LOGGER.info("Migrating DPC entry from Version %s", entry.version)
     if entry.version == 1:
         entry.options = dict(entry.options)
-        entry.options[CONF_COMUNE] = ""
+        entry.options[CONF_MUNICIPALITY] = ""
         entry.version = 2
 
     return True

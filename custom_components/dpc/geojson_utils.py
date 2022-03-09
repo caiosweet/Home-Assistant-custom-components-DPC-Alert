@@ -1,5 +1,8 @@
 import math
 
+__git__ = "https://github.com/brandonxiang/geojson-python-utils"
+__author__ = "brandonxiang"
+
 
 def linestrings_intersect(line1, line2):
     """
@@ -520,3 +523,40 @@ def simplify(source, kink=20):
         r.append(source_coord[index[i]])
 
     return map(lambda o: {"type": "Point", "coordinates": [o.lng, o.lat]}, r)
+
+
+def calculate_initial_compass_bearing(pointA, pointB) -> tuple:
+    """credits
+    https://gist.github.com/jeromer/2005586
+    https://gist.github.com/RobertSudwarts/acf8df23a16afdb5837f
+    """
+    if (type(pointA) != tuple) or (type(pointB) != tuple):
+        raise TypeError("Only tuples are supported as arguments")
+    lat1 = math.radians(pointA[0])
+    lat2 = math.radians(pointB[0])
+    diffLong = math.radians(pointB[1] - pointA[1])
+    x = math.sin(diffLong) * math.cos(lat2)
+    y = math.cos(lat1) * math.sin(lat2) - (math.sin(lat1) * math.cos(lat2) * math.cos(diffLong))
+    initial_bearing = math.atan2(x, y)
+    initial_bearing = math.degrees(initial_bearing)
+    compass_bearing = (initial_bearing + 360) % 360
+    dirs = [
+        "N",
+        "NNE",
+        "NE",
+        "ENE",
+        "E",
+        "ESE",
+        "SE",
+        "SSE",
+        "S",
+        "SSW",
+        "SW",
+        "WSW",
+        "W",
+        "WNW",
+        "NW",
+        "NNW",
+    ]
+    ix = round(compass_bearing / (360.0 / len(dirs)))
+    return dirs[ix % len(dirs)], math.floor(compass_bearing)

@@ -16,7 +16,7 @@ MANUFACTURER = "Italian Government"
 VERSION = "2022.2.2"
 
 # Config
-CONF_COMUNE = "comune"
+CONF_MUNICIPALITY = "municipality"
 CONF_WARNING_LEVEL = "warning_level"
 
 # Defaults

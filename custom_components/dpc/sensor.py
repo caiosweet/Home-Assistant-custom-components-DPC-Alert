@@ -121,7 +121,7 @@ class DpcSensorCriticality(DpcEntity):
                             if "domani" in warning:
                                 self._events_tomorrow.append(event_day)
 
-            return self._state
+            return self._state if self._state != 0 else None
 
         except Exception as exception:
             LOGGER.error("[Criticality Sensor] Error! - %s", exception)
@@ -148,13 +148,13 @@ class DpcSensorCriticality(DpcEntity):
             attrs[ATTR_ZONE_NAME] = data[ATTR_ZONE_NAME]
         return attrs
 
-    async def async_update(self):
-        """Update Dpc Sensor Entity."""
-        await self.coordinator.async_request_refresh()
+    # async def async_update(self):
+    #     """Update Dpc Sensor Entity."""
+    #     await self.coordinator.async_request_refresh()
 
-    async def async_added_to_hass(self):
-        """Subscribe to updates."""
-        self.async_on_remove(self.coordinator.async_add_listener(self.async_write_ha_state))
+    # async def async_added_to_hass(self):
+    #     """Subscribe to updates."""
+    #     self.async_on_remove(self.coordinator.async_add_listener(self.async_write_ha_state))
 
 
 class DpcSensorVigilance(DpcEntity):
@@ -228,7 +228,7 @@ class DpcSensorVigilance(DpcEntity):
                         #     and data[warning][ATTR_LEVEL] < self._level
                         # ):
                         #     data.pop(warning)
-            return self._state
+            return self._state if self._state != 0 else None
 
         except Exception as exception:
             LOGGER.error("[Vigilance Sensor] Error! - %s", exception)
@@ -246,10 +246,10 @@ class DpcSensorVigilance(DpcEntity):
 
         return attrs
 
-    async def async_update(self):
-        """Update Dpc Sensor Entity."""
-        await self.coordinator.async_request_refresh()
+    # async def async_update(self):
+    #     """Update Dpc Sensor Entity."""
+    #     await self.coordinator.async_request_refresh()
 
-    async def async_added_to_hass(self):
-        """Subscribe to updates."""
-        self.async_on_remove(self.coordinator.async_add_listener(self.async_write_ha_state))
+    # async def async_added_to_hass(self):
+    #     """Subscribe to updates."""
+    #     self.async_on_remove(self.coordinator.async_add_listener(self.async_write_ha_state))

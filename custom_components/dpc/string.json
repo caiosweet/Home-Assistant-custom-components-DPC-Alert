@@ -28,7 +28,7 @@
                 "data": {
                     "binary_sensor": "Binary sensor enabled",
                     "sensor": "Sensor enabled",
-                    "comune": "City",
+                    "municipality": "Municipality",
                     "scan_interval": "Update interval (minutes, default 30)",
                     "warning_level": "Minimum level of warning.",
                     "radius": "Radius (Km, default 50)"

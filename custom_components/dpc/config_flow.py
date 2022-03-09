@@ -1,8 +1,8 @@
 """Adds config flow for Dpc."""
 from email.policy import default
 
+import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
-
 from homeassistant import config_entries
 from homeassistant.const import (
     CONF_LATITUDE,
@@ -12,10 +12,9 @@ from homeassistant.const import (
     CONF_SCAN_INTERVAL,
 )
 from homeassistant.core import callback
-import homeassistant.helpers.config_validation as cv
 
 from .const import (
-    CONF_COMUNE,
+    CONF_MUNICIPALITY,
     CONF_WARNING_LEVEL,
     DEFAULT_NAME,
     DEFAULT_RADIUS,
@@ -88,9 +87,9 @@ class DpcOptionsFlowHandler(config_entries.OptionsFlow):
         schema.update(
             {
                 vol.Optional(
-                    CONF_COMUNE,
+                    CONF_MUNICIPALITY,
                     default="",
-                    description={"suggested_value": self.options.get(CONF_COMUNE, "")},
+                    description={"suggested_value": self.options.get(CONF_MUNICIPALITY, "")},
                 ): str,
                 vol.Optional(
                     CONF_SCAN_INTERVAL,
