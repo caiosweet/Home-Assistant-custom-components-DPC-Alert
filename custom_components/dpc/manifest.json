@@ -4,7 +4,7 @@
   "documentation": "https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/issues",
-  "version": "2022.2.2",
+  "version": "2022.2.3",
   "config_flow": true,
   "requirements": [],
   "codeowners": [
