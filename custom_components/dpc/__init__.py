@@ -76,9 +76,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         entry.add_update_listener(async_reload_entry)
     # entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
-    LOGGER.debug("CONFIG DATA: %s", entry.data)
-    LOGGER.debug("CONFIG OPTIONS: %s", entry.options)
-
     return True
 
 
@@ -98,16 +95,10 @@ class DpcDataUpdateCoordinator(DataUpdateCoordinator):
         except (DpcApiException, Exception) as exception:
             raise UpdateFailed(exception) from exception
         finally:
-            LOGGER.debug("[%s] COORDINATOR DATA: \n%s", self.api._name, self.api._data)
+            LOGGER.debug("[%s] COORDINATOR DATA: %s", self.api._name, self.api._data)
 
-            # if pending update -> retry for a full update
-            if (
-                len(self.api._urls) > 0
-                or not self.api._data
-                or not self.api._id_crit
-                or not self.api._id_vigi
-            ):
-                LOGGER.warning("Error getting full data, try again in 300 seconds.")
+            if self.api._pending_full_update:
+                LOGGER.warning("Pending full update, i will retry in 5 min")
                 event.async_call_later(
                     self.hass,
                     300,

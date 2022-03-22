@@ -11,6 +11,7 @@ from .const import (
     ATTR_INFO,
     ATTR_LAST_UPDATE,
     ATTR_LEVEL,
+    ATTR_LINK,
     ATTR_MAX_LEVEL,
     ATTR_PHENOMENA,
     ATTR_PUBLICATION_DATE,
@@ -44,7 +45,7 @@ async def async_setup_entry(hass, entry, async_add_entities):  # async_add_devic
 
 
 class DpcSensorCriticality(DpcEntity):
-    """Dpc Sensor class."""
+    """Dpc Criticality Sensor class."""
 
     def __init__(
         self,
@@ -54,15 +55,15 @@ class DpcSensorCriticality(DpcEntity):
         """Initialize Entities."""
         super().__init__(coordinator, entry)
         self.coordinator = coordinator
-        # self.entry = entry
+        self.entry = entry
         self._state = None
         self._max_level = None
         self._total_alerts = None
         self._events_today = None
         self._events_tomorrow = None
-        self._name = self.config_entry.data.get(CONF_NAME)
-        self._latitude = self.config_entry.data.get(CONF_LATITUDE)
-        self._longitude = self.config_entry.data.get(CONF_LONGITUDE)
+        self._name = entry.data.get(CONF_NAME)
+        self._latitude = entry.data.get(CONF_LATITUDE)
+        self._longitude = entry.data.get(CONF_LONGITUDE)
         self._level = entry.options.get(CONF_WARNING_LEVEL, DEFAULT_WARNING_LEVEL)
 
     @property
@@ -73,7 +74,7 @@ class DpcSensorCriticality(DpcEntity):
     @property
     def name(self):
         """Return the name of the sensor."""
-        return f"{self.config_entry.data.get(CONF_NAME, DEFAULT_NAME)} Alert"
+        return f"{self.entry.data.get(CONF_NAME, DEFAULT_NAME)} Alert"
 
     @property
     def icon(self):
@@ -85,7 +86,7 @@ class DpcSensorCriticality(DpcEntity):
         """Return True if entity is available."""
         return (
             self.coordinator.last_update_success
-            and self.coordinator.data.get("criticality") is not None
+            and self.coordinator.data
         )
 
     @property
@@ -146,6 +147,7 @@ class DpcSensorCriticality(DpcEntity):
                 if self._events_tomorrow:
                     attrs[ATTR_EVENTS_TOMORROW] = self._events_tomorrow
             attrs[ATTR_ZONE_NAME] = data[ATTR_ZONE_NAME]
+            attrs[ATTR_LINK] = data[ATTR_LINK]
         return attrs
 
     # async def async_update(self):
@@ -158,7 +160,7 @@ class DpcSensorCriticality(DpcEntity):
 
 
 class DpcSensorVigilance(DpcEntity):
-    """Dpc Sensor class."""
+    """Dpc Vigilance Sensor class."""
 
     def __init__(
         self,
@@ -168,14 +170,14 @@ class DpcSensorVigilance(DpcEntity):
         """Initialize Entities."""
         super().__init__(coordinator, entry)
         self.coordinator = coordinator
-        # self.entry = entry
+        self.entry = entry
         self._state = None
         self._max_level = None
         self._total_alerts = None
         self._total_phenomena = None
-        self._name = self.config_entry.data.get(CONF_NAME)
-        self._latitude = self.config_entry.data.get(CONF_LATITUDE)
-        self._longitude = self.config_entry.data.get(CONF_LONGITUDE)
+        self._name = entry.data.get(CONF_NAME)
+        self._latitude = entry.data.get(CONF_LATITUDE)
+        self._longitude = entry.data.get(CONF_LONGITUDE)
         self._level = entry.options.get(CONF_WARNING_LEVEL, DEFAULT_WARNING_LEVEL)
 
     @property
@@ -186,7 +188,7 @@ class DpcSensorVigilance(DpcEntity):
     @property
     def name(self):
         """Return the name of the sensor."""
-        return f"{self.config_entry.data.get(CONF_NAME, DEFAULT_NAME)} Vigilance"
+        return f"{self.entry.data.get(CONF_NAME, DEFAULT_NAME)} Vigilance"
 
     @property
     def icon(self):
@@ -198,7 +200,7 @@ class DpcSensorVigilance(DpcEntity):
         """Return True if entity is available."""
         return (
             self.coordinator.last_update_success
-            and self.coordinator.data.get("vigilance") is not None
+            and self.coordinator.data
         )
 
     @property
@@ -243,7 +245,6 @@ class DpcSensorVigilance(DpcEntity):
             attrs[ATTR_MAX_LEVEL] = self._state
             attrs[ATTR_TOTAL_PHENOMENA] = self._total_phenomena
             attrs[ATTR_TOTAL_ALERTS] = self._total_alerts
-
         return attrs
 
     # async def async_update(self):

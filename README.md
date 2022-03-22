@@ -58,8 +58,11 @@ Now the integration is added to HACS and available in the normal HA integration 
 6. Optional:
    1. Binary sensor enable/disable
    2. Sensor enabled/disable
-   3. Update interval (minutes, default 30)
-   4. Minimum level of warning. (int, default 2)
+   3. Municipality
+   4. Update interval (minutes, default 30)
+   5. Minimum level of warning. (int, default 2)
+
+   N.B Some municipalities border on multiple alert areas. With the option (3) "municipality" the search is done by name of the municipality, and the area with the highest alert will be considered.
 
 > :warning: **Multiple instance are possible, but... for the moment the updates are independent, it is advisable not to exceed more than two / three locations.**
 
@@ -178,45 +181,21 @@ friendly_name: DPC Vigilance
 ```yaml
 attribution: Data provided by Civil Protection Department
 integration: dpc
-aftertomorrow:
-  phenomena:
-    - id: 202108053
-      date: 2021-08-04Z
-      id_event: 1
-      event: Precipitazioni
-      value: piogge sparse o intermittenti
-      latitude: 45.926239089165264
-      longitude: 9.31893208546803
-      distance: 8
-      direction: NNE
-      degrees: 27
-      icon: mdi:water
-  icon: mdi:numeric-3-circle
-  image_url: null
-  level: 3
-  precipitation: Moderati
-tomorrow:
-  phenomena: []
-  icon: mdi:numeric-1-circle
-  image_url: >-
-    https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Vigilanza-Meteorologica/master/files/preview/20210805_domani.png
-  level: 1
-  precipitation: Assenti o non rilevanti
-today:
-  phenomena: []
-  icon: mdi:numeric-1-circle
-  image_url: >-
-    https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Vigilanza-Meteorologica/master/files/preview/20210805_oggi.png
-  level: 1
-  precipitation: Assenti o non rilevanti
-id: "20210805"
-zone_name: Piemonte settentrionale e Lombardia nord-occidentale
-last_update: "2021-08-05T20:48:05.002004"
-max_level: 3
-total_phenomena: 1
-total_alerts: 1
-friendly_name: DPC Vigilance
-icon: mdi:hazard-lights
+id: '20220322_1401'
+publication_date: '2022-03-22T14:01:00'
+expires: '2022-03-23T00:00:00'
+last_update: '2022-03-22T20:30:16.170457'
+risk: Idrogeologico
+info: Assenza di fenomeni significativi prevedibili
+alert: NESSUNA ALLERTA
+level: 1
+zone_name: Bacini di Roma
+image_url: >-
+  https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Criticita-Idrogeologica-Idraulica/master/files/preview/20220322_1401_domani.png
+link: https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-criticita/
+device_class: safety
+icon: mdi:waves
+friendly_name: Rischio Idrogeologico Domani
 ```
 
 ## Here are some advanced examples of using the entities created with this component
@@ -291,6 +270,138 @@ content: |-
   {%- endfor %}
 
   [Sito Web Protezione Civile](https://www.protezionecivile.gov.it/it/) ~ [Radar](https://mappe.protezionecivile.it/it/mappe-rischi/piattaforma-radar)
+```
+
+### Lovelace markdown card example sensor (GUI)
+
+```yaml
+type: markdown
+content: >-
+
+  ___
+
+
+  {% set entity = 'sensor.dpc_alert' %}
+
+
+  #### PROTEZIONE CIVILE -
+  [CRITICITA](https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-criticita)
+
+
+  ##### ZONA {{state_attr(entity, 'zone_name')}}
+
+
+
+  {% set color = {0:'White', 1:'Green', 2:'Gold', 3:'Orange', 4:'Red'} %}
+
+  {% set days_map = {'today':'Oggi.', 'tomorrow':'Domani.', 'aftertomorrow':
+  'Dopodomani.'} %} 
+
+  {%- for day in ['today', 'tomorrow'] %}
+
+  {% set d = state_attr(entity, day) %}
+
+  {%- set events = state_attr(entity, 'events_'+day) %}
+
+  {%- if d %} 
+
+  {%- if  d['level'] >= 1 %}
+
+  <font color="{{ color.get(d['level']) }}"/> <ha-icon icon="{{ 'mdi:numeric-' ~
+  d['level'] ~ '-box'}}"/></ha-icon> {{ days_map[day] }} {{d['info']}}
+  {{d['alert']}}</font>
+
+  {% endif %}
+
+  {%- endif %}
+
+  {%- if events %} 
+
+  {%- for ev in events %}
+
+
+  |   |   |   |
+
+  |:--|:--|:--|
+
+  | <font color="{{ color.get(ev['level']) }}"/> <ha-icon icon="{{
+  'mdi:numeric-' ~ ev['level'] }}"/> | <font color="{{ color.get(ev['level'])
+  }}"/> <ha-icon icon="{{ ev['icon'] }}"/> | {{ ev['alert'] }} {{ ev['info'] }}
+  criticità per rischio {{ ev['risk'] }} |
+
+
+  {%- endfor %} 
+
+  {%- endif %}
+
+  {%- endfor %}
+
+
+  ___
+
+
+  {% set entity = 'sensor.dpc_vigilance' %}
+
+
+  #### PROTEZIONE CIVILE - [VIGILANZA
+  METEO](https://mappe.protezionecivile.it/it/mappe-rischi/bollettino-di-vigilanza)
+
+
+  ##### ZONA {{state_attr(entity, 'zone_name')}}
+
+
+  {% set color = {0:'White', 1:'Green', 2:'Gold', 3:'Orange', 4:'Red', 5:
+  'BlueViolet'} %}
+
+  {% set color_v = {0:'White', 1:'Green', 2:'#C3FFFE', 3:'#50FFFF', 4:'#508BFF',
+  5: '#A040FF'} %}
+
+  {% set day = {'today':'Oggi.', 'tomorrow':'Domani.', 'aftertomorrow':
+  'Dopodomani.'} %} 
+
+  {%- for status in ['today', 'tomorrow','aftertomorrow'] %}
+
+  {% set v = state_attr(entity, status) %}
+
+  {%- if v %} 
+
+  {%- if v['level'] >= 1 %}
+
+  <font color="{{ color_v.get(v['level']) }}"/> <ha-icon icon="{{ v['icon']
+  }}"/></ha-icon> {{ day[status] }} Quantitativi previsti {{ v['precipitation']
+  }} </font>
+
+  {% if "zone_name" in v %} {{v['zone_name']  if state_attr(entity, 'zone_name')
+  != v['zone_name']  else ''}}{%- endif %}
+
+  {%- endif %}
+
+  {%- if "phenomena" in v%} 
+
+  {% for d in v.phenomena %}
+
+
+  |   |   |
+
+  |:--|:--|
+
+  | <ha-icon icon="{{ d['icon'] }}"/> |{{ d['event'] }} {{ d['value'] }} [{{
+  d['distance'] }} Km {{ d['direction'] }}] |
+
+
+  {%- endfor %}
+
+  {%- endif %}
+
+  {%- endif %}
+
+  {%- endfor %}
+
+
+  [Sito Web Protezione Civile](https://www.protezionecivile.gov.it/it/) ~
+  [Radar](https://mappe.protezionecivile.it/it/mappe-rischi/piattaforma-radar)
+title: Markdown Alert and Vigilance
+
 ```
 
 ### Lovelace markdown card example Binary Sensor

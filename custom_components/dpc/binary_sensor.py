@@ -106,7 +106,7 @@ class DpcBinarySensor(DpcEntity, BinarySensorEntity):
         """Return if entity is available."""
         return (
             self.coordinator.last_update_success
-            and self.coordinator.data.get("criticality") is not None
+            and self.coordinator.data
         )
 
     @property
@@ -140,6 +140,7 @@ class DpcBinarySensor(DpcEntity, BinarySensorEntity):
         data = self.coordinator.data.get("criticality")
         if data and self._kind in data and ATTR_LEVEL in data[self._kind]:
             return data[self._kind][ATTR_LEVEL] >= self._level
+        # return False
 
     @property
     def extra_state_attributes(self):
@@ -148,6 +149,7 @@ class DpcBinarySensor(DpcEntity, BinarySensorEntity):
         data = self.coordinator.data.get("criticality")
         # if self.is_on:
         if data and self._kind in data and ATTR_ALERT in data[self._kind]:
+            # attrs.update(data[self._kind])
             attrs[ATTR_ID] = data.get(ATTR_ID)
             attrs[ATTR_PUBLICATION_DATE] = data.get(ATTR_PUBLICATION_DATE)
             attrs[ATTR_EXPIRES] = data[self._kind][ATTR_EXPIRES]
@@ -156,7 +158,8 @@ class DpcBinarySensor(DpcEntity, BinarySensorEntity):
             attrs[ATTR_INFO] = data[self._kind][ATTR_INFO]
             attrs[ATTR_ALERT] = data[self._kind][ATTR_ALERT]
             attrs[ATTR_LEVEL] = data[self._kind][ATTR_LEVEL]
-            attrs[ATTR_ZONE_NAME] = data.get(ATTR_ZONE_NAME)
+            # attrs[ATTR_ZONE_NAME] = data.get(ATTR_ZONE_NAME)
+            attrs[ATTR_ZONE_NAME] = data[self._kind][ATTR_ZONE_NAME]
             attrs[ATTR_IMAGE_URL] = data[self._kind][ATTR_IMAGE_URL]
             attrs[ATTR_LINK] = data.get(ATTR_LINK)
         return attrs

@@ -1,8 +1,8 @@
 """Adds config flow for Dpc."""
-from email.policy import default
+
+import voluptuous as vol
 
 import homeassistant.helpers.config_validation as cv
-import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.const import (
     CONF_LATITUDE,
