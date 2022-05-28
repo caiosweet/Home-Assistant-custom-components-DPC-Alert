@@ -1,7 +1,6 @@
 {
   "name": "DPC sensor",
-  "domains": ["binary_sensor","sensor"],
-  "country": ["IT", "VA", "SM"],
+  "country": ["IT"],
   "zip_release": false,
   "render_readme": false,
   "iot_class": ["Cloud Polling"]

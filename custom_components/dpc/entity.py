@@ -10,6 +10,7 @@ from homeassistant.const import (
     CONF_LONGITUDE,
     CONF_NAME,
 )
+from homeassistant.helpers.device_registry import DeviceEntryType
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import ATTRIBUTION, DOMAIN, MANUFACTURER, NAME, VERSION
@@ -34,6 +35,7 @@ class DpcEntity(CoordinatorEntity):
             ATTR_MODEL: f"Criticality and Vigilance Bulletin {DOMAIN}",
             ATTR_MANUFACTURER: MANUFACTURER,
             ATTR_SW_VERSION: VERSION,
+            "entry_type": DeviceEntryType.SERVICE,
         }
 
     @property
