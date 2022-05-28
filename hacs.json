@@ -2,6 +2,5 @@
   "name": "DPC sensor",
   "country": ["IT"],
   "zip_release": false,
-  "render_readme": false,
-  "iot_class": ["Cloud Polling"]
+  "render_readme": false
 }
