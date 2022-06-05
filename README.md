@@ -735,7 +735,7 @@ All images in this repository are used by the author for identification purposes
 The use of these names, trademarks and brands appearing in these image files, do not imply endorsement.
 
 [guide]: https://hassiohelp.eu/2019/10/06/home-assistant-package-eventi-naturali/
-[hacs]: https://github.com/custom-components/hacs
+[hacs]: https://github.com/hacs/integration
 [hacsbadge]: https://img.shields.io/badge/HACS-Default-orange.svg
 [github latest release]: https://img.shields.io/github/v/release/caiosweet/Home-Assistant-custom-components-DPC-Alert
 [githubrelease]: https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/releases
