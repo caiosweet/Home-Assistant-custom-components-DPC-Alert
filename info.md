@@ -91,7 +91,7 @@ Cards: card-mod, markdown
 
 [guide]: <https://hassiohelp.eu/2019/10/06/package-eventi-naturali/>
 
-[hacs]: https://github.com/custom-components/hacs
+[hacs]: https://github.com/hacs/integration
 [hacsbadge]: https://img.shields.io/badge/HACS-Default-orange.svg
 
 [GitHub latest release]: https://img.shields.io/github/v/release/caiosweet/Home-Assistant-custom-components-DPC-Alert
