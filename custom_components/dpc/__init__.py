@@ -98,10 +98,10 @@ class DpcDataUpdateCoordinator(DataUpdateCoordinator):
             LOGGER.debug("[%s] COORDINATOR DATA: %s", self.api._name, self.api._data)
 
             if self.api._pending_full_update:
-                LOGGER.warning("Pending full update, i will retry in 5 min")
+                LOGGER.warning("Pending full update, i will retry in 10 min")
                 event.async_call_later(
                     self.hass,
-                    300,
+                    600,
                     self._async_request_refresh_later,
                 )
 

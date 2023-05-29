@@ -154,7 +154,8 @@ PHENOMENA_TYPE = {
 }
 
 REGEX_DPC_ID = re.compile(r'href=[\'"]?([^\'" >]+\/)([0-9]+.[0-9]+).zip', re.IGNORECASE)
-TIMEOUT = 10
+REGEX_DPC_ID_DATETIME = re.compile(r'[0-9]{8}_[0-9]{4}', re.IGNORECASE)
+TIMEOUT = 30
 
 
 class DpcApiClient:
@@ -267,27 +268,27 @@ class DpcApiClient:
 
     async def get_id_from_api(self, bulletin: str) -> str | None:
         """Get the id from the API otherwise from the site. Param 'criticality' or 'vigilance'."""
-        id = None
-        api_endpoint = {CRITICALITY: CRIT_API_URL, VIGILANCE: VIGI_API_URL}
-        url = api_endpoint.get(bulletin)
-        str_format_date_filename = self.format_date_filename()
-        try:
-            resp = await self.api_fetch(url)
-            data = resp.get(url, "")  # [{"name": "20200101_1530.json"}]
-            if not (resp and data):
-                raise
+        # id = None
+        # api_endpoint = {CRITICALITY: CRIT_API_URL, VIGILANCE: VIGI_API_URL}
+        # url = api_endpoint.get(bulletin)
+        # str_format_date_filename = self.format_date_filename()
+        # try:
+        #     resp = await self.api_fetch(url)
+        #     data = resp.get(url, "")  # [{"name": "20200101_1530.json"}]
+        #     if not (resp and data):
+        #         raise
 
-            jdata = json.loads(data)
-            for item in reversed(jdata):
-                if not item["name"].startswith(str_format_date_filename):
-                    continue
-                id = re.split(".json", item["name"])[0]
-                LOGGER.debug("[%s] From the Github API I got %s ID: %s", self._name, bulletin, id)
-                # return re.split("_all.zip|.zip", item["name"])[0]
-                return id
-        finally:
-            if not id:
-                return await self.get_id_from_site(bulletin)
+        #     jdata = json.loads(data)
+        #     for item in reversed(jdata):
+        #         if not item["name"].startswith(str_format_date_filename):
+        #             continue
+        #         id = re.split(".json", item["name"])[0]
+        #         LOGGER.debug("[%s] From the Github API I got %s ID: %s", self._name, bulletin, id)
+        #         # return re.split("_all.zip|.zip", item["name"])[0]
+        #         return id
+        # finally:
+        #     if not id:
+        return await self.get_id_from_site(bulletin)
 
     def format_date_filename(self):
         """Returns today's and yesterday's date in string file name format."""
@@ -304,7 +305,10 @@ class DpcApiClient:
         url = site_endpoint.get(bulletin)
         resp = await self.api_fetch(url)
         html = resp.get(url, "")
-        id_pub = [match[1] for match in REGEX_DPC_ID.findall(html)]
+        if VIGILANCE in bulletin:
+            id_pub = [match[1] for match in REGEX_DPC_ID.findall(html)]
+        else:
+            id_pub = REGEX_DPC_ID_DATETIME.findall(html)
         if id_pub:
             id = id_pub[0]
             LOGGER.debug("[%s] From the SITE I got %s ID: %s", self._name, bulletin, id)
