@@ -2,10 +2,10 @@
 from __future__ import annotations
 
 import asyncio
+from datetime import date, datetime, time, timedelta
 import json
 import re
 import socket
-from datetime import date, datetime, time, timedelta
 
 import aiohttp
 import async_timeout
@@ -153,7 +153,7 @@ PHENOMENA_TYPE = {
     },
 }
 
-REGEX_DPC_ID = re.compile(r'href=[\'"]?([^\'" >]+\/)([0-9]+.[0-9]+).zip', re.IGNORECASE)
+REGEX_DPC_ID = re.compile(r'([0-9]{8})(.json)', re.IGNORECASE)
 REGEX_DPC_ID_DATETIME = re.compile(r'[0-9]{8}_[0-9]{4}', re.IGNORECASE)
 TIMEOUT = 30
 
@@ -306,7 +306,7 @@ class DpcApiClient:
         resp = await self.api_fetch(url)
         html = resp.get(url, "")
         if VIGILANCE in bulletin:
-            id_pub = [match[1] for match in REGEX_DPC_ID.findall(html)]
+            id_pub = [match[0] for match in REGEX_DPC_ID.findall(html)]
         else:
             id_pub = REGEX_DPC_ID_DATETIME.findall(html)
         if id_pub:
