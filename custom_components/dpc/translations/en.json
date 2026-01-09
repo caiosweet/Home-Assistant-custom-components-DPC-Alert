@@ -24,7 +24,7 @@
         "step": {
             "user": {
                 "title": "DPC Options",
-                "description": "Minimum level of warning.: 1 (green/no warning), 2 (yellow / ordinary), 3 (orange / moderate), 4 (red / high). By selecting the minimum alert level, the sensor will be active only if the level is greater or equal to the one chosen. ",
+                "description": "Minimum level of warning.: 1 (green/no warning), 2 (yellow / ordinary), 3 (orange / moderate), 4 (red / high). By selecting the minimum alert level, the sensor will be active only if the level is greater or equal to the one chosen.",
                 "data": {
                     "binary_sensor": "Binary sensor enabled",
                     "sensor": "Sensor enabled",
