@@ -13,7 +13,7 @@ DOMAIN = "dpc"
 ISSUE_URL = "https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/issues"
 NAME = "Dipartimento Protezione Civile"
 MANUFACTURER = "Italian Government"
-VERSION = "2023.10.0"
+VERSION = "2026.1.1"
 
 # Config
 CONF_MUNICIPALITY = "municipality"
