@@ -129,8 +129,8 @@ PHENOMENA_TYPE = {
         13: "frequenti raffiche",
     },
     "GELATE": {
-        20: "diffusa formazione di ghiaggio al suolo a quote collinari",
-        21: "diffusa formazione di ghiaggio al suolo a quote di pianura",
+        20: "diffusa formazione di ghiaccio al suolo a quote collinari",
+        21: "diffusa formazione di ghiaccio al suolo a quote di pianura",
     },
     "NEBBIE": {
         30: "diffuse nelle ore notturne e del primo mattino",
