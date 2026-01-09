@@ -9,6 +9,7 @@ from __future__ import annotations
 import asyncio
 from datetime import timedelta
 
+import homeassistant.helpers.config_validation as cv
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_LATITUDE,
@@ -37,6 +38,7 @@ from .const import (
 )
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
+
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType):
