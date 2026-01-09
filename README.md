@@ -61,6 +61,7 @@ Now the integration is added to HACS and available in the normal HA integration 
    3. Municipality
    4. Update interval (minutes, default 30)
    5. Minimum level of warning. (int, default 2)
+   6. Radius (km, default 50)
 
    N.B Some municipalities border on multiple alert areas. With the option (3) "municipality" the search is done by name of the municipality, and the area with the highest alert will be considered.
 
