@@ -102,7 +102,7 @@ PHENOMENA_ICON = {
     21: "mdi:snowflake-variant",
     30: "mdi:weather-fog",
     31: "mdi:weather-hazy",
-    40: "mdi:wave" "mdi:sail-boat",
+    40: "mdi:wave",
     41: "mdi:waves",
     42: "mdi:hydro-power",
     50: "mdi:arrow-up-thick",
@@ -129,8 +129,8 @@ PHENOMENA_TYPE = {
         13: "frequenti raffiche",
     },
     "GELATE": {
-        20: "diffusa formazione di ghiaggio al suolo a quote collinari",
-        21: "diffusa formazione di ghiaggio al suolo a quote di pianura",
+        20: "diffusa formazione di ghiaccio al suolo a quote collinari",
+        21: "diffusa formazione di ghiaccio al suolo a quote di pianura",
     },
     "NEBBIE": {
         30: "diffuse nelle ore notturne e del primo mattino",
