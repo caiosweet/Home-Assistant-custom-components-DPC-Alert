@@ -17,10 +17,12 @@ from homeassistant.const import (
     CONF_RADIUS,
     CONF_SCAN_INTERVAL,
 )
-from homeassistant.core import Config, HomeAssistant
+from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import event
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import DpcApiClient, DpcApiException
@@ -34,13 +36,16 @@ from .const import (
     STARTUP_MESSAGE,
 )
 
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
-async def async_setup(hass: HomeAssistant, config: Config):
+
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up this integration using YAML is not supported."""
+    del config
     return True
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up this integration using UI."""
     if hass.data.get(DOMAIN) is None:
         hass.data.setdefault(DOMAIN, {})
@@ -109,7 +114,9 @@ class DpcDataUpdateCoordinator(DataUpdateCoordinator):
         await self.async_request_refresh()
 
 
-async def async_update_options(hass, config_entry):
+async def async_update_options(
+    hass: HomeAssistant, config_entry: ConfigEntry
+) -> None:
     """Update options."""
     await hass.config_entries.async_reload(config_entry.entry_id)
 
@@ -132,7 +139,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return unloaded
 
 
-async def async_migrate_entry(hass, entry):
+async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     LOGGER.info("Migrating DPC entry from Version %s", entry.version)
     if entry.version == 1:
         entry.options = dict(entry.options)
