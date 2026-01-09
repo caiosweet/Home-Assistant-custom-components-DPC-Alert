@@ -102,7 +102,7 @@ PHENOMENA_ICON = {
     21: "mdi:snowflake-variant",
     30: "mdi:weather-fog",
     31: "mdi:weather-hazy",
-    40: "mdi:wave" "mdi:sail-boat",
+    40: "mdi:wave",
     41: "mdi:waves",
     42: "mdi:hydro-power",
     50: "mdi:arrow-up-thick",
