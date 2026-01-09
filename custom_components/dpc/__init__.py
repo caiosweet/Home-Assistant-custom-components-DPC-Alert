@@ -19,13 +19,18 @@ from homeassistant.const import (
     CONF_SCAN_INTERVAL,
 )
 from homeassistant.core import HomeAssistant
+<<<<<<< HEAD
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.typing import ConfigType
+=======
+>>>>>>> 5b2b9d8 (Fix file permissions for DPC files)
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import event
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import DpcApiClient, DpcApiException
@@ -42,14 +47,19 @@ from .const import (
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
+<<<<<<< HEAD
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType):
+=======
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+>>>>>>> 5b2b9d8 (Fix file permissions for DPC files)
     """Set up this integration using YAML is not supported."""
+    del config
     return True
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up this integration using UI."""
     if hass.data.get(DOMAIN) is None:
         hass.data.setdefault(DOMAIN, {})
