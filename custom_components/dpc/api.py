@@ -1,11 +1,12 @@
 """Dpc API Client."""
+
 from __future__ import annotations
 
 import asyncio
-from datetime import date, datetime, time, timedelta
 import json
 import re
 import socket
+from datetime import date, datetime, time, timedelta
 
 import aiohttp
 import async_timeout
@@ -50,9 +51,7 @@ CRIT_PATTERN_URL = (
     "Idrogeologica-Idraulica/master/files/geojson/{}_{}.json"
 )
 
-VIGI_API_URL = (
-    "https://api.github.com/repos/pcm-dpc/DPC-Bollettini-Vigilanza-Meteorologica/contents/files"
-)
+VIGI_API_URL = "https://api.github.com/repos/pcm-dpc/DPC-Bollettini-Vigilanza-Meteorologica/contents/files"
 VIGI_BULLETIN_URL = (
     "https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-vigilanza/"
 )
@@ -153,8 +152,8 @@ PHENOMENA_TYPE = {
     },
 }
 
-REGEX_DPC_ID = re.compile(r'([0-9]{8})(.json)', re.IGNORECASE)
-REGEX_DPC_ID_DATETIME = re.compile(r'[0-9]{8}_[0-9]{4}', re.IGNORECASE)
+REGEX_DPC_ID = re.compile(r"([0-9]{8})(.json)", re.IGNORECASE)
+REGEX_DPC_ID_DATETIME = re.compile(r"[0-9]{8}_[0-9]{4}", re.IGNORECASE)
 TIMEOUT = 30
 
 
@@ -193,7 +192,9 @@ class DpcApiClient:
         ids = [self.get_id_from_api(CRITICALITY), self.get_id_from_api(VIGILANCE)]
         ids_result = await asyncio.gather(*ids)
         new_id_crit, new_id_vigi = ids_result
-        LOGGER.debug("[%s] IDS: CRIT %s - VIGI %s", self._name, new_id_crit, new_id_vigi)
+        LOGGER.debug(
+            "[%s] IDS: CRIT %s - VIGI %s", self._name, new_id_crit, new_id_vigi
+        )
 
         if not any(ids_result):
             LOGGER.debug("ERROR! No IDs fetched")
@@ -224,7 +225,9 @@ class DpcApiClient:
             elif between_midnight_first_update:
                 self.swapping_data_criticality()
             else:
-                LOGGER.debug("[%s] Criticality No changes. %s", self._name, self._id_crit)
+                LOGGER.debug(
+                    "[%s] Criticality No changes. %s", self._name, self._id_crit
+                )
 
         if new_id_vigi:
             if self._id_vigi != new_id_vigi:
@@ -326,7 +329,9 @@ class DpcApiClient:
             LOGGER.error("Cancelled error fetching information from %s - %s", url, e)
 
         except asyncio.TimeoutError as e:
-            LOGGER.error("Timeout error fetching information from %s [%s] - %s", url, TIMEOUT, e)
+            LOGGER.error(
+                "Timeout error fetching information from %s [%s] - %s", url, TIMEOUT, e
+            )
 
         except (KeyError, TypeError) as e:
             LOGGER.error("Error parsing information from %s - %s", url, e)
@@ -479,14 +484,20 @@ class DpcApiClient:
 
     def get_properties(self, comune_conf, point, geojs) -> dict:
         def _from_city():
-            LOGGER.debug("[%s] Getting property from the city [%s]", self._name, comune_conf)
+            LOGGER.debug(
+                "[%s] Getting property from the city [%s]", self._name, comune_conf
+            )
             zones = []
             point_in_zone = ""
             for feature in geojs["features"]:
                 prop = feature["properties"]
                 # Different key (Comuni, comuni) for Criticality end Vigilance
                 comuni = prop.get("Comuni", prop.get("comuni"))
-                comune = [city.lower() for city in comuni if comune_conf.lower() == city.lower()]
+                comune = [
+                    city.lower()
+                    for city in comuni
+                    if comune_conf.lower() == city.lower()
+                ]
 
                 if not comune:
                     continue
@@ -495,7 +506,9 @@ class DpcApiClient:
                 if point_in_polygon(point, feature["geometry"]):
                     # Different key (Nome zona, Nome_Zona) for Criticality end Vigilance
                     point_in_zone = prop.get("Nome zona", prop.get("Nome_Zona"))
-                    LOGGER.debug("[%s] Point In Polygon. Zone: %s", self._name, point_in_zone)
+                    LOGGER.debug(
+                        "[%s] Point In Polygon. Zone: %s", self._name, point_in_zone
+                    )
 
                 # Check if Criticality and added "id_classificazione" with the highest alert
                 critical = prop.get("Rappresentata nella mappa")
@@ -523,7 +536,9 @@ class DpcApiClient:
             return zone
 
         def _from_point():
-            LOGGER.debug("[%s] Getting properties from coordinates %s", self._name, point)
+            LOGGER.debug(
+                "[%s] Getting properties from coordinates %s", self._name, point
+            )
             for feature in geojs["features"]:
                 if not point_in_polygon(point, feature["geometry"]):
                     continue

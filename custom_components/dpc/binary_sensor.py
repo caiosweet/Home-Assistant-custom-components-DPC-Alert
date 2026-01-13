@@ -1,4 +1,5 @@
 """Binary sensor platform for Dpc."""
+
 from typing import Any, Dict
 
 from homeassistant.components.binary_sensor import (
@@ -104,10 +105,7 @@ class DpcBinarySensor(DpcEntity, BinarySensorEntity):
     @property
     def available(self) -> bool:
         """Return if entity is available."""
-        return (
-            self.coordinator.last_update_success
-            and self.coordinator.data
-        )
+        return self.coordinator.last_update_success and self.coordinator.data
 
     @property
     def name(self):

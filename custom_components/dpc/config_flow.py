@@ -1,8 +1,7 @@
 """Adds config flow for Dpc."""
 
-import voluptuous as vol
-
 import homeassistant.helpers.config_validation as cv
+import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.const import (
     CONF_LATITUDE,
@@ -67,7 +66,6 @@ class DpcOptionsFlowHandler(config_entries.OptionsFlow):
 
     def __init__(self, config_entry):
         """Initialize HACS options flow."""
-        self.config_entry = config_entry
         self.options = dict(config_entry.options)
         self.data = dict(config_entry.data)
 
@@ -98,7 +96,7 @@ class DpcOptionsFlowHandler(config_entries.OptionsFlow):
                 vol.Optional(
                     CONF_WARNING_LEVEL,
                     default=self.options.get(CONF_WARNING_LEVEL, DEFAULT_WARNING_LEVEL),
-                ): vol.In(WARNING_ALERT.values()),
+                ): vol.In(list(WARNING_ALERT.values())),
                 vol.Required(
                     CONF_RADIUS,
                     default=self.options.get(CONF_RADIUS, DEFAULT_RADIUS),

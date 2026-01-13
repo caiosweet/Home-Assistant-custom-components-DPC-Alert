@@ -1,4 +1,5 @@
 """Constants for Dpc."""
+
 import logging
 
 from homeassistant.components.binary_sensor import DOMAIN as BINARY_SENSOR_DOMAIN
@@ -10,10 +11,12 @@ PLATFORMS = [BINARY_SENSOR_DOMAIN, SENSOR_DOMAIN]
 # Base component constants
 ATTRIBUTION = "Data provided by Civil Protection Department"
 DOMAIN = "dpc"
-ISSUE_URL = "https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/issues"
+ISSUE_URL = (
+    "https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/issues"
+)
 NAME = "Dipartimento Protezione Civile"
 MANUFACTURER = "Italian Government"
-VERSION = "2026.1.1"
+VERSION = "2026.1.2"
 
 # Config
 CONF_MUNICIPALITY = "municipality"

@@ -1,10 +1,10 @@
 """Provides diagnostics for dpc."""
+
 from __future__ import annotations
 
 from typing import Any
 
 from attr import asdict
-
 from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE
@@ -14,7 +14,13 @@ from homeassistant.helpers import entity_registry as er
 
 from .const import CONF_MUNICIPALITY, DOMAIN
 
-TO_REDACT = {CONF_LATITUDE, CONF_LONGITUDE, CONF_MUNICIPALITY, "identifiers", "unique_id"}
+TO_REDACT = {
+    CONF_LATITUDE,
+    CONF_LONGITUDE,
+    CONF_MUNICIPALITY,
+    "identifiers",
+    "unique_id",
+}
 
 
 async def async_get_config_entry_diagnostics(
@@ -28,7 +34,9 @@ async def async_get_config_entry_diagnostics(
 
     devices = []
 
-    registry_devices = dr.async_entries_for_config_entry(device_registry, config_entry.entry_id)
+    registry_devices = dr.async_entries_for_config_entry(
+        device_registry, config_entry.entry_id
+    )
 
     for device in registry_devices:
         entities = []

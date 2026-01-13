@@ -1,4 +1,5 @@
 """Sensor platform for Dpc."""
+
 from homeassistant.const import ATTR_ICON, CONF_LATITUDE, CONF_LONGITUDE, CONF_NAME
 
 from . import DpcDataUpdateCoordinator
@@ -84,10 +85,7 @@ class DpcSensorCriticality(DpcEntity):
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
-        return (
-            self.coordinator.last_update_success
-            and self.coordinator.data
-        )
+        return self.coordinator.last_update_success and self.coordinator.data
 
     @property
     def state(self):
@@ -102,7 +100,6 @@ class DpcSensorCriticality(DpcEntity):
             if data:
                 for warning in WARNING_TYPES:
                     if warning in data and ATTR_LEVEL in data[warning]:
-
                         level = data[warning][ATTR_LEVEL]
                         if level > self._state:
                             self._state = level
@@ -198,10 +195,7 @@ class DpcSensorVigilance(DpcEntity):
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
-        return (
-            self.coordinator.last_update_success
-            and self.coordinator.data
-        )
+        return self.coordinator.last_update_success and self.coordinator.data
 
     @property
     def state(self):

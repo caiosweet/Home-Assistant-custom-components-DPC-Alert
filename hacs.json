@@ -1,6 +1,8 @@
 {
   "name": "DPC sensor",
-  "country": ["IT"],
+  "country": [
+    "IT"
+  ],
   "zip_release": false,
   "render_readme": false
 }

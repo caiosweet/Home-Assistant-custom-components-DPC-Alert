@@ -4,6 +4,7 @@ Custom integration to integrate DPC-Alert with Home Assistant.
 For more details about this integration, please refer to
 https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -61,10 +62,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     radius = entry.options.get(CONF_RADIUS, DEFAULT_RADIUS)
     session = async_get_clientsession(hass)
     client = DpcApiClient(
-        location_name, latitude, longitude, municipality, radius, session, update_interval
+        location_name,
+        latitude,
+        longitude,
+        municipality,
+        radius,
+        session,
+        update_interval,
     )
 
-    coordinator = DpcDataUpdateCoordinator(hass, client=client, update_interval=update_interval)
+    coordinator = DpcDataUpdateCoordinator(
+        hass, client=client, update_interval=update_interval
+    )
     await coordinator.async_refresh()
 
     if not coordinator.last_update_success:

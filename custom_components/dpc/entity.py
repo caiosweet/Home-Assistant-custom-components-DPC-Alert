@@ -1,4 +1,5 @@
 """DpcEntity class"""
+
 from homeassistant.const import (
     ATTR_ATTRIBUTION,
     ATTR_IDENTIFIERS,
