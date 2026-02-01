@@ -77,7 +77,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await coordinator.async_refresh()
 
     if not coordinator.last_update_success:
-        raise ConfigEntryNotReady
+        LOGGER.warning(
+            "Initial update failed for %s; entities will be unavailable until the next refresh",
+            entry.title,
+        )
 
     hass.data[DOMAIN][entry.entry_id] = coordinator
 

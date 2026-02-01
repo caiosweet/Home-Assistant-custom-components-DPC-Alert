@@ -5,6 +5,11 @@ import logging
 from homeassistant.components.binary_sensor import DOMAIN as BINARY_SENSOR_DOMAIN
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 
+try:
+    from .version import __version__ as VERSION
+except ImportError:
+    VERSION = "0.0.0"
+
 LOGGER = logging.getLogger(__package__)
 PLATFORMS = [BINARY_SENSOR_DOMAIN, SENSOR_DOMAIN]
 
@@ -16,7 +21,6 @@ ISSUE_URL = (
 )
 NAME = "Dipartimento Protezione Civile"
 MANUFACTURER = "Italian Government"
-VERSION = "2026.1.2"
 
 # Config
 CONF_MUNICIPALITY = "municipality"

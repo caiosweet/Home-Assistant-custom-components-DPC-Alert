@@ -269,6 +269,40 @@ class DpcApiClient:
         self._pending_full_update = self.requires_full_update()
         return self._data
 
+    async def async_validate_coordinates(self) -> bool | None:
+        """Validate coordinates against DPC geojson polygons."""
+        geojs = await self._fetch_first_geojson(
+            await self.get_id_from_site(CRITICALITY),
+            CRIT_PATTERN_URL,
+            ("today", "tomorrow"),
+        )
+        if not geojs:
+            geojs = await self._fetch_first_geojson(
+                await self.get_id_from_site(VIGILANCE),
+                VIGI_PATTERN_URL,
+                (OGGI, DOMANI),
+            )
+        if not geojs:
+            return None
+        return self.point_in_geojson(self._point, geojs)
+
+    async def _fetch_first_geojson(
+        self, bulletin_id: str | None, pattern_url: str, days: tuple[str, ...]
+    ) -> dict | None:
+        if not bulletin_id:
+            return None
+        for day in days:
+            url = pattern_url.format(bulletin_id, day)
+            resp = await self.api_fetch(url)
+            raw = resp.get(url)
+            if not raw:
+                continue
+            try:
+                return json.loads(raw)
+            except json.JSONDecodeError:
+                continue
+        return None
+
     async def get_id_from_api(self, bulletin: str) -> str | None:
         """Get the id from the API otherwise from the site. Param 'criticality' or 'vigilance'."""
         # id = None
@@ -322,8 +356,8 @@ class DpcApiClient:
         fetched = {}
         try:
             async with async_timeout.timeout(TIMEOUT):
-                r = await self._session.get(url, raise_for_status=True)
-                fetched = {url: await r.text()}
+                async with self._session.get(url, raise_for_status=True) as response:
+                    fetched = {url: await response.text()}
 
         except asyncio.CancelledError as e:
             LOGGER.error("Cancelled error fetching information from %s - %s", url, e)
@@ -387,22 +421,28 @@ class DpcApiClient:
 
         try:
             prop = self.get_properties(self._municipality, self._point, response)
+            if not prop:
+                LOGGER.warning("[%s] Criticality properties not found", self._name)
+                return
+            zone_name = prop.get(ATTR_ZONE_NAME) or prop.get("Nome zona") or ""
 
             criticality.update(
                 {
                     ATTR_ID: self._id_crit,
                     ATTR_LINK: CRIT_BULLETIN_URL,
                     ATTR_PUBLICATION_DATE: self._pub_date_crit,
-                    ATTR_ZONE_NAME: prop.get(ATTR_ZONE_NAME, prop["Nome zona"]),
+                    ATTR_ZONE_NAME: zone_name,
                 }
             )
 
-            criticality[day_en] = self.get_info_level(prop["Rappresentata nella mappa"])
+            criticality[day_en] = self.get_info_level(
+                prop.get("Rappresentata nella mappa")
+            )
             criticality[day_en].update(
                 {
                     ATTR_IMAGE_URL: image_crit,
                     ATTR_EXPIRES: expiration_date,
-                    ATTR_ZONE_NAME: prop["Nome zona"],
+                    ATTR_ZONE_NAME: zone_name,
                 }
             )
 
@@ -412,10 +452,10 @@ class DpcApiClient:
                     ATTR_IMAGE_URL: image_crit,
                     ATTR_EXPIRES: expiration_date,
                     "icon": CRIT_ICON.get(risk),
-                    ATTR_ZONE_NAME: prop["Nome zona"],
+                    ATTR_ZONE_NAME: zone_name,
                 }
                 criticality[f"{risk}_{day_it}"].update(
-                    self.get_info_level(prop["Per rischio " + risk])
+                    self.get_info_level(prop.get("Per rischio " + risk))
                 )
 
             self._urls_crit.remove(url)
@@ -448,23 +488,27 @@ class DpcApiClient:
 
             else:  # "Vigilanza-Meteorologica" in url:
                 prop = self.get_properties(self._municipality, self._point, response)
+                if not prop:
+                    LOGGER.warning("[%s] Vigilance properties not found", self._name)
+                    return
+                zone_name = prop.get(ATTR_ZONE_NAME) or prop.get("Nome_Zona") or ""
 
                 vigilance.update(
                     {
                         ATTR_ID: self._id_vigi,
                         ATTR_LINK: VIGI_BULLETIN_URL,
                         ATTR_PUBLICATION_DATE: self._pub_date_vigi,
-                        ATTR_ZONE_NAME: prop.get(ATTR_ZONE_NAME, prop["Nome_Zona"]),
+                        ATTR_ZONE_NAME: zone_name,
                     }
                 )
 
                 vigilance[day_en].update(
                     {
-                        "icon": VIGI_ICON.get(prop["id_classificazione"]),
+                        "icon": VIGI_ICON.get(prop.get("id_classificazione", 0)),
                         ATTR_IMAGE_URL: image_vigi,
-                        ATTR_LEVEL: prop["id_classificazione"],
-                        ATTR_PRECIPITATION: prop["Quantitativi_previsti"],
-                        ATTR_ZONE_NAME: prop["Nome_Zona"],
+                        ATTR_LEVEL: prop.get("id_classificazione", 0),
+                        ATTR_PRECIPITATION: prop.get("Quantitativi_previsti"),
+                        ATTR_ZONE_NAME: zone_name,
                     }
                 )
 
@@ -476,9 +520,14 @@ class DpcApiClient:
 
     @staticmethod
     def get_info_level(value: str) -> dict:
-        d = {}
-        d[ATTR_INFO] = value.split("/")[0].rstrip().lstrip()
-        d[ATTR_ALERT] = value.split("/")[1].lstrip()
+        if value is None:
+            value = ""
+        elif not isinstance(value, str):
+            value = str(value)
+        parts = value.split("/", maxsplit=1)
+        info = parts[0].strip() if parts else ""
+        alert = parts[1].strip() if len(parts) > 1 else ""
+        d = {ATTR_INFO: info, ATTR_ALERT: alert}
         d[ATTR_LEVEL] = WARNING_ALERT.get(d[ATTR_ALERT], 0)
         return d
 
@@ -493,6 +542,10 @@ class DpcApiClient:
                 prop = feature["properties"]
                 # Different key (Comuni, comuni) for Criticality end Vigilance
                 comuni = prop.get("Comuni", prop.get("comuni"))
+                if not comuni:
+                    continue
+                if not isinstance(comuni, list):
+                    comuni = [comuni]
                 comune = [
                     city.lower()
                     for city in comuni
@@ -544,8 +597,18 @@ class DpcApiClient:
                     continue
                 return feature["properties"]
             LOGGER.error("[%s] Not point in polygons [%s]", self._name, point)
+            return None
 
         return _from_city() if comune_conf else _from_point()
+
+    @staticmethod
+    def point_in_geojson(point, geojs) -> bool:
+        """Return True if point is inside any feature geometry."""
+        for feature in geojs.get("features", []):
+            geometry = feature.get("geometry")
+            if geometry and point_in_polygon(point, geometry):
+                return True
+        return False
 
     def get_phenomena(self, point, geojs) -> list:
         phenomena = []
@@ -607,8 +670,8 @@ class DpcApiClient:
 
     def requires_full_update(self) -> bool:
         pending_update = (
-            not self._data[CRITICALITY],
-            not self._data[VIGILANCE],
+            not self._data.get(CRITICALITY),
+            not self._data.get(VIGILANCE),
             self._urls_crit,
             self._urls_vigi,
         )

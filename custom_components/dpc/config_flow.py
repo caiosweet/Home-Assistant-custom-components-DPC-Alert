@@ -1,5 +1,7 @@
 """Adds config flow for Dpc."""
 
+from datetime import timedelta
+
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant import config_entries
@@ -11,7 +13,9 @@ from homeassistant.const import (
     CONF_SCAN_INTERVAL,
 )
 from homeassistant.core import callback
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
+from .api import DpcApiClient
 from .const import (
     CONF_MUNICIPALITY,
     CONF_WARNING_LEVEL,
@@ -33,11 +37,34 @@ class DpcFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(self, user_input=None):
         """Handle a flow initialized by the user."""
+        errors = {}
 
         if user_input is not None:
-            await self.async_set_unique_id(user_input[CONF_NAME])
-            self._abort_if_unique_id_configured()
-            return self.async_create_entry(title=user_input[CONF_NAME], data=user_input)
+            latitude = round(user_input[CONF_LATITUDE], 6)
+            longitude = round(user_input[CONF_LONGITUDE], 6)
+            if self._is_location_configured(latitude, longitude):
+                return self.async_abort(reason="already_configured")
+
+            is_valid = await self._async_validate_coordinates(latitude, longitude)
+            if is_valid is False:
+                errors["base"] = "coordinates_outside"
+            elif is_valid is None:
+                errors["base"] = "cannot_connect"
+            else:
+                unique_id = f"{latitude:.6f}_{longitude:.6f}"
+                await self.async_set_unique_id(unique_id)
+                self._abort_if_unique_id_configured()
+                return self.async_create_entry(
+                    title=user_input[CONF_NAME], data=user_input
+                )
+
+        name_default = DEFAULT_NAME
+        latitude_default = self.hass.config.latitude
+        longitude_default = self.hass.config.longitude
+        if user_input is not None:
+            name_default = user_input.get(CONF_NAME, name_default)
+            latitude_default = user_input.get(CONF_LATITUDE, latitude_default)
+            longitude_default = user_input.get(CONF_LONGITUDE, longitude_default)
 
         return self.async_show_form(
             step_id="user",
@@ -45,15 +72,42 @@ class DpcFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 {
                     vol.Required(
                         CONF_NAME,
-                        default=(DEFAULT_NAME),  # {self.hass.config.location_name}
+                        default=(name_default),  # {self.hass.config.location_name}
                     ): str,
-                    vol.Required(CONF_LATITUDE, default=(self.hass.config.latitude)): cv.latitude,
+                    vol.Required(CONF_LATITUDE, default=(latitude_default)): cv.latitude,
                     vol.Required(
-                        CONF_LONGITUDE, default=(self.hass.config.longitude)
+                        CONF_LONGITUDE, default=(longitude_default)
                     ): cv.longitude,
                 }
             ),
+            errors=errors,
         )
+
+    def _is_location_configured(self, latitude: float, longitude: float) -> bool:
+        """Check if a config entry already exists for this location."""
+        for entry in self._async_current_entries():
+            entry_lat = entry.data.get(CONF_LATITUDE)
+            entry_lon = entry.data.get(CONF_LONGITUDE)
+            if entry_lat is None or entry_lon is None:
+                continue
+            if round(entry_lat, 6) == latitude and round(entry_lon, 6) == longitude:
+                return True
+        return False
+
+    async def _async_validate_coordinates(
+        self, latitude: float, longitude: float
+    ) -> bool | None:
+        session = async_get_clientsession(self.hass)
+        client = DpcApiClient(
+            location_name="Validation",
+            latitude=latitude,
+            longitude=longitude,
+            municipality="",
+            radius=DEFAULT_RADIUS,
+            session=session,
+            update_interval=timedelta(minutes=DEFAULT_SCAN_INTERVAL),
+        )
+        return await client.async_validate_coordinates()
 
     @staticmethod
     @callback

@@ -69,8 +69,14 @@ For binary sensors, the attributes in Italian language (allerta, data, rischio, 
 6. Optional:
     1. Binary sensor enable/disable (default enabled)
     2. Sensor enabled/disable (default enabled)
-    3. Update interval (minutes, default 30)
-    4. Minimum level of warning. (int, default 2)
+    3. Municipality (optional, advanced)
+    4. Update interval (minutes, default 30)
+    5. Minimum level of warning. (int, default 2)
+    6. Radius (km, default 50)
+
+If "municipality" is set, data is selected by municipality name (highest alert in that municipality). Use only if the municipality spans multiple alert areas and make sure it matches the configured coordinates; leave it empty to use coordinates only.
+
+Configuration help is available via the Documentation link in Home Assistant. Each location can be added once.
 
 {% endif %}
 

@@ -1,5 +1,6 @@
 """Sensor platform for Dpc."""
 
+from homeassistant.components.sensor import SensorEntity
 from homeassistant.const import ATTR_ICON, CONF_LATITUDE, CONF_LONGITUDE, CONF_NAME
 
 from . import DpcDataUpdateCoordinator
@@ -45,7 +46,7 @@ async def async_setup_entry(hass, entry, async_add_entities):  # async_add_devic
     )
 
 
-class DpcSensorCriticality(DpcEntity):
+class DpcSensorCriticality(DpcEntity, SensorEntity):
     """Dpc Criticality Sensor class."""
 
     def __init__(
@@ -80,49 +81,60 @@ class DpcSensorCriticality(DpcEntity):
     @property
     def icon(self):
         """Return the icon of the sensor."""
-        return ICON["danger"] if self._total_alerts != 0 else ICON["safety"]
+        total_alerts = self._total_alerts or 0
+        return ICON["danger"] if total_alerts != 0 else ICON["safety"]
 
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
         return self.coordinator.last_update_success and self.coordinator.data
 
-    @property
-    def state(self):
+    def _update_state(self) -> None:
+        """Compute state and attributes from coordinator data."""
+        self._state = 0
+        self._total_alerts = 0
+
+        self._events_today = []
+        self._events_tomorrow = []
+        data = self.coordinator.data.get("criticality")
+        if data:
+            for warning in WARNING_TYPES:
+                if warning in data and ATTR_LEVEL in data[warning]:
+                    level = data[warning][ATTR_LEVEL]
+                    if level > self._state:
+                        self._state = level
+
+                    if data[warning][ATTR_LEVEL] >= self._level:
+                        self._total_alerts += 1
+
+                        event_day = {
+                            ATTR_RISK: data[warning][ATTR_RISK],
+                            ATTR_INFO: data[warning][ATTR_INFO],
+                            ATTR_ALERT: data[warning][ATTR_ALERT],
+                            ATTR_LEVEL: data[warning][ATTR_LEVEL],
+                            ATTR_ICON: data[warning][ATTR_ICON],
+                        }
+                        if "oggi" in warning:
+                            self._events_today.append(event_day)
+                        if "domani" in warning:
+                            self._events_tomorrow.append(event_day)
+
+    def _get_state(self):
         """Return the state of the sensor."""
         try:
-            self._state = 0
-            self._total_alerts = 0
-
-            self._events_today = []
-            self._events_tomorrow = []
-            data = self.coordinator.data.get("criticality")
-            if data:
-                for warning in WARNING_TYPES:
-                    if warning in data and ATTR_LEVEL in data[warning]:
-                        level = data[warning][ATTR_LEVEL]
-                        if level > self._state:
-                            self._state = level
-
-                        if data[warning][ATTR_LEVEL] >= self._level:
-                            self._total_alerts += 1
-
-                            event_day = {
-                                ATTR_RISK: data[warning][ATTR_RISK],
-                                ATTR_INFO: data[warning][ATTR_INFO],
-                                ATTR_ALERT: data[warning][ATTR_ALERT],
-                                ATTR_LEVEL: data[warning][ATTR_LEVEL],
-                                ATTR_ICON: data[warning][ATTR_ICON],
-                            }
-                            if "oggi" in warning:
-                                self._events_today.append(event_day)
-                            if "domani" in warning:
-                                self._events_tomorrow.append(event_day)
-
+            self._update_state()
             return self._state if self._state != 0 else None
-
         except Exception as exception:
             LOGGER.error("[Criticality Sensor] Error! - %s", exception)
+            return None
+
+    @property
+    def native_value(self):
+        return self._get_state()
+
+    @property
+    def state(self):
+        return self._get_state()
 
     @property
     def extra_state_attributes(self):
@@ -156,7 +168,7 @@ class DpcSensorCriticality(DpcEntity):
     #     self.async_on_remove(self.coordinator.async_add_listener(self.async_write_ha_state))
 
 
-class DpcSensorVigilance(DpcEntity):
+class DpcSensorVigilance(DpcEntity, SensorEntity):
     """Dpc Vigilance Sensor class."""
 
     def __init__(
@@ -190,44 +202,50 @@ class DpcSensorVigilance(DpcEntity):
     @property
     def icon(self):
         """Return the icon of the sensor."""
-        return ICON["danger"] if self._total_alerts != 0 else ICON["safety"]
+        total_alerts = self._total_alerts or 0
+        return ICON["danger"] if total_alerts != 0 else ICON["safety"]
 
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
         return self.coordinator.last_update_success and self.coordinator.data
 
-    @property
-    def state(self):
+    def _update_state(self) -> None:
+        """Compute state and attributes from coordinator data."""
+        self._total_alerts = 0
+        self._state = 0
+        self._total_phenomena = 0
+        data = self.coordinator.data.get("vigilance")
+        if data:
+            for warning in [ATTR_TODAY, ATTR_TOMORROW, ATTR_AFTERTOMORROW]:
+                if warning in data and ATTR_LEVEL in data[warning]:
+                    level = data[warning][ATTR_LEVEL]
+
+                    if level > self._state:
+                        self._state = level
+
+                    if data[warning][ATTR_LEVEL] >= self._level:
+                        self._total_alerts += 1
+
+                    if ATTR_PHENOMENA in data[warning]:
+                        self._total_phenomena += len(data[warning][ATTR_PHENOMENA])
+
+    def _get_state(self):
         """Return the state of the sensor."""
         try:
-            self._total_alerts = 0
-            self._state = 0
-            self._total_phenomena = 0
-            data = self.coordinator.data.get("vigilance")
-            if data:
-                for warning in [ATTR_TODAY, ATTR_TOMORROW, ATTR_AFTERTOMORROW]:
-                    if warning in data and ATTR_LEVEL in data[warning]:
-                        level = data[warning][ATTR_LEVEL]
-
-                        if level > self._state:
-                            self._state = level
-
-                        if data[warning][ATTR_LEVEL] >= self._level:
-                            self._total_alerts += 1
-
-                        if ATTR_PHENOMENA in data[warning]:
-                            self._total_phenomena += len(data[warning][ATTR_PHENOMENA])
-
-                        # if (
-                        #     not data[warning][ATTR_PHENOMENA]
-                        #     and data[warning][ATTR_LEVEL] < self._level
-                        # ):
-                        #     data.pop(warning)
+            self._update_state()
             return self._state if self._state != 0 else None
-
         except Exception as exception:
             LOGGER.error("[Vigilance Sensor] Error! - %s", exception)
+            return None
+
+    @property
+    def native_value(self):
+        return self._get_state()
+
+    @property
+    def state(self):
+        return self._get_state()
 
     @property
     def extra_state_attributes(self):

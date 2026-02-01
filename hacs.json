@@ -3,6 +3,7 @@
   "country": [
     "IT"
   ],
-  "zip_release": false,
+  "zip_release": true,
+  "filename": "dpc.zip",
   "render_readme": false
 }

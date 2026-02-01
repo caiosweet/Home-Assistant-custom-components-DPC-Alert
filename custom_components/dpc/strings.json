@@ -4,7 +4,7 @@
         "step": {
             "user": {
                 "title": "Civil Protection Department",
-                "description": "If you need help with the configuration have a look here: https://github.com/custom-components/Dpc",
+                "description": "Configuration help is available via the Documentation link.",
                 "data": {
                     "name": "Name",
                     "latitude": "Latitude",
@@ -13,18 +13,20 @@
             }
         },
         "error": {
-            "coordinates": "Latitude/Longitude is wrong."
+            "coordinates": "Latitude/Longitude is wrong.",
+            "coordinates_outside": "Coordinates are outside DPC alert areas.",
+            "cannot_connect": "Unable to validate coordinates. Check your connection."
         },
         "abort": {
-            "single_instance_allowed": "Only a single instance is allowed.",
-            "already_configured": "This instance is already configured."
+            "single_instance_allowed": "Multiple instances are supported. Each location can be added once.",
+            "already_configured": "An entry for this location is already configured."
         }
     },
     "options": {
         "step": {
             "user": {
                 "title": "DPC Options",
-                "description": "Minimum level of warning.: 1 (green/no warning), 2 (yellow / ordinary), 3 (orange / moderate), 4 (red / high). By selecting the minimum alert level, the sensor will be active only if the level is greater or equal to the one chosen.",
+                "description": "Minimum warning level: 1 green, 2 yellow, 3 orange, 4 red. The sensor is active at or above the selected level.",
                 "data": {
                     "binary_sensor": "Binary sensor enabled",
                     "sensor": "Sensor enabled",
@@ -32,6 +34,9 @@
                     "scan_interval": "Update interval (minutes, default 30)",
                     "warning_level": "Minimum level of warning.",
                     "radius": "Radius (Km, default 50)"
+                },
+                "data_description": {
+                    "municipality": "Optional. If set, lookup is by municipality name; leave empty to use coordinates."
                 }
             }
         }

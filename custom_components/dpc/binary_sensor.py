@@ -69,7 +69,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     sensors: list = []
     for sensor_type in BINARY_SENSOR_TYPES:
-        uid = f"{entry.unique_id}_{sensor_type[ATTR_RISK]})"
+        uid = f"{entry.unique_id}_{sensor_type[ATTR_RISK]}"
         entity_id = async_generate_entity_id(ENTITY_ID_FORMAT, uid, hass=hass)
         sensors.append(DpcBinarySensor(coordinator, entry, sensor_type, entity_id))
     async_add_entities(sensors)

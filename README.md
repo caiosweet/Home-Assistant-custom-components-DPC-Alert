@@ -39,6 +39,8 @@ The Criticality sensor (DPC Alert) will also report in attributes the values of 
 
 To configure this integration go to: `Configurations` -> `Integrations` -> `ADD INTEGRATIONS` button, search for `Dpc` and configure the component.
 
+Configuration help is available via the Documentation link in Home Assistant.
+
 You can also use following [My Home Assistant](http://my.home-assistant.io/) link
 
 [![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=dpc)
@@ -58,14 +60,14 @@ Now the integration is added to HACS and available in the normal HA integration 
 6. Optional:
    1. Binary sensor enable/disable
    2. Sensor enabled/disable
-   3. Municipality
+   3. Municipality (optional, advanced)
    4. Update interval (minutes, default 30)
    5. Minimum level of warning. (int, default 2)
    6. Radius (km, default 50)
 
-   N.B Some municipalities border on multiple alert areas. With the option (3) "municipality" the search is done by name of the municipality, and the area with the highest alert will be considered.
+   N.B. If "municipality" is set, data is selected by municipality name (highest alert in that municipality). This is useful when a municipality spans multiple alert areas. Make sure it matches the configured coordinates; otherwise results can look inconsistent. Leave it empty to use coordinates only.
 
-> :warning: **Multiple instance are possible, but... for the moment the updates are independent, it is advisable not to exceed more than two / three locations.**
+> :warning: **Multiple instances are possible, but each location can be added once. Updates are independent, so it is advisable not to exceed two or three locations.**
 
 ## Preview [From my Natural Events project.][guide]
 
