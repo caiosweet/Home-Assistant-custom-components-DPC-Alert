@@ -726,6 +726,15 @@ automation:
 
 ## Other Lovelace Examples [HA Card weather conditions](https://github.com/r-renato/ha-card-weather-conditions#display-the-alert-layer) [@r-renato](https://github.com/r-renato)
 
+## Roadmap
+
+- **One download for every place.** Each place downloads its own copy of the bulletins, about 18 MB each time DPC publishes new ones, which is why two or three places are advised at most. The bulletins will be downloaded once and shared by all places.
+- **Retry the setup** when DPC cannot be reached, instead of adding the place with unavailable entities.
+- **Change a place without removing it**: its name, coordinates or municipality.
+- **Home Assistant [integration quality scale](https://developers.home-assistant.io/docs/core/integration-quality-scale/)**: meet its bronze and silver rules.
+
+Ideas and problems are welcome in the [issues](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/issues).
+
 ## License
 
 _Information provided by [_Department of Civil Protection - Presidency of the Council of Ministers_](https://www.protezionecivile.gov.it/en/) Creative Commons Licenses [_CC-BY-SA 4.0._](https://creativecommons.org/licenses/by-sa/4.0/)_
