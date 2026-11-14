@@ -58,6 +58,9 @@ Entity IDs, states and the other attributes do not change.
 - Today and tomorrow change at midnight in Italian time, instead of the time
   zone of the host ([#90]).
 - Config entries of version 1 could not be migrated ([#90]).
+- The municipality option finds the municipalities of South Tyrol by their
+  Italian or German name ("Bolzano" or "Bozen"); before, it used the
+  coordinates instead ([#90]).
 - The integration imported `async_timeout`, which recent Home Assistant
   versions do not install ([#90]).
 - Deprecation warning of the `CONNECTION_CLASS` constant ([#85]).
