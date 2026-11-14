@@ -4,12 +4,13 @@ from __future__ import annotations
 
 import asyncio
 import json
+import math
 import re
 import socket
 from datetime import date, datetime, time, timedelta
 
 import aiohttp
-import async_timeout
+from geojson_utils import geometry_within_radius, point_distance, point_in_polygon
 
 from .const import (
     ATTR_AFTERTOMORROW,
@@ -31,14 +32,7 @@ from .const import (
     LOGGER,
     WARNING_ALERT,
 )
-from .geojson_utils import (
-    calculate_initial_compass_bearing,
-    geometry_within_radius,
-    point_distance,
-    point_in_polygon,
-)
 
-CRIT_API_URL = "https://api.github.com/repos/pcm-dpc/DPC-Bollettini-Criticita-Idrogeologica-Idraulica/contents/files"
 CRIT_BULLETIN_URL = (
     "https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-criticita/"
 )
@@ -51,7 +45,6 @@ CRIT_PATTERN_URL = (
     "Idrogeologica-Idraulica/master/files/geojson/{}_{}.json"
 )
 
-VIGI_API_URL = "https://api.github.com/repos/pcm-dpc/DPC-Bollettini-Vigilanza-Meteorologica/contents/files"
 VIGI_BULLETIN_URL = (
     "https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-vigilanza/"
 )
@@ -155,6 +148,44 @@ PHENOMENA_TYPE = {
 REGEX_DPC_ID = re.compile(r"([0-9]{8})(.json)", re.IGNORECASE)
 REGEX_DPC_ID_DATETIME = re.compile(r"[0-9]{8}_[0-9]{4}", re.IGNORECASE)
 TIMEOUT = 30
+COMPASS_POINTS = (
+    "N",
+    "NNE",
+    "NE",
+    "ENE",
+    "E",
+    "ESE",
+    "SE",
+    "SSE",
+    "S",
+    "SSW",
+    "SW",
+    "WSW",
+    "W",
+    "WNW",
+    "NW",
+    "NNW",
+)
+
+
+def calculate_initial_compass_bearing(
+    point_a: tuple[float, float], point_b: tuple[float, float]
+) -> tuple[str, int]:
+    """Return the compass point and degrees from point_a to point_b (lat, lon).
+
+    Credits: https://gist.github.com/jeromer/2005586
+    and https://gist.github.com/RobertSudwarts/acf8df23a16afdb5837f
+    """
+    lat1 = math.radians(point_a[0])
+    lat2 = math.radians(point_b[0])
+    diff_long = math.radians(point_b[1] - point_a[1])
+    x = math.sin(diff_long) * math.cos(lat2)
+    y = math.cos(lat1) * math.sin(lat2) - (
+        math.sin(lat1) * math.cos(lat2) * math.cos(diff_long)
+    )
+    compass_bearing = (math.degrees(math.atan2(x, y)) + 360) % 360
+    index = round(compass_bearing / (360.0 / len(COMPASS_POINTS)))
+    return COMPASS_POINTS[index % len(COMPASS_POINTS)], math.floor(compass_bearing)
 
 
 class DpcApiClient:
@@ -189,7 +220,7 @@ class DpcApiClient:
 
     async def async_get_data(self) -> dict:
         """Get data from the API."""
-        ids = [self.get_id_from_api(CRITICALITY), self.get_id_from_api(VIGILANCE)]
+        ids = [self.get_id_from_site(CRITICALITY), self.get_id_from_site(VIGILANCE)]
         ids_result = await asyncio.gather(*ids)
         new_id_crit, new_id_vigi = ids_result
         LOGGER.debug(
@@ -303,38 +334,6 @@ class DpcApiClient:
                 continue
         return None
 
-    async def get_id_from_api(self, bulletin: str) -> str | None:
-        """Get the id from the API otherwise from the site. Param 'criticality' or 'vigilance'."""
-        # id = None
-        # api_endpoint = {CRITICALITY: CRIT_API_URL, VIGILANCE: VIGI_API_URL}
-        # url = api_endpoint.get(bulletin)
-        # str_format_date_filename = self.format_date_filename()
-        # try:
-        #     resp = await self.api_fetch(url)
-        #     data = resp.get(url, "")  # [{"name": "20200101_1530.json"}]
-        #     if not (resp and data):
-        #         raise
-
-        #     jdata = json.loads(data)
-        #     for item in reversed(jdata):
-        #         if not item["name"].startswith(str_format_date_filename):
-        #             continue
-        #         id = re.split(".json", item["name"])[0]
-        #         LOGGER.debug("[%s] From the Github API I got %s ID: %s", self._name, bulletin, id)
-        #         # return re.split("_all.zip|.zip", item["name"])[0]
-        #         return id
-        # finally:
-        #     if not id:
-        return await self.get_id_from_site(bulletin)
-
-    def format_date_filename(self):
-        """Returns today's and yesterday's date in string file name format."""
-        date_today = date.today()
-        date_yesterday = date_today - timedelta(days=1)
-        date_str_today = date_today.strftime("%Y%m%d")
-        date_str_yesterday = date_yesterday.strftime("%Y%m%d")
-        return date_str_today, date_str_yesterday
-
     async def get_id_from_site(self, bulletin: str) -> str | None:
         """Get the id from the site using regex."""
         id = None
@@ -353,16 +352,12 @@ class DpcApiClient:
 
     async def api_fetch(self, url: str) -> dict:
         """Get information from the API."""
-        fetched = {}
         try:
-            async with async_timeout.timeout(TIMEOUT):
+            async with asyncio.timeout(TIMEOUT):
                 async with self._session.get(url, raise_for_status=True) as response:
-                    fetched = {url: await response.text()}
+                    return {url: await response.text()}
 
-        except asyncio.CancelledError as e:
-            LOGGER.error("Cancelled error fetching information from %s - %s", url, e)
-
-        except asyncio.TimeoutError as e:
+        except TimeoutError as e:
             LOGGER.error(
                 "Timeout error fetching information from %s [%s] - %s", url, TIMEOUT, e
             )
@@ -380,8 +375,7 @@ class DpcApiClient:
                 getattr(unexpected_error, "__dict__", {}),
             )
 
-        finally:
-            return fetched
+        return {}
 
     async def multi_fetch(self, urls: list) -> list:
         """Fetching responses for multiple urls."""

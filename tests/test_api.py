@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from datetime import datetime, timedelta
 
 import aiohttp
@@ -205,3 +206,23 @@ async def test_validate_coordinates_when_dpc_is_unreachable(
     aioclient_mock.get(VIGI_BULLETIN_URL, exc=aiohttp.ClientError)
 
     assert await make_client(hass).async_validate_coordinates() is None
+
+
+@pytest.mark.parametrize("exception", [TimeoutError, aiohttp.ClientError])
+async def test_api_fetch_error(
+    client: DpcApiClient, aioclient_mock: AiohttpClientMocker, exception: type
+) -> None:
+    """Test that a failed request returns no data."""
+    aioclient_mock.get(CRIT_BULLETIN_URL, exc=exception)
+
+    assert await client.api_fetch(CRIT_BULLETIN_URL) == {}
+
+
+async def test_api_fetch_cancelled(
+    client: DpcApiClient, aioclient_mock: AiohttpClientMocker
+) -> None:
+    """Test that a cancelled request is not swallowed."""
+    aioclient_mock.get(CRIT_BULLETIN_URL, exc=asyncio.CancelledError)
+
+    with pytest.raises(asyncio.CancelledError):
+        await client.api_fetch(CRIT_BULLETIN_URL)

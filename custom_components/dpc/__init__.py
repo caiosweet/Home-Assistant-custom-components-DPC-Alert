@@ -20,7 +20,6 @@ from homeassistant.const import (
     CONF_SCAN_INTERVAL,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import event
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.typing import ConfigType
@@ -89,8 +88,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             coordinator.platforms.append(platform)
             await hass.config_entries.async_forward_entry_setups(entry, [platform])
 
-    if not entry.update_listeners:
-        entry.add_update_listener(async_reload_entry)
+    entry.async_on_unload(entry.add_update_listener(async_update_options))
 
     return True
 
@@ -152,16 +150,11 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 
 async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Migrate an old config entry."""
     LOGGER.info("Migrating DPC entry from Version %s", entry.version)
     if entry.version == 1:
-        entry.options = dict(entry.options)
-        entry.options[CONF_MUNICIPALITY] = ""
-        entry.version = 2
+        hass.config_entries.async_update_entry(
+            entry, options={**entry.options, CONF_MUNICIPALITY: ""}, version=2
+        )
 
     return True
-
-
-async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Reload config entry."""
-    await async_unload_entry(hass, entry)
-    await async_setup_entry(hass, entry)

@@ -6,6 +6,6 @@
 	"documentation": "https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert",
 	"iot_class": "cloud_polling",
 	"issue_tracker": "https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/issues",
-	"requirements": [],
+	"requirements": ["geojson-utils==0.0.3"],
 	"version": "0.0.0"
 }

@@ -20,7 +20,7 @@ from pytest_homeassistant_custom_component.test_util.aiohttp import (
 )
 
 from custom_components.dpc.api import CRIT_BULLETIN_URL, VIGI_BULLETIN_URL
-from custom_components.dpc.const import CONF_MUNICIPALITY, DOMAIN
+from custom_components.dpc.const import CONF_MUNICIPALITY, CONF_WARNING_LEVEL, DOMAIN
 
 from . import (
     LATITUDE,
@@ -86,11 +86,6 @@ async def test_setup_when_dpc_is_unreachable(
     assert state.state == STATE_UNAVAILABLE
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="async_migrate_entry assigns entry.options/entry.version directly, which "
-    "Home Assistant no longer allows (use hass.config_entries.async_update_entry)",
-)
 @pytest.mark.usefixtures("mock_dpc")
 async def test_migrate_entry_from_version_1(hass: HomeAssistant) -> None:
     """Test that a version 1 entry is migrated to version 2."""
@@ -108,3 +103,24 @@ async def test_migrate_entry_from_version_1(hass: HomeAssistant) -> None:
     assert entry.state is ConfigEntryState.LOADED
     assert entry.version == 2
     assert entry.options[CONF_MUNICIPALITY] == ""
+
+
+async def test_options_update_reloads_entry(
+    hass: HomeAssistant, init_integration: MockConfigEntry
+) -> None:
+    """Test that changing the options reloads the entry with the new options."""
+    entry = init_integration
+    coordinator = hass.data[DOMAIN][entry.entry_id]
+
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {**entry.options, CONF_WARNING_LEVEL: 3}
+    )
+    await hass.async_block_till_done()
+
+    assert entry.state is ConfigEntryState.LOADED
+    assert hass.data[DOMAIN][entry.entry_id] is not coordinator
+    state = hass.states.get(
+        get_entity_id(hass, Platform.SENSOR, sensor_unique_id("criticality"))
+    )
+    assert state.attributes["total_alerts"] == 1

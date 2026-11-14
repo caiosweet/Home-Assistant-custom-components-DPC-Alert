@@ -59,7 +59,6 @@ class DpcSensorCriticality(DpcEntity, SensorEntity):
         self.coordinator = coordinator
         self.entry = entry
         self._state = None
-        self._max_level = None
         self._total_alerts = None
         self._events_today = None
         self._events_tomorrow = None
@@ -159,14 +158,6 @@ class DpcSensorCriticality(DpcEntity, SensorEntity):
             attrs[ATTR_LINK] = data[ATTR_LINK]
         return attrs
 
-    # async def async_update(self):
-    #     """Update Dpc Sensor Entity."""
-    #     await self.coordinator.async_request_refresh()
-
-    # async def async_added_to_hass(self):
-    #     """Subscribe to updates."""
-    #     self.async_on_remove(self.coordinator.async_add_listener(self.async_write_ha_state))
-
 
 class DpcSensorVigilance(DpcEntity, SensorEntity):
     """Dpc Vigilance Sensor class."""
@@ -181,7 +172,6 @@ class DpcSensorVigilance(DpcEntity, SensorEntity):
         self.coordinator = coordinator
         self.entry = entry
         self._state = None
-        self._max_level = None
         self._total_alerts = None
         self._total_phenomena = None
         self._name = entry.data.get(CONF_NAME)
@@ -258,11 +248,3 @@ class DpcSensorVigilance(DpcEntity, SensorEntity):
             attrs[ATTR_TOTAL_PHENOMENA] = self._total_phenomena
             attrs[ATTR_TOTAL_ALERTS] = self._total_alerts
         return attrs
-
-    # async def async_update(self):
-    #     """Update Dpc Sensor Entity."""
-    #     await self.coordinator.async_request_refresh()
-
-    # async def async_added_to_hass(self):
-    #     """Subscribe to updates."""
-    #     self.async_on_remove(self.coordinator.async_add_listener(self.async_write_ha_state))
