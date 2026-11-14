@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 from typing import Any
 
 from attr import asdict
@@ -61,7 +62,7 @@ async def async_get_config_entry_diagnostics(
         "entry": async_redact_data(config_entry.as_dict(), TO_REDACT),
         "coordinator_data": {
             "coordinator last update success": coordinator.last_update_success,
-            "data": coordinator.data,
+            "data": dataclasses.asdict(coordinator.data),
         },
         "devices": async_redact_data(devices, TO_REDACT),
     }

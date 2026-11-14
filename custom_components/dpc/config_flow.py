@@ -1,7 +1,6 @@
 """Adds config flow for Dpc."""
 
-from datetime import timedelta
-
+from aiodpc import DpcClient, DpcError, Location
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant import config_entries
@@ -15,7 +14,6 @@ from homeassistant.const import (
 from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from .api import DpcApiClient
 from .const import (
     CONF_MUNICIPALITY,
     CONF_WARNING_LEVEL,
@@ -24,8 +22,9 @@ from .const import (
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_WARNING_LEVEL,
     DOMAIN,
+    LOGGER,
     PLATFORMS,
-    WARNING_ALERT,
+    WARNING_LEVELS,
 )
 
 
@@ -96,17 +95,13 @@ class DpcFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     async def _async_validate_coordinates(
         self, latitude: float, longitude: float
     ) -> bool | None:
-        session = async_get_clientsession(self.hass)
-        client = DpcApiClient(
-            location_name="Validation",
-            latitude=latitude,
-            longitude=longitude,
-            municipality="",
-            radius=DEFAULT_RADIUS,
-            session=session,
-            update_interval=timedelta(minutes=DEFAULT_SCAN_INTERVAL),
-        )
-        return await client.async_validate_coordinates()
+        """Return whether DPC covers the location; None if DPC cannot be reached."""
+        client = DpcClient(async_get_clientsession(self.hass))
+        try:
+            return await client.is_location_covered(Location(latitude, longitude))
+        except DpcError as err:
+            LOGGER.debug("The DPC alert zones could not be fetched: %s", err)
+            return None
 
     @staticmethod
     @callback
@@ -149,11 +144,11 @@ class DpcOptionsFlowHandler(config_entries.OptionsFlow):
                 vol.Optional(
                     CONF_WARNING_LEVEL,
                     default=self.options.get(CONF_WARNING_LEVEL, DEFAULT_WARNING_LEVEL),
-                ): vol.In(list(WARNING_ALERT.values())),
+                ): vol.In(WARNING_LEVELS),
                 vol.Required(
                     CONF_RADIUS,
                     default=self.options.get(CONF_RADIUS, DEFAULT_RADIUS),
-                ): vol.Coerce(float),
+                ): vol.All(vol.Coerce(float), vol.Range(min=0)),
             }
         )
         return self.async_show_form(step_id="user", data_schema=vol.Schema(schema))

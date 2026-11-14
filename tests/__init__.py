@@ -2,8 +2,15 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from pathlib import Path
 
+from aiodpc import CRITICALITY_PAGE_URL, ROME_TZ, VIGILANCE_PAGE_URL
+from aiodpc.urls import (
+    criticality_geojson_url,
+    phenomena_geojson_url,
+    vigilance_geojson_url,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -11,12 +18,6 @@ from pytest_homeassistant_custom_component.test_util.aiohttp import (
     AiohttpClientMocker,
 )
 
-from custom_components.dpc.api import (
-    CRIT_BULLETIN_URL,
-    CRIT_PATTERN_URL,
-    VIGI_BULLETIN_URL,
-    VIGI_PATTERN_URL,
-)
 from custom_components.dpc.const import DOMAIN
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -30,7 +31,13 @@ UNIQUE_ID = f"{LATITUDE:.6f}_{LONGITUDE:.6f}"
 CRIT_ID = "20261114_1430"
 VIGI_ID = "20261114"
 # Default frozen time: publication day, after the criticality bulletin is out
-PUBLICATION_DAY = "2026-11-14 15:00:00"
+PUBLICATION_DAY = "2026-11-14 15:00:00+01:00"
+
+
+def rome(*args: int) -> datetime:
+    """Return a datetime in Italy, where the days of the bulletins are."""
+    return datetime(*args, tzinfo=ROME_TZ)
+
 
 RISK_KINDS = (
     "idraulico_oggi",
@@ -61,22 +68,31 @@ def mock_dpc_responses(
     vigi_id: str = VIGI_ID,
 ) -> None:
     """Serve the DPC pages and GeoJSON files of the given bulletins."""
-    aioclient_mock.get(CRIT_BULLETIN_URL, text=bulletin_page(crit_id))
-    aioclient_mock.get(VIGI_BULLETIN_URL, text=bulletin_page(vigi_id))
-    for day in ("today", "tomorrow"):
+    aioclient_mock.get(CRITICALITY_PAGE_URL, text=bulletin_page(crit_id))
+    aioclient_mock.get(VIGILANCE_PAGE_URL, text=bulletin_page(vigi_id))
+    for offset, day in enumerate(("today", "tomorrow")):
         aioclient_mock.get(
-            CRIT_PATTERN_URL.format(crit_id, day),
+            criticality_geojson_url(crit_id, offset),
             text=load_fixture(f"criticality_{day}.json"),
         )
-    for day in ("oggi", "domani", "dopodomani"):
+    for offset, day in enumerate(("oggi", "domani", "dopodomani")):
         aioclient_mock.get(
-            VIGI_PATTERN_URL.format(vigi_id, day),
+            vigilance_geojson_url(vigi_id, offset),
             text=load_fixture(f"vigilance_{day}.json"),
         )
         aioclient_mock.get(
-            VIGI_PATTERN_URL.format(vigi_id, f"fenomeni_{day}"),
+            phenomena_geojson_url(vigi_id, offset),
             text=load_fixture(f"phenomena_{day}.json"),
         )
+
+
+def geojson_requests(aioclient_mock: AiohttpClientMocker) -> list[str]:
+    """Return the URLs of the bulletin files requested so far."""
+    return [
+        str(url)
+        for _, url, _, _ in aioclient_mock.mock_calls
+        if "/geojson/" in str(url)
+    ]
 
 
 async def setup_integration(hass: HomeAssistant, entry: MockConfigEntry) -> None:

@@ -1,147 +1,120 @@
-"""Binary sensor platform for Dpc."""
+"""Binary sensor platform for Dpc: each risk type, today and tomorrow."""
 
-from typing import Any, Dict
+from __future__ import annotations
 
+from dataclasses import dataclass
+from typing import Any
+
+from aiodpc import CriticalityDay, Day, RiskType
 from homeassistant.components.binary_sensor import (
     ENTITY_ID_FORMAT,
     BinarySensorDeviceClass,
     BinarySensorEntity,
+    BinarySensorEntityDescription,
 )
-from homeassistant.const import ATTR_ICON
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import async_generate_entity_id
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from . import DpcDataUpdateCoordinator
-from .const import (
-    ATTR_ALERT,
-    ATTR_EXPIRES,
-    ATTR_ID,
-    ATTR_IMAGE_URL,
-    ATTR_INFO,
-    ATTR_LAST_UPDATE,
-    ATTR_LEVEL,
-    ATTR_LINK,
-    ATTR_PUBLICATION_DATE,
-    ATTR_RISK,
-    ATTR_ZONE_NAME,
-    CONF_WARNING_LEVEL,
-    DEFAULT_WARNING_LEVEL,
-    DOMAIN,
-)
+from .attributes import criticality_attributes, risk_day_attributes
+from .const import DOMAIN, RISK_ICONS
+from .coordinator import DpcDataUpdateCoordinator
 from .entity import DpcEntity
 
-BINARY_SENSOR_TYPES = [
-    {
-        ATTR_RISK: "idraulico_oggi",
-        ATTR_ICON: "mdi:home-flood",
-    },
-    {
-        ATTR_RISK: "temporali_oggi",
-        ATTR_ICON: "mdi:weather-lightning",
-    },
-    {
-        ATTR_RISK: "idrogeologico_oggi",
-        ATTR_ICON: "mdi:waves",
-    },
-    {
-        ATTR_RISK: "idraulico_domani",
-        ATTR_ICON: "mdi:home-flood",
-    },
-    {
-        ATTR_RISK: "temporali_domani",
-        ATTR_ICON: "mdi:weather-lightning",
-    },
-    {
-        ATTR_RISK: "idrogeologico_domani",
-        ATTR_ICON: "mdi:waves",
-    },
-]
+# The keys are the Italian names the sensors have always had: their unique IDs,
+# entity IDs and translations are built from them.
+RISK_KEYS = {
+    RiskType.HYDRAULIC: "idraulico",
+    RiskType.THUNDERSTORMS: "temporali",
+    RiskType.HYDROGEOLOGICAL: "idrogeologico",
+}
+DAY_KEYS = {Day.TODAY: "oggi", Day.TOMORROW: "domani"}
 
 
-async def async_setup_entry(hass, entry, async_add_entities):
+@dataclass(frozen=True, kw_only=True)
+class DpcRiskEntityDescription(BinarySensorEntityDescription):
+    """Description of the binary sensor of a risk type on a day."""
+
+    risk: RiskType
+    day: Day
+
+
+RISK_DESCRIPTIONS = tuple(
+    DpcRiskEntityDescription(
+        key=f"{RISK_KEYS[risk]}_{DAY_KEYS[day]}",
+        translation_key=f"{RISK_KEYS[risk]}_{DAY_KEYS[day]}",
+        icon=RISK_ICONS[risk],
+        device_class=BinarySensorDeviceClass.SAFETY,
+        risk=risk,
+        day=day,
+    )
+    for day in Day
+    for risk in RiskType
+)
+
+
+async def async_setup_entry(
+    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+) -> None:
     """Setup binary_sensor platform."""
     coordinator = hass.data[DOMAIN][entry.entry_id]
+    async_add_entities(
+        DpcRiskBinarySensor(
+            coordinator,
+            entry,
+            description,
+            async_generate_entity_id(
+                ENTITY_ID_FORMAT, f"{entry.unique_id}_{description.key}", hass=hass
+            ),
+        )
+        for description in RISK_DESCRIPTIONS
+    )
 
-    sensors: list = []
-    for sensor_type in BINARY_SENSOR_TYPES:
-        uid = f"{entry.unique_id}_{sensor_type[ATTR_RISK]}"
-        entity_id = async_generate_entity_id(ENTITY_ID_FORMAT, uid, hass=hass)
-        sensors.append(DpcBinarySensor(coordinator, entry, sensor_type, entity_id))
-    async_add_entities(sensors)
 
+class DpcRiskBinarySensor(DpcEntity, BinarySensorEntity):
+    """On when the risk on the day is at or above the warning level."""
 
-class DpcBinarySensor(DpcEntity, BinarySensorEntity):
-    """Dpc binary_sensor class."""
+    entity_description: DpcRiskEntityDescription
 
     def __init__(
         self,
         coordinator: DpcDataUpdateCoordinator,
-        entry: str,
-        sensor_type: Dict[str, Any],
+        entry: ConfigEntry,
+        description: DpcRiskEntityDescription,
         entity_id: str,
-    ):
+    ) -> None:
         """Initialize Entities."""
         super().__init__(coordinator, entry)
-        self.coordinator = coordinator
+        self.entity_description = description
         self.entity_id = entity_id
-        self._enabled = True
-        self._level = entry.options.get(CONF_WARNING_LEVEL, DEFAULT_WARNING_LEVEL)
-        self._icon = sensor_type[ATTR_ICON]
-        self._kind = sensor_type[ATTR_RISK]
-        self._attr_translation_key = self._kind
-        self._unique_id = f"{entry.unique_id}-{self._kind}"
-
-    @property
-    def should_poll(self) -> bool:
-        """No need to poll. Coordinator notifies entity of updates."""
-        return False
+        self._attr_unique_id = f"{entry.unique_id}-{description.key}"
 
     @property
     def available(self) -> bool:
-        """Return if entity is available."""
-        return self.coordinator.last_update_success and self.coordinator.data
+        """Return whether a criticality bulletin is available."""
+        return super().available and self.coordinator.data.criticality is not None
 
     @property
-    def unique_id(self):
-        """Return a unique ID to use for this entity."""
-        return self._unique_id
+    def _day(self) -> CriticalityDay | None:
+        """Return the assessment of the day, if the bulletin covers it."""
+        latest = self.coordinator.data.criticality
+        return latest.bulletin.on(self.entity_description.day) if latest else None
 
     @property
-    def icon(self):
-        """Return the icon for this entity."""
-        return self._icon
+    def is_on(self) -> bool | None:
+        """Return whether the risk is at or above the warning level."""
+        if (day := self._day) is None:
+            return None
+        return day.assessment(self.entity_description.risk).level >= self.warning_level
 
     @property
-    def device_class(self) -> BinarySensorDeviceClass:
-        """Return the class of this binary_sensor."""
-        return BinarySensorDeviceClass.SAFETY
-
-    @property
-    def entity_registry_enabled_default(self) -> bool:
-        """Return if the entity should be enabled when first added to the entity registry."""
-        return self._enabled
-
-    @property
-    def is_on(self):
-        """Return true if the binary_sensor is on."""
-        data = self.coordinator.data.get("criticality")
-        if data and self._kind in data and ATTR_LEVEL in data[self._kind]:
-            return data[self._kind][ATTR_LEVEL] >= self._level
-
-    @property
-    def extra_state_attributes(self):
+    def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
-        attrs = super().extra_state_attributes
-        data = self.coordinator.data.get("criticality")
-        if data and self._kind in data and ATTR_ALERT in data[self._kind]:
-            attrs[ATTR_ID] = data.get(ATTR_ID)
-            attrs[ATTR_PUBLICATION_DATE] = data.get(ATTR_PUBLICATION_DATE)
-            attrs[ATTR_EXPIRES] = data[self._kind][ATTR_EXPIRES]
-            attrs[ATTR_LAST_UPDATE] = data.get(ATTR_LAST_UPDATE)
-            attrs[ATTR_RISK] = data[self._kind][ATTR_RISK]
-            attrs[ATTR_INFO] = data[self._kind][ATTR_INFO]
-            attrs[ATTR_ALERT] = data[self._kind][ATTR_ALERT]
-            attrs[ATTR_LEVEL] = data[self._kind][ATTR_LEVEL]
-            attrs[ATTR_ZONE_NAME] = data[self._kind][ATTR_ZONE_NAME]
-            attrs[ATTR_IMAGE_URL] = data[self._kind][ATTR_IMAGE_URL]
-            attrs[ATTR_LINK] = data.get(ATTR_LINK)
-        return attrs
+        attributes = super().extra_state_attributes
+        latest = self.coordinator.data.criticality
+        if latest and (day := self._day):
+            risk = day.assessment(self.entity_description.risk)
+            attributes |= criticality_attributes(latest)
+            attributes |= risk_day_attributes(day, risk)
+        return attributes

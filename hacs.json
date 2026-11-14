@@ -3,6 +3,7 @@
   "country": [
     "IT"
   ],
+  "homeassistant": "2025.2.0",
   "zip_release": true,
   "filename": "dpc.zip",
   "render_readme": false

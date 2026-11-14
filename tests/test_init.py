@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from aiodpc import CRITICALITY_PAGE_URL, VIGILANCE_PAGE_URL
 import aiohttp
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import (
@@ -19,7 +20,6 @@ from pytest_homeassistant_custom_component.test_util.aiohttp import (
     AiohttpClientMocker,
 )
 
-from custom_components.dpc.api import CRIT_BULLETIN_URL, VIGI_BULLETIN_URL
 from custom_components.dpc.const import CONF_MUNICIPALITY, CONF_WARNING_LEVEL, DOMAIN
 
 from . import (
@@ -66,16 +66,14 @@ async def test_setup_without_binary_sensors(
     assert {entity.domain for entity in entities} == {Platform.SENSOR}
 
 
-# When no bulletin can be fetched, the integration retries in 10 minutes
-@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_setup_when_dpc_is_unreachable(
     hass: HomeAssistant,
     aioclient_mock: AiohttpClientMocker,
     mock_config_entry: MockConfigEntry,
 ) -> None:
     """Test that the entry loads with unavailable entities when DPC is unreachable."""
-    aioclient_mock.get(CRIT_BULLETIN_URL, exc=aiohttp.ClientError)
-    aioclient_mock.get(VIGI_BULLETIN_URL, exc=aiohttp.ClientError)
+    aioclient_mock.get(CRITICALITY_PAGE_URL, exc=aiohttp.ClientError)
+    aioclient_mock.get(VIGILANCE_PAGE_URL, exc=aiohttp.ClientError)
 
     await setup_integration(hass, mock_config_entry)
 

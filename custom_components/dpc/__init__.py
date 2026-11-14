@@ -8,33 +8,16 @@ https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert
 from __future__ import annotations
 
 import asyncio
-from datetime import timedelta
 
+from aiodpc import DpcClient
 import homeassistant.helpers.config_validation as cv
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (
-    CONF_LATITUDE,
-    CONF_LONGITUDE,
-    CONF_NAME,
-    CONF_RADIUS,
-    CONF_SCAN_INTERVAL,
-)
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import event
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.typing import ConfigType
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .api import DpcApiClient, DpcApiException
-from .const import (
-    CONF_MUNICIPALITY,
-    DEFAULT_RADIUS,
-    DEFAULT_SCAN_INTERVAL,
-    DOMAIN,
-    LOGGER,
-    PLATFORMS,
-    STARTUP_MESSAGE,
-)
+from .const import CONF_MUNICIPALITY, DOMAIN, LOGGER, PLATFORMS, STARTUP_MESSAGE
+from .coordinator import DpcDataUpdateCoordinator
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
@@ -51,28 +34,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.data.setdefault(DOMAIN, {})
         LOGGER.info(STARTUP_MESSAGE)
 
-    location_name = entry.data.get(CONF_NAME)
-    latitude = entry.data.get(CONF_LATITUDE)
-    longitude = entry.data.get(CONF_LONGITUDE)
-    municipality = entry.options.get(CONF_MUNICIPALITY)
-    update_interval = timedelta(
-        minutes=entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
-    )
-    radius = entry.options.get(CONF_RADIUS, DEFAULT_RADIUS)
-    session = async_get_clientsession(hass)
-    client = DpcApiClient(
-        location_name,
-        latitude,
-        longitude,
-        municipality,
-        radius,
-        session,
-        update_interval,
-    )
-
-    coordinator = DpcDataUpdateCoordinator(
-        hass, client=client, update_interval=update_interval
-    )
+    client = DpcClient(async_get_clientsession(hass))
+    coordinator = DpcDataUpdateCoordinator(hass, entry, client)
     await coordinator.async_refresh()
 
     if not coordinator.last_update_success:
@@ -91,39 +54,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     entry.async_on_unload(entry.add_update_listener(async_update_options))
 
     return True
-
-
-class DpcDataUpdateCoordinator(DataUpdateCoordinator):
-    """Class to manage fetching data from the API."""
-
-    def __init__(
-        self, hass: HomeAssistant, client: DpcApiClient, update_interval: timedelta
-    ) -> None:
-        """Initialize."""
-        self.api = client
-        self.platforms = []
-        super().__init__(hass, LOGGER, name=DOMAIN, update_interval=update_interval)
-
-    async def _async_update_data(self):
-        """Update data via library."""
-        try:
-            return await self.api.async_get_data()
-        except (DpcApiException, Exception) as exception:
-            raise UpdateFailed(exception) from exception
-        finally:
-            LOGGER.debug("[%s] COORDINATOR DATA: %s", self.api._name, self.api._data)
-
-            if self.api._pending_full_update:
-                LOGGER.warning("Pending full update, i will retry in 10 min")
-                event.async_call_later(
-                    self.hass,
-                    600,
-                    self._async_request_refresh_later,
-                )
-
-    async def _async_request_refresh_later(self, _now):
-        """Request async_request_refresh."""
-        await self.async_request_refresh()
 
 
 async def async_update_options(hass: HomeAssistant, config_entry: ConfigEntry) -> None:

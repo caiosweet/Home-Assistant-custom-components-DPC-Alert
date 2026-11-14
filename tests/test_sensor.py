@@ -4,19 +4,15 @@ from __future__ import annotations
 
 from datetime import datetime
 
+from aiodpc import CRITICALITY_PAGE_URL, VIGILANCE_PAGE_URL
+from aiodpc.urls import criticality_preview_url, vigilance_preview_url
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 import pytest
 
-from custom_components.dpc.api import (
-    CRIT_BULLETIN_URL,
-    CRIT_IMAGE_URL,
-    VIGI_BULLETIN_URL,
-    VIGI_IMAGE_URL,
-)
 from custom_components.dpc.const import CONF_WARNING_LEVEL
 
-from . import CRIT_ID, VIGI_ID, get_entity_id, sensor_unique_id
+from . import CRIT_ID, VIGI_ID, get_entity_id, rome, sensor_unique_id
 
 
 def criticality_state(hass: HomeAssistant):
@@ -43,9 +39,9 @@ async def test_criticality_sensor(hass: HomeAssistant) -> None:
     attrs = state.attributes
     assert attrs["integration"] == "dpc"
     assert attrs["id"] == CRIT_ID
-    assert attrs["publication_date"] == datetime(2026, 11, 14, 14, 30)
-    assert attrs["last_update"] == "2026-11-14T15:00:00"
-    assert attrs["link"] == CRIT_BULLETIN_URL
+    assert attrs["publication_date"] == rome(2026, 11, 14, 14, 30)
+    assert datetime.fromisoformat(attrs["last_update"]) == rome(2026, 11, 14, 15)
+    assert attrs["link"] == CRITICALITY_PAGE_URL
     assert attrs["zone_name"] == "Bacini di Roma"
     assert attrs["max_level"] == 3
     # Warnings at or above the default level (2, yellow): 2 today, 1 tomorrow
@@ -55,16 +51,16 @@ async def test_criticality_sensor(hass: HomeAssistant) -> None:
         "info": "Ordinaria per rischio temporali",
         "alert": "ALLERTA GIALLA",
         "level": 2,
-        "image_url": CRIT_IMAGE_URL.format(CRIT_ID, "oggi"),
-        "expires": datetime(2026, 11, 15),
+        "image_url": criticality_preview_url(CRIT_ID, 0),
+        "expires": rome(2026, 11, 15),
         "zone_name": "Bacini di Roma",
     }
     assert attrs["tomorrow"] == {
         "info": "Moderata per rischio idrogeologico",
         "alert": "ALLERTA ARANCIONE",
         "level": 3,
-        "image_url": CRIT_IMAGE_URL.format(CRIT_ID, "domani"),
-        "expires": datetime(2026, 11, 16),
+        "image_url": criticality_preview_url(CRIT_ID, 1),
+        "expires": rome(2026, 11, 16),
         "zone_name": "Bacini di Roma",
     }
     assert attrs["events_today"] == [
@@ -103,8 +99,9 @@ async def test_vigilance_sensor(hass: HomeAssistant) -> None:
     assert state.state == "3"
     attrs = state.attributes
     assert attrs["id"] == VIGI_ID
-    assert attrs["publication_date"] == datetime(2026, 11, 14)
-    assert attrs["link"] == VIGI_BULLETIN_URL
+    assert attrs["publication_date"] == rome(2026, 11, 14)
+    assert datetime.fromisoformat(attrs["last_update"]) == rome(2026, 11, 14, 15)
+    assert attrs["link"] == VIGILANCE_PAGE_URL
     assert attrs["zone_name"] == "Lazio centrale"
     assert attrs["max_level"] == 3
     # Days at or above the default level (2): today and tomorrow
@@ -116,7 +113,7 @@ async def test_vigilance_sensor(hass: HomeAssistant) -> None:
     assert today["level"] == 2
     assert today["precipitation"] == "Deboli"
     assert today["icon"] == "mdi:numeric-2-circle"
-    assert today["image_url"] == VIGI_IMAGE_URL.format(VIGI_ID, "oggi")
+    assert today["image_url"] == vigilance_preview_url(VIGI_ID, 0)
     assert len(today["phenomena"]) == 1
     phenomenon = today["phenomena"][0]
     assert phenomenon["id_event"] == 5

@@ -33,8 +33,8 @@ async def test_diagnostics(
 
     coordinator = diagnostics["coordinator_data"]
     assert coordinator["coordinator last update success"] is True
-    assert coordinator["data"]["criticality"]["id"] == CRIT_ID
-    assert coordinator["data"]["vigilance"]["id"] == VIGI_ID
+    assert coordinator["data"]["criticality"]["bulletin"]["id"] == CRIT_ID
+    assert coordinator["data"]["vigilance"]["bulletin"]["id"] == VIGI_ID
 
     (device,) = diagnostics["devices"]
     assert device["device"]["identifiers"] == REDACTED

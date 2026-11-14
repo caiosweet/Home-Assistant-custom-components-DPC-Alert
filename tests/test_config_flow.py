@@ -4,6 +4,9 @@ from __future__ import annotations
 
 from unittest.mock import AsyncMock, patch
 
+from aiodpc import CRITICALITY_PAGE_URL, VIGILANCE_PAGE_URL, DpcConnectionError
+import aiohttp
+from freezegun.api import FrozenDateTimeFactory
 from homeassistant.config_entries import SOURCE_USER
 from homeassistant.const import (
     CONF_LATITUDE,
@@ -16,13 +19,16 @@ from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant_custom_component.test_util.aiohttp import (
+    AiohttpClientMocker,
+)
 
 from custom_components.dpc.const import CONF_MUNICIPALITY, CONF_WARNING_LEVEL, DOMAIN
 
-from . import LATITUDE, LONGITUDE, NAME, UNIQUE_ID
+from . import LATITUDE, LONGITUDE, NAME, PUBLICATION_DAY, UNIQUE_ID, mock_dpc_responses
 
 USER_INPUT = {CONF_NAME: NAME, CONF_LATITUDE: LATITUDE, CONF_LONGITUDE: LONGITUDE}
-VALIDATE = "custom_components.dpc.config_flow.DpcApiClient.async_validate_coordinates"
+VALIDATE = "custom_components.dpc.config_flow.DpcClient.is_location_covered"
 
 pytestmark = pytest.mark.usefixtures("mock_setup_entry")
 
@@ -50,17 +56,20 @@ async def test_user_flow(hass: HomeAssistant, mock_setup_entry: AsyncMock) -> No
 
 @pytest.mark.parametrize(
     ("validation", "error"),
-    [(False, "coordinates_outside"), (None, "cannot_connect")],
+    [
+        ({"return_value": False}, "coordinates_outside"),
+        ({"side_effect": DpcConnectionError}, "cannot_connect"),
+    ],
 )
 async def test_user_flow_errors(
-    hass: HomeAssistant, validation: bool | None, error: str
+    hass: HomeAssistant, validation: dict, error: str
 ) -> None:
     """Test the errors of the user step and that the flow recovers from them."""
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": SOURCE_USER}
     )
 
-    with patch(VALIDATE, return_value=validation):
+    with patch(VALIDATE, **validation):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], USER_INPUT
         )
@@ -74,6 +83,53 @@ async def test_user_flow_errors(
         )
 
     assert result["type"] is FlowResultType.CREATE_ENTRY
+
+
+@pytest.mark.parametrize(
+    ("latitude", "longitude", "error"),
+    [(LATITUDE, LONGITUDE, None), (48.8566, 2.3522, "coordinates_outside")],
+)
+async def test_user_flow_validates_the_location_with_dpc(
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    freezer: FrozenDateTimeFactory,
+    latitude: float,
+    longitude: float,
+    error: str | None,
+) -> None:
+    """Test that the location must be inside a DPC alert zone."""
+    freezer.move_to(PUBLICATION_DAY)
+    mock_dpc_responses(aioclient_mock)
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": SOURCE_USER}
+    )
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {**USER_INPUT, CONF_LATITUDE: latitude, CONF_LONGITUDE: longitude},
+    )
+
+    if error is None:
+        assert result["type"] is FlowResultType.CREATE_ENTRY
+    else:
+        assert result["errors"] == {"base": error}
+
+
+async def test_user_flow_when_dpc_is_unreachable(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker
+) -> None:
+    """Test that the location cannot be validated when DPC is unreachable."""
+    aioclient_mock.get(CRITICALITY_PAGE_URL, exc=aiohttp.ClientError)
+    aioclient_mock.get(VIGILANCE_PAGE_URL, exc=aiohttp.ClientError)
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": SOURCE_USER}
+    )
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], USER_INPUT
+    )
+
+    assert result["errors"] == {"base": "cannot_connect"}
 
 
 async def test_user_flow_location_already_configured(
