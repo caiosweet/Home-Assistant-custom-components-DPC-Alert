@@ -1,10 +1,10 @@
 {
-  "name": "DPC sensor",
+  "name": "DPC Alert (Protezione Civile)",
   "country": [
     "IT"
   ],
   "homeassistant": "2025.2.0",
   "zip_release": true,
   "filename": "dpc.zip",
-  "render_readme": false
+  "hacs": "2.0.0"
 }

@@ -1,3 +1,36 @@
+[project]
+# Metadata of the repository. The integration is installed by HACS, not from
+# PyPI: its requirements are in custom_components/dpc/manifest.json, and its
+# version comes from the git tag of each release (see release.sh).
+name = "dpc-alert"
+version = "0.0.0"
+description = "Alerts of the Italian Civil Protection Department (DPC) in Home Assistant: hydraulic, hydrogeological and thunderstorm risk, and weather vigilance, for any place in Italy"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE.md"]
+authors = [{ name = "caiosweet" }]
+maintainers = [{ name = "Webysther Sperandio" }]
+requires-python = ">=3.13"
+keywords = [
+  "allerta meteo",
+  "civil protection",
+  "dpc",
+  "flood",
+  "hacs",
+  "home assistant",
+  "italy",
+  "landslide",
+  "protezione civile",
+  "thunderstorm",
+  "weather alerts",
+]
+
+[project.urls]
+Homepage = "https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert"
+Changelog = "https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/CHANGELOG.md"
+Issues = "https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/issues"
+"Data source" = "https://github.com/pcm-dpc"
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"

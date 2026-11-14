@@ -45,6 +45,9 @@ Entity IDs, states and the other attributes do not change.
 - Entities are unavailable, instead of empty, while their bulletin has never
   been fetched ([#90]).
 - The radius option cannot be negative ([#90]).
+- HACS lists the integration as "DPC Alert (Protezione Civile)", and Home
+  Assistant lists it under Weather & alerts, as a public warnings service
+  ([#90]).
 
 ### Fixed
 

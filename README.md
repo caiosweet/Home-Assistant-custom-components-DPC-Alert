@@ -1,8 +1,10 @@
-# Home Assistant - Custom Components DPC Alert
+# DPC Alert (Protezione Civile)
 
 <img src="https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/assets/brand/icon.png" width="150px">
 
-ITALY METEO-HYDRO ALERT - To get more detailed information about parameters of warnings visit [_Civil Protection Department_](https://rischi.protezionecivile.gov.it/en/meteo-hydro/alert). [_Dipartimento Protezione Civile_](https://rischi.protezionecivile.gov.it/it/meteo-idro/allertamento)
+The alerts of the Italian Civil Protection Department (Dipartimento della Protezione Civile, DPC) in Home Assistant, for any place in Italy: the hydraulic, hydrogeological and thunderstorm risk of today and tomorrow, and the weather vigilance of the next three days with the phenomena near you.
+
+How the alert system works: [_Civil Protection Department_](https://rischi.protezionecivile.gov.it/en/meteo-hydro/alert) · [_Dipartimento Protezione Civile_](https://rischi.protezionecivile.gov.it/it/meteo-idro/allertamento)
 
 [![hacs][hacsbadge]][hacs] [![Validate](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/actions/workflows/validate.yaml/badge.svg)](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/actions/workflows/validate.yaml)
 
@@ -14,13 +16,16 @@ ITALY METEO-HYDRO ALERT - To get more detailed information about parameters of w
 
 ---
 
-## Information
+## Features
 
-> The state of the sensor will be the highest alert level.
+- **Six binary sensors**: hydraulic, hydrogeological and thunderstorm risk, for today and tomorrow. Each one is on when its risk reaches the alert level you choose (1 green to 4 red).
+- **Alert sensor**: the highest alert level of today and tomorrow, with the assessment of each risk in its attributes.
+- **Vigilance sensor**: the expected precipitation of the next three days, and the weather phenomena within the radius you choose: rain, snow, thunderstorms, wind, frost, fog, rough sea and temperature.
+- **Several places**, each found by its coordinates or by the name of its municipality.
+- **Six languages**: English, Italian, French, German, Spanish and Brazilian Portuguese.
+- **Official data**: the criticality and weather vigilance bulletins that DPC publishes every day.
 
-The Vigilance sensor will also report in attributes the values of all other meteo alerts and/or forecasts from next 12-48 hours, if there are any.
-
-The Criticality sensor (DPC Alert) will also report in attributes the values of all other warning and/or forecasts from next 12-24 hours, if there are any.
+Requires Home Assistant 2025.2 or newer. See the [changelog](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/CHANGELOG.md) for what changed in each version.
 
 ## Installation
 
