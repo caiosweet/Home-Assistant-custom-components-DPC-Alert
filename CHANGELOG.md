@@ -12,6 +12,25 @@ The DPC data now comes from the [aiodpc](https://pypi.org/project/aiodpc/)
 library, entity names follow the language of Home Assistant, and `expires`
 marks the end of the day it refers to.
 
+### Breaking changes
+
+- **`expires` is one day later.** It pointed to the start of the day it refers
+  to, so it was always in the past; it now marks the end of the day (see
+  Fixed). If your templates add a day to compensate, remove it.
+- **Dates include their time zone.** `expires` and `publication_date` are in
+  Italian time (e.g. `2026-11-16T00:00:00+01:00`), and `last_update` is in the
+  Home Assistant time zone. Templates can now compare them with `now()`
+  directly; where a date is shown as text, it ends with the offset.
+- **Entity names are translated.** The device is named after the location you
+  configured (`DPC` instead of `Dipartimento Protezione Civile DPC`), and
+  entity names follow the language of Home Assistant: `DPC Rischio idraulico
+  oggi` in Italian, `DPC Hydraulic risk today` in English. Notifications that
+  use `friendly_name` show the new names; names you set yourself are kept.
+- **Home Assistant 2025.2 or newer is required.** Older versions stay on
+  2026.2.0.
+
+Entity IDs, states and the other attributes do not change.
+
 ### Added
 
 - Translations in English, Italian and Brazilian Portuguese of the
@@ -20,20 +39,6 @@ marks the end of the day it refers to.
 - Automated tests with a CI workflow ([#90]).
 
 ### Changed
-
-These changes can affect automations, templates and dashboards made for
-2026.2.0:
-
-| 2026.2.0 | Now |
-| --- | --- |
-| `expires` at the start of its day (`2026-11-14T00:00:00` for today) | At the end of its day, with time zone (`2026-11-15T00:00:00+01:00`) |
-| `expires`, `publication_date` and `last_update` without time zone | `expires` and `publication_date` in Italian time, `last_update` in the Home Assistant time zone |
-| Device `Dipartimento Protezione Civile DPC` | Device named after the location (`DPC`) |
-| Entity names in Italian (`Dipartimento Protezione Civile DPC Rischio Idraulico Oggi`) | Names in the Home Assistant language (`DPC Rischio idraulico oggi`, `DPC Hydraulic risk today`) |
-| No minimum Home Assistant version | Home Assistant 2025.2 or newer |
-
-Entity IDs, states and the other attributes do not change, and names you set
-yourself are kept. Notifications that use `friendly_name` show the new names.
 
 - The DPC bulletins are read with aiodpc instead of the integration's own
   client ([#90]).
@@ -208,15 +213,7 @@ again, otherwise orphan entities may be created.
 The integration is set up from the UI. Remove its YAML configuration, as
 described in the README.
 
-### Added
-
-- The `sensor` platform, with the criticality sensor.
-- Attributes of the binary sensors: `id`, `publication_date`, `expires`,
-  `last_update` and `image_url`.
-
-### Changed
-
-These changes break configurations made for 2021.06.1:
+### Breaking changes
 
 | 2021.06.1 | 2021.7.0 |
 | --- | --- |
@@ -225,6 +222,12 @@ These changes break configurations made for 2021.06.1:
 | Attribute `data` | `date` |
 | Attribute `rischio` | `risk` |
 | Attribute `zona_info` | `zone_name` |
+
+### Added
+
+- The `sensor` platform, with the criticality sensor.
+- Attributes of the binary sensors: `id`, `publication_date`, `expires`,
+  `last_update` and `image_url`.
 
 ## [2021.06.1] - 2021-06-09
 
