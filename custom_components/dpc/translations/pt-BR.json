@@ -1,0 +1,378 @@
+{
+    "config": {
+        "flow_title": "{name}",
+        "step": {
+            "user": {
+                "title": "Departamento de Proteção Civil",
+                "description": "A ajuda para a configuração está disponível no link Documentação.",
+                "data": {
+                    "name": "Nome",
+                    "latitude": "Latitude",
+                    "longitude": "Longitude"
+                }
+            }
+        },
+        "error": {
+            "coordinates": "Latitude/Longitude incorreta.",
+            "coordinates_outside": "As coordenadas estão fora das áreas de alerta do DPC.",
+            "cannot_connect": "Não foi possível validar as coordenadas. Verifique sua conexão."
+        },
+        "abort": {
+            "single_instance_allowed": "Várias instâncias são suportadas. Cada local pode ser adicionado apenas uma vez.",
+            "already_configured": "Já existe uma entrada configurada para este local."
+        }
+    },
+    "options": {
+        "step": {
+            "user": {
+                "title": "Opções do DPC",
+                "description": "Nível mínimo de alerta: 1 verde, 2 amarelo, 3 laranja, 4 vermelho. O sensor fica ativo no nível selecionado ou acima.",
+                "data": {
+                    "binary_sensor": "Sensor binário ativado",
+                    "sensor": "Sensor ativado",
+                    "municipality": "Município",
+                    "scan_interval": "Intervalo de atualização (minutos, padrão 30)",
+                    "warning_level": "Nível mínimo de alerta",
+                    "radius": "Raio (km, padrão 50)"
+                },
+                "data_description": {
+                    "municipality": "Opcional. Se preenchido, a busca é feita pelo nome do município; deixe vazio para usar as coordenadas."
+                }
+            }
+        }
+    },
+    "entity": {
+        "binary_sensor": {
+            "idraulico_oggi": {
+                "name": "Risco hidráulico hoje",
+                "state_attributes": {
+                    "integration": {
+                        "name": "Integração"
+                    },
+                    "id": {
+                        "name": "ID do boletim"
+                    },
+                    "publication_date": {
+                        "name": "Data de publicação"
+                    },
+                    "expires": {
+                        "name": "Expira em"
+                    },
+                    "last_update": {
+                        "name": "Última atualização"
+                    },
+                    "risk": {
+                        "name": "Risco"
+                    },
+                    "info": {
+                        "name": "Criticidade"
+                    },
+                    "alert": {
+                        "name": "Alerta"
+                    },
+                    "level": {
+                        "name": "Nível de alerta"
+                    },
+                    "zone_name": {
+                        "name": "Zona de alerta"
+                    },
+                    "image_url": {
+                        "name": "URL da imagem"
+                    },
+                    "link": {
+                        "name": "Link do boletim"
+                    }
+                }
+            },
+            "temporali_oggi": {
+                "name": "Risco de tempestades hoje",
+                "state_attributes": {
+                    "integration": {
+                        "name": "Integração"
+                    },
+                    "id": {
+                        "name": "ID do boletim"
+                    },
+                    "publication_date": {
+                        "name": "Data de publicação"
+                    },
+                    "expires": {
+                        "name": "Expira em"
+                    },
+                    "last_update": {
+                        "name": "Última atualização"
+                    },
+                    "risk": {
+                        "name": "Risco"
+                    },
+                    "info": {
+                        "name": "Criticidade"
+                    },
+                    "alert": {
+                        "name": "Alerta"
+                    },
+                    "level": {
+                        "name": "Nível de alerta"
+                    },
+                    "zone_name": {
+                        "name": "Zona de alerta"
+                    },
+                    "image_url": {
+                        "name": "URL da imagem"
+                    },
+                    "link": {
+                        "name": "Link do boletim"
+                    }
+                }
+            },
+            "idrogeologico_oggi": {
+                "name": "Risco hidrogeológico hoje",
+                "state_attributes": {
+                    "integration": {
+                        "name": "Integração"
+                    },
+                    "id": {
+                        "name": "ID do boletim"
+                    },
+                    "publication_date": {
+                        "name": "Data de publicação"
+                    },
+                    "expires": {
+                        "name": "Expira em"
+                    },
+                    "last_update": {
+                        "name": "Última atualização"
+                    },
+                    "risk": {
+                        "name": "Risco"
+                    },
+                    "info": {
+                        "name": "Criticidade"
+                    },
+                    "alert": {
+                        "name": "Alerta"
+                    },
+                    "level": {
+                        "name": "Nível de alerta"
+                    },
+                    "zone_name": {
+                        "name": "Zona de alerta"
+                    },
+                    "image_url": {
+                        "name": "URL da imagem"
+                    },
+                    "link": {
+                        "name": "Link do boletim"
+                    }
+                }
+            },
+            "idraulico_domani": {
+                "name": "Risco hidráulico amanhã",
+                "state_attributes": {
+                    "integration": {
+                        "name": "Integração"
+                    },
+                    "id": {
+                        "name": "ID do boletim"
+                    },
+                    "publication_date": {
+                        "name": "Data de publicação"
+                    },
+                    "expires": {
+                        "name": "Expira em"
+                    },
+                    "last_update": {
+                        "name": "Última atualização"
+                    },
+                    "risk": {
+                        "name": "Risco"
+                    },
+                    "info": {
+                        "name": "Criticidade"
+                    },
+                    "alert": {
+                        "name": "Alerta"
+                    },
+                    "level": {
+                        "name": "Nível de alerta"
+                    },
+                    "zone_name": {
+                        "name": "Zona de alerta"
+                    },
+                    "image_url": {
+                        "name": "URL da imagem"
+                    },
+                    "link": {
+                        "name": "Link do boletim"
+                    }
+                }
+            },
+            "temporali_domani": {
+                "name": "Risco de tempestades amanhã",
+                "state_attributes": {
+                    "integration": {
+                        "name": "Integração"
+                    },
+                    "id": {
+                        "name": "ID do boletim"
+                    },
+                    "publication_date": {
+                        "name": "Data de publicação"
+                    },
+                    "expires": {
+                        "name": "Expira em"
+                    },
+                    "last_update": {
+                        "name": "Última atualização"
+                    },
+                    "risk": {
+                        "name": "Risco"
+                    },
+                    "info": {
+                        "name": "Criticidade"
+                    },
+                    "alert": {
+                        "name": "Alerta"
+                    },
+                    "level": {
+                        "name": "Nível de alerta"
+                    },
+                    "zone_name": {
+                        "name": "Zona de alerta"
+                    },
+                    "image_url": {
+                        "name": "URL da imagem"
+                    },
+                    "link": {
+                        "name": "Link do boletim"
+                    }
+                }
+            },
+            "idrogeologico_domani": {
+                "name": "Risco hidrogeológico amanhã",
+                "state_attributes": {
+                    "integration": {
+                        "name": "Integração"
+                    },
+                    "id": {
+                        "name": "ID do boletim"
+                    },
+                    "publication_date": {
+                        "name": "Data de publicação"
+                    },
+                    "expires": {
+                        "name": "Expira em"
+                    },
+                    "last_update": {
+                        "name": "Última atualização"
+                    },
+                    "risk": {
+                        "name": "Risco"
+                    },
+                    "info": {
+                        "name": "Criticidade"
+                    },
+                    "alert": {
+                        "name": "Alerta"
+                    },
+                    "level": {
+                        "name": "Nível de alerta"
+                    },
+                    "zone_name": {
+                        "name": "Zona de alerta"
+                    },
+                    "image_url": {
+                        "name": "URL da imagem"
+                    },
+                    "link": {
+                        "name": "Link do boletim"
+                    }
+                }
+            }
+        },
+        "sensor": {
+            "criticality": {
+                "name": "Alerta",
+                "state_attributes": {
+                    "integration": {
+                        "name": "Integração"
+                    },
+                    "id": {
+                        "name": "ID do boletim"
+                    },
+                    "publication_date": {
+                        "name": "Data de publicação"
+                    },
+                    "last_update": {
+                        "name": "Última atualização"
+                    },
+                    "max_level": {
+                        "name": "Nível máximo"
+                    },
+                    "total_alerts": {
+                        "name": "Total de alertas"
+                    },
+                    "today": {
+                        "name": "Hoje"
+                    },
+                    "events_today": {
+                        "name": "Alertas para hoje"
+                    },
+                    "tomorrow": {
+                        "name": "Amanhã"
+                    },
+                    "events_tomorrow": {
+                        "name": "Alertas para amanhã"
+                    },
+                    "zone_name": {
+                        "name": "Zona de alerta"
+                    },
+                    "link": {
+                        "name": "Link do boletim"
+                    }
+                }
+            },
+            "vigilance": {
+                "name": "Vigilância meteorológica",
+                "state_attributes": {
+                    "integration": {
+                        "name": "Integração"
+                    },
+                    "id": {
+                        "name": "ID do boletim"
+                    },
+                    "link": {
+                        "name": "Link do boletim"
+                    },
+                    "publication_date": {
+                        "name": "Data de publicação"
+                    },
+                    "zone_name": {
+                        "name": "Zona de vigilância"
+                    },
+                    "today": {
+                        "name": "Hoje"
+                    },
+                    "tomorrow": {
+                        "name": "Amanhã"
+                    },
+                    "aftertomorrow": {
+                        "name": "Depois de amanhã"
+                    },
+                    "last_update": {
+                        "name": "Última atualização"
+                    },
+                    "max_level": {
+                        "name": "Nível máximo"
+                    },
+                    "total_phenomena": {
+                        "name": "Total de fenômenos"
+                    },
+                    "total_alerts": {
+                        "name": "Total de alertas"
+                    }
+                }
+            }
+        }
+    }
+}

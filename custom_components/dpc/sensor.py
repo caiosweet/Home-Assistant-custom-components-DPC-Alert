@@ -1,7 +1,8 @@
 """Sensor platform for Dpc."""
 
-from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor import ENTITY_ID_FORMAT, SensorEntity
 from homeassistant.const import ATTR_ICON, CONF_LATITUDE, CONF_LONGITUDE, CONF_NAME
+from homeassistant.util import slugify
 
 from . import DpcDataUpdateCoordinator
 from .const import (
@@ -35,6 +36,18 @@ from .entity import DpcEntity
 ICON = {"safety": "mdi:shield-check", "danger": "mdi:hazard-lights"}  # shield-account
 
 
+def _language_independent_entity_id(entry, suffix: str) -> str:
+    """Return sensor.<name>_<suffix>, the entity ID used before names were translated.
+
+    For languages such as Italian and Portuguese, Home Assistant derives new entity
+    IDs from the translated name (e.g. sensor.dpc_allerta). Suggesting the ID keeps
+    it the same in every language. Existing entities keep their registered ID anyway.
+    """
+    return ENTITY_ID_FORMAT.format(
+        slugify(f"{entry.data.get(CONF_NAME) or DEFAULT_NAME} {suffix}")
+    )
+
+
 async def async_setup_entry(hass, entry, async_add_entities):  # async_add_devices
     """Setup sensor platform."""
     coordinator = hass.data[DOMAIN][entry.entry_id]
@@ -49,6 +62,8 @@ async def async_setup_entry(hass, entry, async_add_entities):  # async_add_devic
 class DpcSensorCriticality(DpcEntity, SensorEntity):
     """Dpc Criticality Sensor class."""
 
+    _attr_translation_key = "criticality"
+
     def __init__(
         self,
         coordinator: DpcDataUpdateCoordinator,
@@ -58,6 +73,7 @@ class DpcSensorCriticality(DpcEntity, SensorEntity):
         super().__init__(coordinator, entry)
         self.coordinator = coordinator
         self.entry = entry
+        self.entity_id = _language_independent_entity_id(entry, "alert")
         self._state = None
         self._max_level = None
         self._total_alerts = None
@@ -72,11 +88,6 @@ class DpcSensorCriticality(DpcEntity, SensorEntity):
     def unique_id(self):
         """Return a unique ID to use for this entity."""
         return f"{self._name}_criticality_{self._latitude}_{self._longitude}"
-
-    @property
-    def name(self):
-        """Return the name of the sensor."""
-        return f"{self.entry.data.get(CONF_NAME, DEFAULT_NAME)} Alert"
 
     @property
     def icon(self):
@@ -171,6 +182,8 @@ class DpcSensorCriticality(DpcEntity, SensorEntity):
 class DpcSensorVigilance(DpcEntity, SensorEntity):
     """Dpc Vigilance Sensor class."""
 
+    _attr_translation_key = "vigilance"
+
     def __init__(
         self,
         coordinator: DpcDataUpdateCoordinator,
@@ -180,6 +193,7 @@ class DpcSensorVigilance(DpcEntity, SensorEntity):
         super().__init__(coordinator, entry)
         self.coordinator = coordinator
         self.entry = entry
+        self.entity_id = _language_independent_entity_id(entry, "vigilance")
         self._state = None
         self._max_level = None
         self._total_alerts = None
@@ -193,11 +207,6 @@ class DpcSensorVigilance(DpcEntity, SensorEntity):
     def unique_id(self):
         """Return a unique ID to use for this entity."""
         return f"{self._name}_vigilance_{self._latitude}_{self._longitude}"
-
-    @property
-    def name(self):
-        """Return the name of the sensor."""
-        return f"{self.entry.data.get(CONF_NAME, DEFAULT_NAME)} Vigilance"
 
     @property
     def icon(self):

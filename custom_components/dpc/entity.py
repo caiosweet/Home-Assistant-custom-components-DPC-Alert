@@ -14,10 +14,14 @@ from homeassistant.const import (
 from homeassistant.helpers.device_registry import DeviceEntryType
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import ATTRIBUTION, DOMAIN, MANUFACTURER, NAME, VERSION
+from .const import ATTRIBUTION, DEFAULT_NAME, DOMAIN, MANUFACTURER, VERSION
 
 
 class DpcEntity(CoordinatorEntity):
+    # Entity names come from translations (entity.<platform>.<translation_key>.name)
+    # and are prefixed by the device name, i.e. the configured location name.
+    _attr_has_entity_name = True
+
     def __init__(self, coordinator, config_entry):
         super().__init__(coordinator)
         self.config_entry = config_entry
@@ -32,7 +36,7 @@ class DpcEntity(CoordinatorEntity):
                     self.config_entry.data.get(CONF_LONGITUDE),
                 )
             },
-            ATTR_NAME: f"{NAME} {self.config_entry.data.get(CONF_NAME)}",
+            ATTR_NAME: self.config_entry.data.get(CONF_NAME) or DEFAULT_NAME,
             ATTR_MODEL: f"Criticality and Vigilance Bulletin {DOMAIN}",
             ATTR_MANUFACTURER: MANUFACTURER,
             ATTR_SW_VERSION: VERSION,
