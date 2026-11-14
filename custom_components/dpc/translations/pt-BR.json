@@ -1,0 +1,44 @@
+{
+    "config": {
+        "flow_title": "{name}",
+        "step": {
+            "user": {
+                "title": "Departamento de Proteção Civil",
+                "description": "A ajuda para a configuração está disponível no link Documentação.",
+                "data": {
+                    "name": "Nome",
+                    "latitude": "Latitude",
+                    "longitude": "Longitude"
+                }
+            }
+        },
+        "error": {
+            "coordinates": "Latitude/Longitude incorreta.",
+            "coordinates_outside": "As coordenadas estão fora das áreas de alerta do DPC.",
+            "cannot_connect": "Não foi possível validar as coordenadas. Verifique sua conexão."
+        },
+        "abort": {
+            "single_instance_allowed": "Várias instâncias são suportadas. Cada local pode ser adicionado apenas uma vez.",
+            "already_configured": "Já existe uma entrada configurada para este local."
+        }
+    },
+    "options": {
+        "step": {
+            "user": {
+                "title": "Opções do DPC",
+                "description": "Nível mínimo de alerta: 1 verde, 2 amarelo, 3 laranja, 4 vermelho. O sensor fica ativo no nível selecionado ou acima.",
+                "data": {
+                    "binary_sensor": "Sensor binário ativado",
+                    "sensor": "Sensor ativado",
+                    "municipality": "Município",
+                    "scan_interval": "Intervalo de atualização (minutos, padrão 30)",
+                    "warning_level": "Nível mínimo de alerta",
+                    "radius": "Raio (km, padrão 50)"
+                },
+                "data_description": {
+                    "municipality": "Opcional. Se preenchido, a busca é feita pelo nome do município; deixe vazio para usar as coordenadas."
+                }
+            }
+        }
+    }
+}
