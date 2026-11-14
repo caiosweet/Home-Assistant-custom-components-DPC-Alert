@@ -406,7 +406,9 @@ class DpcApiClient:
     async def get_criticality(self, url: str, response: dict) -> dict:
         short_url = url.split("geojson/")[1]
         LOGGER.debug("[%s] Criticality Update %s", self._name, short_url)
-        expiration_date = datetime.combine(self._pub_date_crit, datetime.min.time())
+        expiration_date = datetime.combine(
+            self._pub_date_crit, datetime.min.time()
+        ) + timedelta(days=1)
 
         if "today" in url:
             day_en = ATTR_TODAY
