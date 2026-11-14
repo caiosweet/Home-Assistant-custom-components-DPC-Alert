@@ -7,7 +7,7 @@ from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
 )
-from homeassistant.const import ATTR_ICON, ATTR_NAME
+from homeassistant.const import ATTR_ICON
 from homeassistant.helpers.entity import async_generate_entity_id
 
 from . import DpcDataUpdateCoordinator
@@ -31,32 +31,26 @@ from .entity import DpcEntity
 
 BINARY_SENSOR_TYPES = [
     {
-        ATTR_NAME: "Rischio Idraulico Oggi",
         ATTR_RISK: "idraulico_oggi",
         ATTR_ICON: "mdi:home-flood",
     },
     {
-        ATTR_NAME: "Rischio Temporali Oggi",
         ATTR_RISK: "temporali_oggi",
         ATTR_ICON: "mdi:weather-lightning",
     },
     {
-        ATTR_NAME: "Rischio Idrogeologico Oggi",
         ATTR_RISK: "idrogeologico_oggi",
         ATTR_ICON: "mdi:waves",
     },
     {
-        ATTR_NAME: "Rischio Idraulico Domani",
         ATTR_RISK: "idraulico_domani",
         ATTR_ICON: "mdi:home-flood",
     },
     {
-        ATTR_NAME: "Rischio Temporali Domani",
         ATTR_RISK: "temporali_domani",
         ATTR_ICON: "mdi:weather-lightning",
     },
     {
-        ATTR_NAME: "Rischio Idrogeologico Domani",
         ATTR_RISK: "idrogeologico_domani",
         ATTR_ICON: "mdi:waves",
     },
@@ -93,8 +87,8 @@ class DpcBinarySensor(DpcEntity, BinarySensorEntity):
         self._enabled = True
         self._level = entry.options.get(CONF_WARNING_LEVEL, DEFAULT_WARNING_LEVEL)
         self._icon = sensor_type[ATTR_ICON]
-        self._name = sensor_type[ATTR_NAME]
         self._kind = sensor_type[ATTR_RISK]
+        self._attr_translation_key = self._kind
         self._unique_id = f"{entry.unique_id}-{self._kind}"
 
     @property
@@ -106,11 +100,6 @@ class DpcBinarySensor(DpcEntity, BinarySensorEntity):
     def available(self) -> bool:
         """Return if entity is available."""
         return self.coordinator.last_update_success and self.coordinator.data
-
-    @property
-    def name(self):
-        """Return the name of the binary_sensor."""
-        return self._name
 
     @property
     def unique_id(self):
