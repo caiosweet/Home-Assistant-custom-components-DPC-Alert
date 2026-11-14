@@ -1,7 +1,7 @@
 {
 	"domain": "dpc",
 	"name": "Dipartimento Protezione Civile",
-	"codeowners": ["@caiosweet"],
+	"codeowners": ["@caiosweet", "@webysther"],
 	"config_flow": true,
 	"documentation": "https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert",
 	"iot_class": "cloud_polling",
