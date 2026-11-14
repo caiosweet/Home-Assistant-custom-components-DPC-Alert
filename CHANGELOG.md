@@ -33,9 +33,9 @@ Entity IDs, states and the other attributes do not change.
 
 ### Added
 
-- Translations in English, Italian and Brazilian Portuguese of the
-  configuration, the options, and the names of the entities and of their
-  attributes ([#87]).
+- Translations of the configuration, the options, and the names of the
+  entities and of their attributes: English, Italian and Brazilian Portuguese
+  ([#87]), French, German and Spanish ([#90]).
 - Automated tests with a CI workflow ([#90]).
 
 ### Changed

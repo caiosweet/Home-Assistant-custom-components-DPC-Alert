@@ -1,0 +1,378 @@
+{
+    "config": {
+        "flow_title": "{name}",
+        "step": {
+            "user": {
+                "title": "Zivilschutzabteilung",
+                "description": "Hilfe zur Konfiguration findest du über den Link „Dokumentation“.",
+                "data": {
+                    "name": "Name",
+                    "latitude": "Breitengrad",
+                    "longitude": "Längengrad"
+                }
+            }
+        },
+        "error": {
+            "coordinates": "Breitengrad oder Längengrad ist ungültig.",
+            "coordinates_outside": "Die Koordinaten liegen außerhalb der Warngebiete des DPC.",
+            "cannot_connect": "Die Koordinaten konnten nicht geprüft werden. Überprüfe deine Verbindung."
+        },
+        "abort": {
+            "single_instance_allowed": "Mehrere Instanzen werden unterstützt. Jeder Standort kann nur einmal hinzugefügt werden.",
+            "already_configured": "Für diesen Standort ist bereits ein Eintrag eingerichtet."
+        }
+    },
+    "options": {
+        "step": {
+            "user": {
+                "title": "DPC-Optionen",
+                "description": "Mindestwarnstufe: 1 Grün, 2 Gelb, 3 Orange, 4 Rot. Der Sensor ist ab der gewählten Stufe aktiv.",
+                "data": {
+                    "binary_sensor": "Binärsensor aktiviert",
+                    "sensor": "Sensor aktiviert",
+                    "municipality": "Gemeinde",
+                    "scan_interval": "Aktualisierungsintervall (Minuten, Standard 30)",
+                    "warning_level": "Mindestwarnstufe",
+                    "radius": "Radius (km, Standard 50)"
+                },
+                "data_description": {
+                    "municipality": "Optional. Wenn ausgefüllt, wird nach dem Namen der Gemeinde gesucht; leer lassen, um die Koordinaten zu verwenden."
+                }
+            }
+        }
+    },
+    "entity": {
+        "binary_sensor": {
+            "idraulico_oggi": {
+                "name": "Hochwasserrisiko heute",
+                "state_attributes": {
+                    "integration": {
+                        "name": "Integration"
+                    },
+                    "id": {
+                        "name": "Bulletin-ID"
+                    },
+                    "publication_date": {
+                        "name": "Veröffentlichungsdatum"
+                    },
+                    "expires": {
+                        "name": "Gültig bis"
+                    },
+                    "last_update": {
+                        "name": "Letzte Aktualisierung"
+                    },
+                    "risk": {
+                        "name": "Risiko"
+                    },
+                    "info": {
+                        "name": "Gefährdungspotenzial"
+                    },
+                    "alert": {
+                        "name": "Warnung"
+                    },
+                    "level": {
+                        "name": "Warnstufe"
+                    },
+                    "zone_name": {
+                        "name": "Warngebiet"
+                    },
+                    "image_url": {
+                        "name": "Bild-URL"
+                    },
+                    "link": {
+                        "name": "Link zum Bulletin"
+                    }
+                }
+            },
+            "temporali_oggi": {
+                "name": "Gewitterrisiko heute",
+                "state_attributes": {
+                    "integration": {
+                        "name": "Integration"
+                    },
+                    "id": {
+                        "name": "Bulletin-ID"
+                    },
+                    "publication_date": {
+                        "name": "Veröffentlichungsdatum"
+                    },
+                    "expires": {
+                        "name": "Gültig bis"
+                    },
+                    "last_update": {
+                        "name": "Letzte Aktualisierung"
+                    },
+                    "risk": {
+                        "name": "Risiko"
+                    },
+                    "info": {
+                        "name": "Gefährdungspotenzial"
+                    },
+                    "alert": {
+                        "name": "Warnung"
+                    },
+                    "level": {
+                        "name": "Warnstufe"
+                    },
+                    "zone_name": {
+                        "name": "Warngebiet"
+                    },
+                    "image_url": {
+                        "name": "Bild-URL"
+                    },
+                    "link": {
+                        "name": "Link zum Bulletin"
+                    }
+                }
+            },
+            "idrogeologico_oggi": {
+                "name": "Hydrogeologisches Risiko heute",
+                "state_attributes": {
+                    "integration": {
+                        "name": "Integration"
+                    },
+                    "id": {
+                        "name": "Bulletin-ID"
+                    },
+                    "publication_date": {
+                        "name": "Veröffentlichungsdatum"
+                    },
+                    "expires": {
+                        "name": "Gültig bis"
+                    },
+                    "last_update": {
+                        "name": "Letzte Aktualisierung"
+                    },
+                    "risk": {
+                        "name": "Risiko"
+                    },
+                    "info": {
+                        "name": "Gefährdungspotenzial"
+                    },
+                    "alert": {
+                        "name": "Warnung"
+                    },
+                    "level": {
+                        "name": "Warnstufe"
+                    },
+                    "zone_name": {
+                        "name": "Warngebiet"
+                    },
+                    "image_url": {
+                        "name": "Bild-URL"
+                    },
+                    "link": {
+                        "name": "Link zum Bulletin"
+                    }
+                }
+            },
+            "idraulico_domani": {
+                "name": "Hochwasserrisiko morgen",
+                "state_attributes": {
+                    "integration": {
+                        "name": "Integration"
+                    },
+                    "id": {
+                        "name": "Bulletin-ID"
+                    },
+                    "publication_date": {
+                        "name": "Veröffentlichungsdatum"
+                    },
+                    "expires": {
+                        "name": "Gültig bis"
+                    },
+                    "last_update": {
+                        "name": "Letzte Aktualisierung"
+                    },
+                    "risk": {
+                        "name": "Risiko"
+                    },
+                    "info": {
+                        "name": "Gefährdungspotenzial"
+                    },
+                    "alert": {
+                        "name": "Warnung"
+                    },
+                    "level": {
+                        "name": "Warnstufe"
+                    },
+                    "zone_name": {
+                        "name": "Warngebiet"
+                    },
+                    "image_url": {
+                        "name": "Bild-URL"
+                    },
+                    "link": {
+                        "name": "Link zum Bulletin"
+                    }
+                }
+            },
+            "temporali_domani": {
+                "name": "Gewitterrisiko morgen",
+                "state_attributes": {
+                    "integration": {
+                        "name": "Integration"
+                    },
+                    "id": {
+                        "name": "Bulletin-ID"
+                    },
+                    "publication_date": {
+                        "name": "Veröffentlichungsdatum"
+                    },
+                    "expires": {
+                        "name": "Gültig bis"
+                    },
+                    "last_update": {
+                        "name": "Letzte Aktualisierung"
+                    },
+                    "risk": {
+                        "name": "Risiko"
+                    },
+                    "info": {
+                        "name": "Gefährdungspotenzial"
+                    },
+                    "alert": {
+                        "name": "Warnung"
+                    },
+                    "level": {
+                        "name": "Warnstufe"
+                    },
+                    "zone_name": {
+                        "name": "Warngebiet"
+                    },
+                    "image_url": {
+                        "name": "Bild-URL"
+                    },
+                    "link": {
+                        "name": "Link zum Bulletin"
+                    }
+                }
+            },
+            "idrogeologico_domani": {
+                "name": "Hydrogeologisches Risiko morgen",
+                "state_attributes": {
+                    "integration": {
+                        "name": "Integration"
+                    },
+                    "id": {
+                        "name": "Bulletin-ID"
+                    },
+                    "publication_date": {
+                        "name": "Veröffentlichungsdatum"
+                    },
+                    "expires": {
+                        "name": "Gültig bis"
+                    },
+                    "last_update": {
+                        "name": "Letzte Aktualisierung"
+                    },
+                    "risk": {
+                        "name": "Risiko"
+                    },
+                    "info": {
+                        "name": "Gefährdungspotenzial"
+                    },
+                    "alert": {
+                        "name": "Warnung"
+                    },
+                    "level": {
+                        "name": "Warnstufe"
+                    },
+                    "zone_name": {
+                        "name": "Warngebiet"
+                    },
+                    "image_url": {
+                        "name": "Bild-URL"
+                    },
+                    "link": {
+                        "name": "Link zum Bulletin"
+                    }
+                }
+            }
+        },
+        "sensor": {
+            "criticality": {
+                "name": "Warnung",
+                "state_attributes": {
+                    "integration": {
+                        "name": "Integration"
+                    },
+                    "id": {
+                        "name": "Bulletin-ID"
+                    },
+                    "publication_date": {
+                        "name": "Veröffentlichungsdatum"
+                    },
+                    "last_update": {
+                        "name": "Letzte Aktualisierung"
+                    },
+                    "max_level": {
+                        "name": "Höchste Stufe"
+                    },
+                    "total_alerts": {
+                        "name": "Anzahl der Warnungen"
+                    },
+                    "today": {
+                        "name": "Heute"
+                    },
+                    "events_today": {
+                        "name": "Warnungen für heute"
+                    },
+                    "tomorrow": {
+                        "name": "Morgen"
+                    },
+                    "events_tomorrow": {
+                        "name": "Warnungen für morgen"
+                    },
+                    "zone_name": {
+                        "name": "Warngebiet"
+                    },
+                    "link": {
+                        "name": "Link zum Bulletin"
+                    }
+                }
+            },
+            "vigilance": {
+                "name": "Wetterlage",
+                "state_attributes": {
+                    "integration": {
+                        "name": "Integration"
+                    },
+                    "id": {
+                        "name": "Bulletin-ID"
+                    },
+                    "link": {
+                        "name": "Link zum Bulletin"
+                    },
+                    "publication_date": {
+                        "name": "Veröffentlichungsdatum"
+                    },
+                    "zone_name": {
+                        "name": "Vorhersagegebiet"
+                    },
+                    "today": {
+                        "name": "Heute"
+                    },
+                    "tomorrow": {
+                        "name": "Morgen"
+                    },
+                    "aftertomorrow": {
+                        "name": "Übermorgen"
+                    },
+                    "last_update": {
+                        "name": "Letzte Aktualisierung"
+                    },
+                    "max_level": {
+                        "name": "Höchste Stufe"
+                    },
+                    "total_phenomena": {
+                        "name": "Anzahl der Wetterphänomene"
+                    },
+                    "total_alerts": {
+                        "name": "Anzahl der Warnungen"
+                    }
+                }
+            }
+        }
+    }
+}
