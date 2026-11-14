@@ -9,7 +9,7 @@
 - [ ] If shared cache:
   - [ ] Implement shared URL cache with TTL in `hass.data`.
   - [ ] Deduplicate identical API calls across entries.
-- [ ] Add/update tests (or manual test checklist).
+- [x] Add/update tests (or manual test checklist).
 - [ ] Re-run hassfest after refactor.
 
 ## Open Questions

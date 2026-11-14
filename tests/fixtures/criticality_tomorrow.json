@@ -1,0 +1,35 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[12.0, 41.5], [13.0, 41.5], [13.0, 42.3], [12.0, 42.3], [12.0, 41.5]]]
+      },
+      "properties": {
+        "Rappresentata nella mappa": "Moderata per rischio idrogeologico / ALLERTA ARANCIONE",
+        "Per rischio idraulico": "Assenza di fenomeni significativi prevedibili / NESSUNA ALLERTA",
+        "Per rischio temporali": "Assenza di fenomeni significativi prevedibili / NESSUNA ALLERTA",
+        "Per rischio idrogeologico": "Moderata / ALLERTA ARANCIONE",
+        "Nome zona": "Bacini di Roma",
+        "Comuni": ["Fiumicino", "Roma", "Tivoli"]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[8.5, 45.2], [9.6, 45.2], [9.6, 46.0], [8.5, 46.0], [8.5, 45.2]]]
+      },
+      "properties": {
+        "Rappresentata nella mappa": "Elevata per rischio idraulico / ALLERTA ROSSA",
+        "Per rischio idraulico": "Elevata / ALLERTA ROSSA",
+        "Per rischio temporali": "Elevata / ALLERTA ROSSA",
+        "Per rischio idrogeologico": "Elevata / ALLERTA ROSSA",
+        "Nome zona": "Lario e Prealpi occidentali",
+        "Comuni": ["Como", "Lecco"]
+      }
+    }
+  ]
+}

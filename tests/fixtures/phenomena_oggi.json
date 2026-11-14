@@ -1,0 +1,31 @@
+{
+  "type": "FeatureCollection",
+  "totalFeatures": 2,
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {"type": "Point", "coordinates": [12.67477485, 41.57313417]},
+      "properties": {
+        "id": null,
+        "id_bollettino": 202611141,
+        "data_bollettino": "2026-11-14Z",
+        "id_fenomeno": 5,
+        "lat": 41.573134169859415,
+        "lon": 12.674774846264892
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {"type": "Point", "coordinates": [14.48577748, 40.7551286]},
+      "properties": {
+        "id": null,
+        "id_bollettino": 202611141,
+        "data_bollettino": "2026-11-14Z",
+        "id_fenomeno": 41,
+        "lat": 40.755128603144115,
+        "lon": 14.485777481107894
+      }
+    }
+  ],
+  "crs": {"type": "name", "properties": {"name": "urn:ogc:def:crs:EPSG::4326"}}
+}

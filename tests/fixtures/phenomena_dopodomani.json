@@ -1,0 +1,6 @@
+{
+  "type": "FeatureCollection",
+  "totalFeatures": 0,
+  "features": [],
+  "crs": {"type": "name", "properties": {"name": "urn:ogc:def:crs:EPSG::4326"}}
+}
