@@ -1,4 +1,4 @@
-"""Coordinator of the DPC bulletins of a location."""
+"""Coordinator of the DPC bulletins of a place."""
 
 from __future__ import annotations
 
@@ -6,34 +6,17 @@ import asyncio
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from functools import partial
 
-from aiodpc import (
-    BulletinKind,
-    CriticalityBulletin,
-    DpcClient,
-    DpcError,
-    Location,
-    VigilanceBulletin,
-)
+from aiodpc import BulletinKind, CriticalityBulletin, DpcError, VigilanceBulletin
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (
-    CONF_LATITUDE,
-    CONF_LONGITUDE,
-    CONF_RADIUS,
-    CONF_SCAN_INTERVAL,
-)
+from homeassistant.const import CONF_SCAN_INTERVAL
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.util import dt as dt_util
 
-from .const import (
-    CONF_MUNICIPALITY,
-    DEFAULT_RADIUS,
-    DEFAULT_SCAN_INTERVAL,
-    DOMAIN,
-    LOGGER,
-    RETRY_INTERVAL,
-)
+from .bulletins import DpcBulletins
+from .const import DEFAULT_SCAN_INTERVAL, DOMAIN, LOGGER, RETRY_INTERVAL
 
 
 @dataclass(frozen=True)
@@ -46,45 +29,40 @@ class LatestBulletin[BulletinT: (CriticalityBulletin, VigilanceBulletin)]:
 
 @dataclass(frozen=True, slots=True)
 class DpcData:
-    """The latest DPC bulletins of the location; None until one is fetched."""
+    """The latest DPC bulletins of the place; None until one is fetched."""
 
     criticality: LatestBulletin[CriticalityBulletin] | None = None
     vigilance: LatestBulletin[VigilanceBulletin] | None = None
 
 
 class DpcDataUpdateCoordinator(DataUpdateCoordinator[DpcData]):
-    """Keep the latest DPC bulletins of the location of a config entry.
+    """Keep the latest DPC bulletins of the place of a config entry.
 
-    Each update only checks the IDs of the latest bulletins, and downloads a
-    bulletin again only when DPC has published a new one. When a bulletin cannot
-    be updated, the previous one is kept, since its days stay valid until they
-    are over, and the next update comes sooner.
+    The bulletins come from :class:`DpcBulletins`, shared by every place, which
+    downloads a bulletin only when DPC publishes a new one. When a bulletin
+    cannot be updated, the previous one is kept, since its days stay valid
+    until they are over, and the next update comes sooner.
     """
 
     config_entry: ConfigEntry
 
     def __init__(
-        self, hass: HomeAssistant, entry: ConfigEntry, client: DpcClient
+        self, hass: HomeAssistant, entry: ConfigEntry, bulletins: DpcBulletins
     ) -> None:
         """Initialize the coordinator of a config entry."""
-        self.location = Location(
-            entry.data[CONF_LATITUDE],
-            entry.data[CONF_LONGITUDE],
-            municipality=entry.options.get(CONF_MUNICIPALITY) or None,
-        )
-        self.phenomena_within_km = max(
-            float(entry.options.get(CONF_RADIUS, DEFAULT_RADIUS)), 0.0
-        )
         self.scan_interval = timedelta(
             minutes=entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
         )
         self.platforms: list[str] = []
-        self._client = client
         self._criticality = _BulletinTracker(
-            entry.title, BulletinKind.CRITICALITY, client, self._get_criticality
+            entry.title,
+            BulletinKind.CRITICALITY,
+            partial(bulletins.criticality, entry.entry_id),
         )
         self._vigilance = _BulletinTracker(
-            entry.title, BulletinKind.VIGILANCE, client, self._get_vigilance
+            entry.title,
+            BulletinKind.VIGILANCE,
+            partial(bulletins.vigilance, entry.entry_id),
         )
         super().__init__(
             hass,
@@ -96,7 +74,7 @@ class DpcDataUpdateCoordinator(DataUpdateCoordinator[DpcData]):
         self.data = DpcData()
 
     async def _async_update_data(self) -> DpcData:
-        """Return the latest bulletins, downloading those published since."""
+        """Return the latest bulletins of the place."""
         trackers = (self._criticality, self._vigilance)
         await asyncio.gather(*(tracker.refresh() for tracker in trackers))
 
@@ -109,51 +87,27 @@ class DpcDataUpdateCoordinator(DataUpdateCoordinator[DpcData]):
             raise UpdateFailed(f"No DPC bulletin could be fetched: {errors[0]}")
         return data
 
-    async def _get_criticality(self, bulletin_id: str) -> CriticalityBulletin:
-        return await self._client.get_criticality(
-            self.location, bulletin_id=bulletin_id
-        )
-
-    async def _get_vigilance(self, bulletin_id: str) -> VigilanceBulletin:
-        return await self._client.get_vigilance(
-            self.location,
-            bulletin_id=bulletin_id,
-            phenomena_within_km=self.phenomena_within_km,
-        )
-
 
 class _BulletinTracker[BulletinT: (CriticalityBulletin, VigilanceBulletin)]:
-    """Keep the latest bulletin of a kind, downloading it only when it changes."""
+    """Keep the latest bulletin of a kind, and the previous one on failure."""
 
     def __init__(
         self,
         name: str,
         kind: BulletinKind,
-        client: DpcClient,
-        get_bulletin: Callable[[str], Awaitable[BulletinT]],
+        get_bulletin: Callable[[], Awaitable[BulletinT]],
     ) -> None:
         self._name = name
         self._kind = kind
-        self._client = client
         self._get_bulletin = get_bulletin
         self.latest: LatestBulletin[BulletinT] | None = None
         self.error: DpcError | None = None
         """Why the last refresh failed; None when it succeeded."""
 
     async def refresh(self) -> None:
-        """Fetch the latest bulletin if DPC has published a new one.
-
-        On failure the previous bulletin is kept and the error is stored.
-        """
+        """Get the latest bulletin; on failure keep the previous one."""
         try:
-            bulletin_id = await self._client.latest_bulletin_id(self._kind)
-            if self.latest is not None and self.latest.bulletin.id == bulletin_id:
-                bulletin = self.latest.bulletin
-            else:
-                LOGGER.debug(
-                    "[%s] New %s bulletin %s", self._name, self._kind, bulletin_id
-                )
-                bulletin = await self._get_bulletin(bulletin_id)
+            bulletin = await self._get_bulletin()
         except DpcError as err:
             if self.error is None:
                 LOGGER.warning(
@@ -167,5 +121,7 @@ class _BulletinTracker[BulletinT: (CriticalityBulletin, VigilanceBulletin)]:
 
         if self.error is not None:
             LOGGER.info("[%s] The %s bulletin is updated again", self._name, self._kind)
+        if self.latest is None or self.latest.bulletin.id != bulletin.id:
+            LOGGER.debug("[%s] New %s bulletin %s", self._name, self._kind, bulletin.id)
         self.error = None
         self.latest = LatestBulletin(bulletin, checked_at=dt_util.now())

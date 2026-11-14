@@ -4,18 +4,49 @@
         "step": {
             "user": {
                 "title": "Zivilschutzabteilung",
-                "description": "Hilfe zur Konfiguration findest du über den Link „Dokumentation“.",
+                "description": "Wie möchtest du den zu überwachenden Ort wählen? Die Bulletins des DPC decken Italien ab.",
+                "menu_options": {
+                    "map": "Auf der Karte wählen",
+                    "zone": "Eine Zone verwenden, z. B. Zuhause"
+                }
+            },
+            "map": {
+                "title": "Ort auf der Karte",
+                "description": "Verschiebe die Markierung auf den zu überwachenden Ort.",
                 "data": {
                     "name": "Name",
-                    "latitude": "Breitengrad",
-                    "longitude": "Längengrad"
+                    "location": "Ort"
+                },
+                "data_description": {
+                    "name": "Steht vor den Namen seiner Entitäten."
+                }
+            },
+            "zone": {
+                "title": "Ort einer Zone",
+                "description": "Wähle eine deiner Zonen in Home Assistant.",
+                "data": {
+                    "zone": "Zone",
+                    "name": "Name"
+                },
+                "data_description": {
+                    "name": "Optional. Wenn leer, wird der Name der Zone verwendet."
+                }
+            },
+            "municipality": {
+                "title": "Gemeinde",
+                "description": "Der Ort liegt im Warngebiet **{zone}** des DPC.",
+                "data": {
+                    "municipality": "Gemeinde"
+                },
+                "data_description": {
+                    "municipality": "Optional. Eine Gemeinde, die sich über mehrere Warngebiete erstreckt, erhält die höchste Warnung all dieser Gebiete. Leer lassen, um nur das Warngebiet des Ortes zu verwenden."
                 }
             }
         },
         "error": {
-            "coordinates": "Breitengrad oder Längengrad ist ungültig.",
             "coordinates_outside": "Die Koordinaten liegen außerhalb der Warngebiete des DPC.",
-            "cannot_connect": "Die Koordinaten konnten nicht geprüft werden. Überprüfe deine Verbindung."
+            "cannot_connect": "Die Koordinaten konnten nicht geprüft werden. Überprüfe deine Verbindung.",
+            "zone_not_found": "Zone nicht gefunden."
         },
         "abort": {
             "single_instance_allowed": "Mehrere Instanzen werden unterstützt. Jeder Standort kann nur einmal hinzugefügt werden.",
@@ -36,7 +67,7 @@
                     "radius": "Radius (km, Standard 50)"
                 },
                 "data_description": {
-                    "municipality": "Optional. Wenn ausgefüllt, wird nach dem Namen der Gemeinde gesucht; leer lassen, um die Koordinaten zu verwenden."
+                    "municipality": "Optional. Eine Gemeinde, die sich über mehrere Warngebiete erstreckt, erhält die höchste Warnung all dieser Gebiete. Leer lassen, um nur das Warngebiet des Ortes zu verwenden."
                 }
             }
         }

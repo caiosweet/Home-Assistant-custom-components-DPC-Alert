@@ -39,6 +39,9 @@ DEFAULT_SCAN_INTERVAL = 30  # min
 RETRY_INTERVAL: Final = timedelta(minutes=10)
 """Interval of the next update after a bulletin could not be fetched."""
 
+LATEST_ID_CHECK_INTERVAL: Final = 60.0
+"""Seconds during which the places share a check of the latest bulletin ID."""
+
 WARNING_LEVELS: Final = [
     level.value for level in AlertLevel if level is not AlertLevel.UNKNOWN
 ]

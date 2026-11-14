@@ -8,14 +8,14 @@ https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert
 from __future__ import annotations
 
 import asyncio
+from functools import partial
 
-from aiodpc import DpcClient
 import homeassistant.helpers.config_validation as cv
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.typing import ConfigType
 
+from .bulletins import Place, async_get_bulletins
 from .const import CONF_MUNICIPALITY, DOMAIN, LOGGER, PLATFORMS, STARTUP_MESSAGE
 from .coordinator import DpcDataUpdateCoordinator
 
@@ -34,8 +34,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.data.setdefault(DOMAIN, {})
         LOGGER.info(STARTUP_MESSAGE)
 
-    client = DpcClient(async_get_clientsession(hass))
-    coordinator = DpcDataUpdateCoordinator(hass, entry, client)
+    # The places share the downloads: a bulletin is the same file for all of them
+    bulletins = async_get_bulletins(hass)
+    bulletins.add_place(entry.entry_id, Place.of(entry))
+    entry.async_on_unload(partial(bulletins.remove_place, entry.entry_id))
+
+    coordinator = DpcDataUpdateCoordinator(hass, entry, bulletins)
     await coordinator.async_refresh()
 
     if not coordinator.last_update_success:

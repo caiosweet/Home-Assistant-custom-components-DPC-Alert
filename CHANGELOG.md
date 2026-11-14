@@ -37,11 +37,18 @@ Entity IDs, states and the other attributes do not change.
   entities and of their attributes: English, Italian and Brazilian Portuguese
   ([#87]), French, German and Spanish ([#90]).
 - Automated tests with a CI workflow ([#90]).
+- The place is picked on a map, which starts at home, or taken from a zone
+  such as Home ([#90]).
+- The setup shows the DPC alert zone of the place and offers the
+  municipalities of that zone to choose from, as do the options ([#90]).
 
 ### Changed
 
 - The DPC bulletins are read with aiodpc instead of the integration's own
   client ([#90]).
+- The places share the downloads: each bulletin is downloaded once for all of
+  them, instead of about 18 MB for each place, and read outside the event
+  loop ([#90]).
 - Entities are unavailable, instead of empty, while their bulletin has never
   been fetched ([#90]).
 - The radius option cannot be negative ([#90]).

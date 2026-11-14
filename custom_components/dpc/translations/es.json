@@ -4,18 +4,49 @@
         "step": {
             "user": {
                 "title": "Departamento de Protección Civil",
-                "description": "La ayuda para la configuración está disponible en el enlace Documentación.",
+                "description": "¿Cómo quieres elegir el lugar que vigilar? Los boletines del DPC cubren Italia.",
+                "menu_options": {
+                    "map": "Elegirlo en el mapa",
+                    "zone": "Usar una zona, como Casa"
+                }
+            },
+            "map": {
+                "title": "Lugar en el mapa",
+                "description": "Mueve el marcador al lugar que vigilar.",
                 "data": {
                     "name": "Nombre",
-                    "latitude": "Latitud",
-                    "longitude": "Longitud"
+                    "location": "Lugar"
+                },
+                "data_description": {
+                    "name": "Aparece delante de los nombres de sus entidades."
+                }
+            },
+            "zone": {
+                "title": "Lugar de una zona",
+                "description": "Elige una de tus zonas de Home Assistant.",
+                "data": {
+                    "zone": "Zona",
+                    "name": "Nombre"
+                },
+                "data_description": {
+                    "name": "Opcional. Si está vacío, se usa el nombre de la zona."
+                }
+            },
+            "municipality": {
+                "title": "Municipio",
+                "description": "El lugar está en la zona de alerta del DPC **{zone}**.",
+                "data": {
+                    "municipality": "Municipio"
+                },
+                "data_description": {
+                    "municipality": "Opcional. Un municipio que abarca varias zonas de alerta recibe la alerta más alta de todas ellas. Déjalo vacío para usar solo la zona de alerta del lugar."
                 }
             }
         },
         "error": {
-            "coordinates": "La latitud o la longitud no es correcta.",
             "coordinates_outside": "Las coordenadas están fuera de las zonas de alerta del DPC.",
-            "cannot_connect": "No se pudieron validar las coordenadas. Comprueba tu conexión."
+            "cannot_connect": "No se pudieron validar las coordenadas. Comprueba tu conexión.",
+            "zone_not_found": "No se encontró la zona."
         },
         "abort": {
             "single_instance_allowed": "Se admiten varias instancias. Cada ubicación solo se puede añadir una vez.",
@@ -36,7 +67,7 @@
                     "radius": "Radio (km, 50 por defecto)"
                 },
                 "data_description": {
-                    "municipality": "Opcional. Si se rellena, la búsqueda se hace por el nombre del municipio; déjalo vacío para usar las coordenadas."
+                    "municipality": "Opcional. Un municipio que abarca varias zonas de alerta recibe la alerta más alta de todas ellas. Déjalo vacío para usar solo la zona de alerta del lugar."
                 }
             }
         }

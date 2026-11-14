@@ -21,7 +21,7 @@ How the alert system works: [_Civil Protection Department_](https://rischi.prote
 - **Six binary sensors**: hydraulic, hydrogeological and thunderstorm risk, for today and tomorrow. Each one is on when its risk reaches the alert level you choose (1 green to 4 red).
 - **Alert sensor**: the highest alert level of today and tomorrow, with the assessment of each risk in its attributes.
 - **Vigilance sensor**: the expected precipitation of the next three days, and the weather phenomena within the radius you choose: rain, snow, thunderstorms, wind, frost, fog, rough sea and temperature.
-- **Several places**, each found by its coordinates or by the name of its municipality.
+- **Several places**, picked on a map or from a zone, optionally with their municipality. Each bulletin is downloaded once for all of them.
 - **Six languages**: English, Italian, French, German, Spanish and Brazilian Portuguese.
 - **Official data**: the criticality and weather vigilance bulletins that DPC publishes every day.
 
@@ -40,39 +40,26 @@ Requires Home Assistant 2025.2 or newer. See the [changelog](https://github.com/
 
 ## Configuration
 
-### Config flow
-
-To configure this integration go to: `Configurations` -> `Integrations` -> `ADD INTEGRATIONS` button, search for `Dpc` and configure the component.
-
-Configuration help is available via the Documentation link in Home Assistant.
-
-You can also use following [My Home Assistant](http://my.home-assistant.io/) link
-
 [![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=dpc)
 
-### Setup
+1. In Home Assistant, go to **Settings → Devices & services → Add integration** and search for `Dpc`, or use the button above.
+2. Choose how to give the place to monitor:
+   - **Pick it on a map**: the map starts at your home; move the pin and give the place a name.
+   - **Use a zone**, such as Home: the place is named after the zone, unless you give it a name.
+3. The integration checks the place with DPC and shows its alert zone. Choose your **municipality** among those of the zone, or leave it empty: a municipality that spans several alert zones gets the highest alert of all of them.
 
-Now the integration is added to HACS and available in the normal HA integration installation
+Add as many places as you want, each once. They share the downloads: each bulletin is downloaded once for all of them.
 
-1. In the HomeAssistant left menu, click `Configuration`
-2. Click `Integrations`
-3. Click `ADD INTEGRATION`
-4. Type `Dpc` and select it
-5. Enter the details:
-   1. **Name**: Your location name or name of sensor
-   2. **Latitude**: Latitude of monitored point
-   3. **Longitude**: Longitude of monitored point
-6. Optional:
-   1. Binary sensor enable/disable
-   2. Sensor enabled/disable
-   3. Municipality (optional, advanced)
-   4. Update interval (minutes, default 30)
-   5. Minimum level of warning. (int, default 2)
-   6. Radius (km, default 50)
+### Options
 
-   N.B. If "municipality" is set, data is selected by municipality name (highest alert in that municipality). This is useful when a municipality spans multiple alert areas. Make sure it matches the configured coordinates; otherwise results can look inconsistent. Leave it empty to use coordinates only.
+**Configure** on the integration changes:
 
-> :warning: **Multiple instances are possible, but each location can be added once. Updates are independent, so it is advisable not to exceed two or three locations.**
+1. Binary sensors enabled
+2. Sensors enabled
+3. Municipality: one of the alert zone of the place, or any other name
+4. Update interval (minutes, default 30)
+5. Minimum level of warning (1 green to 4 red, default 2)
+6. Radius of the weather phenomena (km, default 50)
 
 ## Preview [From my Natural Events project.][guide]
 
@@ -728,7 +715,6 @@ automation:
 
 ## Roadmap
 
-- **One download for every place.** Each place downloads its own copy of the bulletins, about 18 MB each time DPC publishes new ones, which is why two or three places are advised at most. The bulletins will be downloaded once and shared by all places.
 - **Retry the setup** when DPC cannot be reached, instead of adding the place with unavailable entities.
 - **Change a place without removing it**: its name, coordinates or municipality.
 - **Home Assistant [integration quality scale](https://developers.home-assistant.io/docs/core/integration-quality-scale/)**: meet its bronze and silver rules.

@@ -4,18 +4,49 @@
         "step": {
             "user": {
                 "title": "Département de la Protection civile",
-                "description": "L'aide à la configuration est disponible via le lien Documentation.",
+                "description": "Comment voulez-vous choisir le lieu à surveiller ? Les bulletins du DPC couvrent l'Italie.",
+                "menu_options": {
+                    "map": "Le choisir sur la carte",
+                    "zone": "Utiliser une zone, comme Maison"
+                }
+            },
+            "map": {
+                "title": "Lieu sur la carte",
+                "description": "Déplacez le repère sur le lieu à surveiller.",
                 "data": {
                     "name": "Nom",
-                    "latitude": "Latitude",
-                    "longitude": "Longitude"
+                    "location": "Lieu"
+                },
+                "data_description": {
+                    "name": "Affiché devant les noms de ses entités."
+                }
+            },
+            "zone": {
+                "title": "Lieu d'une zone",
+                "description": "Choisissez une de vos zones de Home Assistant.",
+                "data": {
+                    "zone": "Zone",
+                    "name": "Nom"
+                },
+                "data_description": {
+                    "name": "Facultatif. S'il est vide, le nom de la zone est utilisé."
+                }
+            },
+            "municipality": {
+                "title": "Commune",
+                "description": "Le lieu est dans la zone d'alerte du DPC **{zone}**.",
+                "data": {
+                    "municipality": "Commune"
+                },
+                "data_description": {
+                    "municipality": "Facultatif. Une commune qui s'étend sur plusieurs zones d'alerte reçoit l'alerte la plus élevée d'entre elles. Laissez vide pour utiliser uniquement la zone d'alerte du lieu."
                 }
             }
         },
         "error": {
-            "coordinates": "La latitude ou la longitude est incorrecte.",
             "coordinates_outside": "Les coordonnées sont en dehors des zones d'alerte du DPC.",
-            "cannot_connect": "Impossible de valider les coordonnées. Vérifiez votre connexion."
+            "cannot_connect": "Impossible de valider les coordonnées. Vérifiez votre connexion.",
+            "zone_not_found": "Zone introuvable."
         },
         "abort": {
             "single_instance_allowed": "Plusieurs instances sont prises en charge. Chaque lieu ne peut être ajouté qu'une seule fois.",
@@ -36,7 +67,7 @@
                     "radius": "Rayon (km, 50 par défaut)"
                 },
                 "data_description": {
-                    "municipality": "Facultatif. Si renseigné, la recherche se fait par le nom de la commune ; laissez vide pour utiliser les coordonnées."
+                    "municipality": "Facultatif. Une commune qui s'étend sur plusieurs zones d'alerte reçoit l'alerte la plus élevée d'entre elles. Laissez vide pour utiliser uniquement la zone d'alerte du lieu."
                 }
             }
         }
