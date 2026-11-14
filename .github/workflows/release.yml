@@ -4,6 +4,9 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: write # upload dpc.zip to the release
+
 jobs:
   release:
     name: Release
@@ -20,7 +23,7 @@ jobs:
         id: information
         run: |
           name=$(find custom_components/ -type d -maxdepth 1 | tail -n 1 | cut -d "/" -f2)
-          echo "::set-output name=name::$name"
+          echo "name=$name" >> "$GITHUB_OUTPUT"
       - name: 🖊️ Set version number
         run: |
           jq '.version = "${{ steps.version.outputs.version }}"' \
@@ -51,11 +54,9 @@ jobs:
           cd "${{ github.workspace }}/custom_components/${{ steps.information.outputs.name }}"
           zip ${{ steps.information.outputs.name }}.zip -r ./
       - name: 📤 Upload the zip file as a release asset
-        uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: "${{ github.workspace }}/custom_components/${{ steps.information.outputs.name }}/${{ steps.information.outputs.name }}.zip"
-          asset_name: ${{ steps.information.outputs.name }}.zip
-          asset_content_type: application/zip
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+          ZIP: custom_components/${{ steps.information.outputs.name }}/${{ steps.information.outputs.name }}.zip
+        # --clobber replaces the zip of a previous run, so the workflow can be re-run
+        run: gh release upload "$TAG" "$ZIP" --clobber --repo "$GITHUB_REPOSITORY"
