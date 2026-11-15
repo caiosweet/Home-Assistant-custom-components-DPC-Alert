@@ -409,5 +409,13 @@
                 }
             }
         }
+    },
+    "exceptions": {
+        "update_failed": {
+            "message": "No se pudo descargar ningún boletín del DPC: {error}"
+        },
+        "outside_alert_zones": {
+            "message": "{place} no está en ninguna zona de alerta del DPC."
+        }
     }
 }

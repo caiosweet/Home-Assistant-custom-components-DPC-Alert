@@ -94,9 +94,15 @@ class DpcDataUpdateCoordinator(DataUpdateCoordinator[DpcData]):
             if all(isinstance(err, DpcLocationError) for err in errors):
                 # Permanent: retrying does not help
                 raise ConfigEntryError(
-                    f"{self.config_entry.title} is not inside any DPC alert zone"
+                    translation_domain=DOMAIN,
+                    translation_key="outside_alert_zones",
+                    translation_placeholders={"place": self.config_entry.title},
                 )
-            raise UpdateFailed(f"No DPC bulletin could be fetched: {errors[0]}")
+            raise UpdateFailed(
+                translation_domain=DOMAIN,
+                translation_key="update_failed",
+                translation_placeholders={"error": str(errors[0])},
+            )
         return data
 
 
@@ -114,7 +120,7 @@ class _BulletinTracker[BulletinT: (CriticalityBulletin, VigilanceBulletin)]:
     ) -> None:
         self._name = name
         self._kind = kind
-        self._get_bulletin = get_bulletin
+        self._get_bulletin: Callable[[], Awaitable[BulletinT]] = get_bulletin
         self.latest: LatestBulletin[BulletinT] | None = None
         self.error: DpcError | None = None
         """Why the last refresh failed; None when it succeeded."""

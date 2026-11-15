@@ -31,6 +31,13 @@ Changelog = "https://github.com/caiosweet/Home-Assistant-custom-components-DPC-A
 Issues = "https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/issues"
 "Data source" = "https://github.com/pcm-dpc"
 
+[tool.mypy]
+# The strict-typing rule of the Home Assistant integration quality scale
+files = ["custom_components/dpc"]
+python_version = "3.14"
+strict = true
+follow_imports = "silent"
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"

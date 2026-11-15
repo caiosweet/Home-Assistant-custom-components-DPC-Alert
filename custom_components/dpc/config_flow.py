@@ -7,7 +7,11 @@ from typing import Any
 
 from aiodpc import AlertZone, DpcClient, DpcError, DpcLocationError, Location
 import homeassistant.helpers.config_validation as cv
-import voluptuous as vol
+
+try:  # Home Assistant 2026.9 and newer validate with probatio
+    import probatio as vol
+except ImportError:  # pragma: no cover - older versions, back to 2025.2
+    import voluptuous as vol  # type: ignore[no-redef]
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.const import (
@@ -258,32 +262,36 @@ class DpcFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     @callback
-    def async_get_options_flow(config_entry):
-        return DpcOptionsFlowHandler(config_entry)
+    def async_get_options_flow(
+        config_entry: config_entries.ConfigEntry,
+    ) -> DpcOptionsFlowHandler:
+        """Return the options flow of a place."""
+        return DpcOptionsFlowHandler()
 
 
 class DpcOptionsFlowHandler(config_entries.OptionsFlow):
-    """Dpc config flow options handler."""
+    """Options of a place."""
 
-    def __init__(self, config_entry):
-        """Initialize HACS options flow."""
-        self.options = dict(config_entry.options)
-        self.data = dict(config_entry.data)
-
-    async def async_step_init(self, user_input=None):  # pylint: disable=unused-argument
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
         """Manage the options."""
         return await self.async_step_user()
 
-    async def async_step_user(self, user_input=None):
-        """Handle a flow initialized by the user."""
+    async def async_step_user(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Show and save the options of the place."""
+        options = dict(self.config_entry.options)
         if user_input is not None:
-            self.options.update(user_input)
-            return await self._update_options()
+            return self.async_create_entry(data=options | user_input)
 
-        municipality = self.options.get(CONF_MUNICIPALITY, "")
+        municipality = options.get(CONF_MUNICIPALITY, "")
         try:
             alert_zone = await async_get_alert_zone(
-                self.hass, self.data[CONF_LATITUDE], self.data[CONF_LONGITUDE]
+                self.hass,
+                self.config_entry.data[CONF_LATITUDE],
+                self.config_entry.data[CONF_LONGITUDE],
             )
         except DpcError as err:
             LOGGER.debug("No municipalities to offer, any can be typed: %s", err)
@@ -291,36 +299,27 @@ class DpcOptionsFlowHandler(config_entries.OptionsFlow):
         else:
             municipalities = alert_zone.municipalities
 
-        schema = {
-            vol.Required(x, default=self.options.get(x, True)): bool
-            for x in sorted(PLATFORMS)
+        schema: dict[vol.Marker, Any] = {
+            vol.Required(platform, default=options.get(platform, True)): bool
+            for platform in sorted(PLATFORMS)
         }
-        schema.update(
-            {
-                vol.Optional(
-                    CONF_MUNICIPALITY,
-                    default="",
-                    description={"suggested_value": municipality},
-                ): municipality_selector(municipalities, municipality),
-                vol.Optional(
-                    CONF_SCAN_INTERVAL,
-                    default=self.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
-                ): cv.positive_int,
-                vol.Optional(
-                    CONF_WARNING_LEVEL,
-                    default=self.options.get(CONF_WARNING_LEVEL, DEFAULT_WARNING_LEVEL),
-                ): vol.In(WARNING_LEVELS),
-                vol.Required(
-                    CONF_RADIUS,
-                    default=self.options.get(CONF_RADIUS, DEFAULT_RADIUS),
-                ): vol.All(vol.Coerce(float), vol.Range(min=0)),
-            }
-        )
+        schema |= {
+            vol.Optional(
+                CONF_MUNICIPALITY,
+                default="",
+                description={"suggested_value": municipality},
+            ): municipality_selector(municipalities, municipality),
+            vol.Optional(
+                CONF_SCAN_INTERVAL,
+                default=options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
+            ): cv.positive_int,
+            vol.Optional(
+                CONF_WARNING_LEVEL,
+                default=options.get(CONF_WARNING_LEVEL, DEFAULT_WARNING_LEVEL),
+            ): vol.In(WARNING_LEVELS),
+            vol.Required(
+                CONF_RADIUS,
+                default=options.get(CONF_RADIUS, DEFAULT_RADIUS),
+            ): vol.All(vol.Coerce(float), vol.Range(min=0)),
+        }
         return self.async_show_form(step_id="user", data_schema=vol.Schema(schema))
-
-    async def _update_options(self):
-        """Update config entry options."""
-        return self.async_create_entry(
-            title="",
-            data=self.options,
-        )

@@ -27,5 +27,8 @@ jobs:
       - name: 📦 Install the test requirements
         run: pip install -r requirements_test.txt
 
+      - name: 🔎 Check the types
+        run: mypy
+
       - name: 🧪 Run the tests
         run: pytest --cov --cov-report=term-missing

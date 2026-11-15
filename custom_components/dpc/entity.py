@@ -4,19 +4,15 @@ from __future__ import annotations
 
 from typing import Any
 
+from aiodpc import CRITICALITY_PAGE_URL
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_ATTRIBUTION,
-    ATTR_IDENTIFIERS,
-    ATTR_MANUFACTURER,
-    ATTR_MODEL,
-    ATTR_NAME,
-    ATTR_SW_VERSION,
     CONF_LATITUDE,
     CONF_LONGITUDE,
     CONF_NAME,
 )
-from homeassistant.helpers.device_registry import DeviceEntryType
+from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import slugify
 
@@ -63,24 +59,28 @@ class DpcEntity(CoordinatorEntity[DpcDataUpdateCoordinator]):
         """Lowest level reported as a warning: 1 green, 2 yellow, 3 orange, 4 red."""
 
     @property
-    def device_info(self):
-        return {
-            ATTR_IDENTIFIERS: {
-                (
+    def device_info(self) -> DeviceInfo:
+        """Return the device of the place: a service."""
+        return DeviceInfo(
+            # The identifier the device has always had: changing it would
+            # create a new device, so it keeps its three parts
+            identifiers={
+                (  # type: ignore[arg-type]
                     DOMAIN,
-                    self.config_entry.data.get(CONF_LATITUDE),
-                    self.config_entry.data.get(CONF_LONGITUDE),
+                    self.config_entry.data[CONF_LATITUDE],
+                    self.config_entry.data[CONF_LONGITUDE],
                 )
             },
             # The name of the place: renaming the entry renames the device
-            ATTR_NAME: self.config_entry.title
+            name=self.config_entry.title
             or self.config_entry.data.get(CONF_NAME)
             or DEFAULT_NAME,
-            ATTR_MODEL: f"Criticality and Vigilance Bulletin {DOMAIN}",
-            ATTR_MANUFACTURER: MANUFACTURER,
-            ATTR_SW_VERSION: VERSION,
-            "entry_type": DeviceEntryType.SERVICE,
-        }
+            model=f"Criticality and Vigilance Bulletin {DOMAIN}",
+            manufacturer=MANUFACTURER,
+            sw_version=VERSION,
+            entry_type=DeviceEntryType.SERVICE,
+            configuration_url=CRITICALITY_PAGE_URL,
+        )
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:

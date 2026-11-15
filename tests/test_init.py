@@ -114,6 +114,13 @@ async def test_setup_with_one_bulletin(
     assert mock_config_entry.state is ConfigEntryState.LOADED
     assert sensor_state(unavailable) == STATE_UNAVAILABLE
     assert sensor_state(available) == "3"
+    # Home Assistant reads an entity only while it is available, but the
+    # unavailable one would still answer without a bulletin
+    entity = hass.data[Platform.SENSOR].get_entity(
+        get_entity_id(hass, Platform.SENSOR, sensor_unique_id(unavailable))
+    )
+    assert entity.native_value is None
+    assert "id" not in entity.extra_state_attributes
 
 
 @pytest.mark.usefixtures("mock_dpc")

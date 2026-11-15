@@ -8,16 +8,19 @@ from typing import Any
 from aiodpc import CriticalityDay, Day, RiskType
 from homeassistant.components.binary_sensor import (
     ENTITY_ID_FORMAT,
-    BinarySensorDeviceClass,
     BinarySensorEntity,
     BinarySensorEntityDescription,
+)
+
+# Re-exported without being declared: binary_sensor.const only exists since 2026.9
+from homeassistant.components.binary_sensor import (  # type: ignore[attr-defined]
+    BinarySensorDeviceClass,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .attributes import criticality_attributes, risk_day_attributes
-from .const import RISK_ICONS
 from .coordinator import DpcConfigEntry, DpcDataUpdateCoordinator
 from .entity import DpcEntity, language_independent_entity_id
 
@@ -46,7 +49,6 @@ RISK_DESCRIPTIONS = tuple(
     DpcRiskEntityDescription(
         key=f"{RISK_KEYS[risk]}_{DAY_KEYS[day]}",
         translation_key=f"{RISK_KEYS[risk]}_{DAY_KEYS[day]}",
-        icon=RISK_ICONS[risk],
         device_class=BinarySensorDeviceClass.SAFETY,
         risk=risk,
         day=day,
