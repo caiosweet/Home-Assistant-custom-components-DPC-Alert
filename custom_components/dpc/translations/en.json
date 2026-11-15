@@ -18,7 +18,8 @@
                     "location": "Place"
                 },
                 "data_description": {
-                    "name": "Shown in front of the names of its entities."
+                    "name": "Shown in front of the names of its entities.",
+                    "location": "The place must be in Italy: the DPC bulletins cover Italy only."
                 }
             },
             "zone": {
@@ -29,6 +30,7 @@
                     "name": "Name"
                 },
                 "data_description": {
+                    "zone": "The place of the zone is copied: moving the zone later does not move the place.",
                     "name": "Optional. The name of the zone is used when empty."
                 }
             },
@@ -46,7 +48,9 @@
         "error": {
             "coordinates_outside": "Coordinates are outside DPC alert areas.",
             "cannot_connect": "Unable to validate coordinates. Check your connection.",
-            "zone_not_found": "The zone was not found."
+            "zone_not_found": "The zone was not found.",
+            "place_nearby": "{place} is less than 1 km away: its bulletins would be the same.",
+            "name_exists": "Another place already has this name."
         },
         "abort": {
             "single_instance_allowed": "Multiple instances are supported. Each location can be added once.",

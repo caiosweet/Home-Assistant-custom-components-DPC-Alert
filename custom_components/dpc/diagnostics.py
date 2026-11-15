@@ -13,7 +13,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 
-from .const import CONF_MUNICIPALITY, DOMAIN
+from .const import CONF_MUNICIPALITY
 
 TO_REDACT = {
     CONF_LATITUDE,
@@ -29,7 +29,7 @@ async def async_get_config_entry_diagnostics(
     config_entry: ConfigEntry,
 ) -> dict[str, Any]:
     """Return diagnostics for a config entry."""
-    coordinator = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator = config_entry.runtime_data
     device_registry = dr.async_get(hass)
     entity_registry = er.async_get(hass)
 

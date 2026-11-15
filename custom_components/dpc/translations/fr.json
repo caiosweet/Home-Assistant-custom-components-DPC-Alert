@@ -18,7 +18,8 @@
                     "location": "Lieu"
                 },
                 "data_description": {
-                    "name": "Affiché devant les noms de ses entités."
+                    "name": "Affiché devant les noms de ses entités.",
+                    "location": "Le lieu doit être en Italie : les bulletins du DPC ne couvrent que l'Italie."
                 }
             },
             "zone": {
@@ -29,6 +30,7 @@
                     "name": "Nom"
                 },
                 "data_description": {
+                    "zone": "La position de la zone est copiée : déplacer la zone ensuite ne déplace pas le lieu.",
                     "name": "Facultatif. S'il est vide, le nom de la zone est utilisé."
                 }
             },
@@ -46,7 +48,9 @@
         "error": {
             "coordinates_outside": "Les coordonnées sont en dehors des zones d'alerte du DPC.",
             "cannot_connect": "Impossible de valider les coordonnées. Vérifiez votre connexion.",
-            "zone_not_found": "Zone introuvable."
+            "zone_not_found": "Zone introuvable.",
+            "place_nearby": "{place} est à moins de 1 km : ses bulletins seraient les mêmes.",
+            "name_exists": "Un autre lieu porte déjà ce nom."
         },
         "abort": {
             "single_instance_allowed": "Plusieurs instances sont prises en charge. Chaque lieu ne peut être ajouté qu'une seule fois.",

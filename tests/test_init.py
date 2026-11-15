@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from aiodpc import CRITICALITY_PAGE_URL, VIGILANCE_PAGE_URL
 import aiohttp
+from freezegun.api import FrozenDateTimeFactory
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import (
     CONF_LATITUDE,
@@ -13,7 +14,7 @@ from homeassistant.const import (
     Platform,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers import device_registry as dr, entity_registry as er
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 from pytest_homeassistant_custom_component.test_util.aiohttp import (
@@ -26,8 +27,10 @@ from . import (
     LATITUDE,
     LONGITUDE,
     NAME,
+    PUBLICATION_DAY,
     UNIQUE_ID,
     get_entity_id,
+    mock_dpc_responses,
     sensor_unique_id,
     setup_integration,
 )
@@ -50,7 +53,6 @@ async def test_setup_and_unload(
     await hass.async_block_till_done()
 
     assert entry.state is ConfigEntryState.NOT_LOADED
-    assert entry.entry_id not in hass.data[DOMAIN]
 
 
 @pytest.mark.parametrize("entry_options", [{"binary_sensor": False}])
@@ -71,17 +73,65 @@ async def test_setup_when_dpc_is_unreachable(
     aioclient_mock: AiohttpClientMocker,
     mock_config_entry: MockConfigEntry,
 ) -> None:
-    """Test that the entry loads with unavailable entities when DPC is unreachable."""
+    """Test that the setup is retried soon while DPC is unreachable."""
     aioclient_mock.get(CRITICALITY_PAGE_URL, exc=aiohttp.ClientError)
     aioclient_mock.get(VIGILANCE_PAGE_URL, exc=aiohttp.ClientError)
+    mock_config_entry.add_to_hass(hass)
+
+    assert not await hass.config_entries.async_setup(mock_config_entry.entry_id)
+
+    assert mock_config_entry.state is ConfigEntryState.SETUP_RETRY
+
+
+@pytest.mark.parametrize(
+    ("unreachable_page", "unavailable", "available"),
+    [
+        (CRITICALITY_PAGE_URL, "criticality", "vigilance"),
+        (VIGILANCE_PAGE_URL, "vigilance", "criticality"),
+    ],
+)
+async def test_setup_with_one_bulletin(
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    freezer: FrozenDateTimeFactory,
+    mock_config_entry: MockConfigEntry,
+    unreachable_page: str,
+    unavailable: str,
+    available: str,
+) -> None:
+    """Test a place set up with one bulletin while the other is unreachable."""
+    freezer.move_to(PUBLICATION_DAY)
+    # The first route registered for a URL answers it
+    aioclient_mock.get(unreachable_page, exc=aiohttp.ClientError)
+    mock_dpc_responses(aioclient_mock)
 
     await setup_integration(hass, mock_config_entry)
 
+    def sensor_state(bulletin: str) -> str:
+        entity_id = get_entity_id(hass, Platform.SENSOR, sensor_unique_id(bulletin))
+        return hass.states.get(entity_id).state
+
     assert mock_config_entry.state is ConfigEntryState.LOADED
-    state = hass.states.get(
-        get_entity_id(hass, Platform.SENSOR, sensor_unique_id("criticality"))
+    assert sensor_state(unavailable) == STATE_UNAVAILABLE
+    assert sensor_state(available) == "3"
+
+
+@pytest.mark.usefixtures("mock_dpc")
+async def test_setup_of_a_place_outside_the_alert_zones(hass: HomeAssistant) -> None:
+    """Test that a place DPC does not cover fails to set up, without retrying."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        version=2,
+        unique_id="48.856600_2.352200",
+        data={CONF_NAME: NAME, CONF_LATITUDE: 48.8566, CONF_LONGITUDE: 2.3522},
+        options={CONF_MUNICIPALITY: ""},
     )
-    assert state.state == STATE_UNAVAILABLE
+    entry.add_to_hass(hass)
+
+    assert not await hass.config_entries.async_setup(entry.entry_id)
+
+    assert entry.state is ConfigEntryState.SETUP_ERROR
+    assert "not inside any DPC alert zone" in entry.reason
 
 
 @pytest.mark.usefixtures("mock_dpc")
@@ -108,7 +158,7 @@ async def test_options_update_reloads_entry(
 ) -> None:
     """Test that changing the options reloads the entry with the new options."""
     entry = init_integration
-    coordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator = entry.runtime_data
 
     result = await hass.config_entries.options.async_init(entry.entry_id)
     result = await hass.config_entries.options.async_configure(
@@ -117,8 +167,70 @@ async def test_options_update_reloads_entry(
     await hass.async_block_till_done()
 
     assert entry.state is ConfigEntryState.LOADED
-    assert hass.data[DOMAIN][entry.entry_id] is not coordinator
+    assert entry.runtime_data is not coordinator
     state = hass.states.get(
         get_entity_id(hass, Platform.SENSOR, sensor_unique_id("criticality"))
     )
     assert state.attributes["total_alerts"] == 1
+
+
+async def test_device_and_entity_ids_of_a_place(
+    hass: HomeAssistant,
+    device_registry: dr.DeviceRegistry,
+    entity_registry: er.EntityRegistry,
+    mock_dpc: AiohttpClientMocker,
+) -> None:
+    """Test that a new place names its device and entity IDs after itself."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        version=2,
+        title="Casa",
+        unique_id=UNIQUE_ID,
+        data={CONF_NAME: "Casa", CONF_LATITUDE: LATITUDE, CONF_LONGITUDE: LONGITUDE},
+        options={CONF_MUNICIPALITY: ""},
+    )
+
+    await setup_integration(hass, entry)
+
+    (device,) = dr.async_entries_for_config_entry(device_registry, entry.entry_id)
+    assert device.name == "Casa"
+    entity_ids = {
+        item.entity_id
+        for item in er.async_entries_for_config_entry(entity_registry, entry.entry_id)
+    }
+    assert {"sensor.casa_alert", "sensor.casa_vigilance"} <= entity_ids
+    assert "binary_sensor.casa_idraulico_oggi" in entity_ids
+
+
+async def test_places_with_the_same_name(
+    hass: HomeAssistant,
+    entity_registry: er.EntityRegistry,
+    mock_dpc: AiohttpClientMocker,
+) -> None:
+    """Test two places of the same name, possible since 2026.2.0: no conflict."""
+    entries = [
+        MockConfigEntry(
+            domain=DOMAIN,
+            version=2,
+            title=NAME,
+            unique_id=f"{latitude:.6f}_{longitude:.6f}",
+            data={CONF_NAME: NAME, CONF_LATITUDE: latitude, CONF_LONGITUDE: longitude},
+            options={CONF_MUNICIPALITY: ""},
+        )
+        for latitude, longitude in ((LATITUDE, LONGITUDE), (45.46, 9.19))
+    ]
+    for entry in entries:
+        await setup_integration(hass, entry)
+
+    entity_ids = [
+        {
+            item.entity_id
+            for item in er.async_entries_for_config_entry(
+                entity_registry, entry.entry_id
+            )
+        }
+        for entry in entries
+    ]
+    assert [len(ids) for ids in entity_ids] == [8, 8]
+    assert not entity_ids[0] & entity_ids[1]
+    assert "sensor.dpc_alert_2" in entity_ids[1]

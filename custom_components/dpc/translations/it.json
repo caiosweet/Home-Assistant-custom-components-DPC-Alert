@@ -18,7 +18,8 @@
                     "location": "Luogo"
                 },
                 "data_description": {
-                    "name": "Mostrato davanti ai nomi delle sue entità."
+                    "name": "Mostrato davanti ai nomi delle sue entità.",
+                    "location": "Il luogo deve essere in Italia: i bollettini del DPC coprono solo l'Italia."
                 }
             },
             "zone": {
@@ -29,6 +30,7 @@
                     "name": "Nome"
                 },
                 "data_description": {
+                    "zone": "La posizione della zona viene copiata: spostare la zona in seguito non sposta il luogo.",
                     "name": "Facoltativo. Se vuoto, si usa il nome della zona."
                 }
             },
@@ -46,7 +48,9 @@
         "error": {
             "coordinates_outside": "Le coordinate sono fuori dalle aree di allerta DPC.",
             "cannot_connect": "Impossibile verificare le coordinate. Controlla la connessione.",
-            "zone_not_found": "Zona non trovata."
+            "zone_not_found": "Zona non trovata.",
+            "place_nearby": "{place} è a meno di 1 km: i suoi bollettini sarebbero gli stessi.",
+            "name_exists": "Un altro luogo ha già questo nome."
         },
         "abort": {
             "single_instance_allowed": "Sono supportate più istanze. Ogni posizione può essere aggiunta una sola volta.",

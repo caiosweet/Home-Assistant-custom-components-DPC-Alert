@@ -44,11 +44,13 @@ Requires Home Assistant 2025.2 or newer. See the [changelog](https://github.com/
 
 1. In Home Assistant, go to **Settings → Devices & services → Add integration** and search for `Dpc`, or use the button above.
 2. Choose how to give the place to monitor:
-   - **Pick it on a map**: the map starts at your home; move the pin and give the place a name.
+   - **Pick it on a map**: the map starts at your home, named after it; move the pin and give the place a name.
    - **Use a zone**, such as Home: the place is named after the zone, unless you give it a name.
 3. The integration checks the place with DPC and shows its alert zone. Choose your **municipality** among those of the zone, or leave it empty: a municipality that spans several alert zones gets the highest alert of all of them.
 
-Add as many places as you want, each once. They share the downloads: each bulletin is downloaded once for all of them.
+Add as many places as you want. Each needs its own name, and must be at least 1 km from the others: closer places would get the same bulletins. The places share the downloads: each bulletin is downloaded once for all of them.
+
+The device of a place and its entities are named after it, e.g. `sensor.casa_alert` and `binary_sensor.casa_idraulico_oggi` for a place named Casa.
 
 ### Options
 
@@ -60,6 +62,12 @@ Add as many places as you want, each once. They share the downloads: each bullet
 4. Update interval (minutes, default 30)
 5. Minimum level of warning (1 green to 4 red, default 2)
 6. Radius of the weather phenomena (km, default 50)
+
+### Removal
+
+1. Go to **Settings → Devices & services → Dipartimento Protezione Civile**.
+2. For each place, open its **⋮** menu and choose **Delete**.
+3. To uninstall the integration too, open **Settings → Marketplace**, find **DPC Alert (Protezione Civile)**, choose **Remove** in its **⋮** menu, and restart Home Assistant.
 
 ## Preview [From my Natural Events project.][guide]
 
@@ -715,9 +723,7 @@ automation:
 
 ## Roadmap
 
-- **Retry the setup** when DPC cannot be reached, instead of adding the place with unavailable entities.
-- **Change a place without removing it**: its name, coordinates or municipality.
-- **Home Assistant [integration quality scale](https://developers.home-assistant.io/docs/core/integration-quality-scale/)**: meet its bronze and silver rules.
+- **Home Assistant [integration quality scale](https://developers.home-assistant.io/docs/core/integration-quality-scale/)**: the integration follows its bronze and silver rules; next come the gold ones, such as translated icons and error messages.
 
 Ideas and problems are welcome in the [issues](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/issues).
 

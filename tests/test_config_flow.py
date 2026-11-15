@@ -99,7 +99,7 @@ async def test_map_flow(hass: HomeAssistant, mock_setup_entry: AsyncMock) -> Non
 
 
 async def test_map_flow_starts_at_home(hass: HomeAssistant) -> None:
-    """Test that the map starts at the location of Home Assistant."""
+    """Test that the map starts at the home of Home Assistant, named after it."""
     result = await start(hass, "map")
 
     suggested = {
@@ -110,6 +110,8 @@ async def test_map_flow_starts_at_home(hass: HomeAssistant) -> None:
         CONF_LATITUDE: hass.config.latitude,
         CONF_LONGITUDE: hass.config.longitude,
     }
+    # The place is named after the home
+    assert suggested[CONF_NAME] == hass.config.location_name
 
 
 async def test_municipality_left_empty(hass: HomeAssistant) -> None:
@@ -328,3 +330,73 @@ async def test_options_flow_clears_the_municipality(
     )
 
     assert mock_config_entry.options[CONF_MUNICIPALITY] == ""
+
+
+async def test_place_of_an_entry_without_unique_id(hass: HomeAssistant) -> None:
+    """Test a place added when entries had no unique ID, and one without data."""
+    MockConfigEntry(domain=DOMAIN, version=2, data={}).add_to_hass(hass)
+    MockConfigEntry(
+        domain=DOMAIN, version=2, title="Casa", unique_id="Casa", data=PLACE
+    ).add_to_hass(hass)
+    result = await start(hass, "map")
+
+    with patch(GET_ALERT_ZONE) as get_alert_zone:
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], MAP_INPUT
+        )
+
+    assert result["errors"] == {"base": "place_nearby"}
+    assert result["description_placeholders"] == {"place": "Casa"}
+    get_alert_zone.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("latitude", "errors"),
+    [
+        # About 555 m north: the bulletins would be the same
+        (LATITUDE + 0.005, {"base": "place_nearby"}),
+        # About 2.2 km north
+        (LATITUDE + 0.02, None),
+    ],
+)
+async def test_place_near_another_one(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    latitude: float,
+    errors: dict[str, str] | None,
+) -> None:
+    """Test that a place less than 1 km from another one is refused."""
+    mock_config_entry.add_to_hass(hass)
+    result = await start(hass, "map")
+
+    with patch(GET_ALERT_ZONE, return_value=ROME_ZONE):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                CONF_NAME: "Ufficio",
+                CONF_LOCATION: {CONF_LATITUDE: latitude, CONF_LONGITUDE: LONGITUDE},
+            },
+        )
+
+    assert result.get("errors") == errors
+    if errors:
+        assert result["description_placeholders"] == {"place": NAME}
+
+
+async def test_name_of_another_place(
+    hass: HomeAssistant, mock_config_entry: MockConfigEntry
+) -> None:
+    """Test that the name of another place is refused, whatever its case."""
+    mock_config_entry.add_to_hass(hass)
+    result = await start(hass, "map")
+
+    with patch(GET_ALERT_ZONE, return_value=ROME_ZONE):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                CONF_NAME: NAME.lower(),
+                CONF_LOCATION: {CONF_LATITUDE: 45.46, CONF_LONGITUDE: 9.19},
+            },
+        )
+
+    assert result["errors"] == {CONF_NAME: "name_exists"}

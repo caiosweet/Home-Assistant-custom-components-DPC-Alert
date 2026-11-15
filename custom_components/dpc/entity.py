@@ -18,6 +18,7 @@ from homeassistant.const import (
 )
 from homeassistant.helpers.device_registry import DeviceEntryType
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.util import slugify
 
 from .const import (
     ATTRIBUTION,
@@ -29,6 +30,21 @@ from .const import (
     VERSION,
 )
 from .coordinator import DpcDataUpdateCoordinator
+
+
+def language_independent_entity_id(
+    entity_id_format: str, entry: ConfigEntry, suffix: str
+) -> str:
+    """Return <platform>.<name of the place>_<suffix>, the same in every language.
+
+    Home Assistant derives the entity IDs of new entities from their translated
+    names (e.g. sensor.casa_allerta in Italian): suggesting the ID keeps it the
+    same in every language. Existing entities keep their registered ID, and a
+    taken ID gets a suffix (_2).
+    """
+    return entity_id_format.format(
+        slugify(f"{entry.data.get(CONF_NAME) or DEFAULT_NAME} {suffix}")
+    )
 
 
 class DpcEntity(CoordinatorEntity[DpcDataUpdateCoordinator]):
@@ -56,7 +72,10 @@ class DpcEntity(CoordinatorEntity[DpcDataUpdateCoordinator]):
                     self.config_entry.data.get(CONF_LONGITUDE),
                 )
             },
-            ATTR_NAME: self.config_entry.data.get(CONF_NAME) or DEFAULT_NAME,
+            # The name of the place: renaming the entry renames the device
+            ATTR_NAME: self.config_entry.title
+            or self.config_entry.data.get(CONF_NAME)
+            or DEFAULT_NAME,
             ATTR_MODEL: f"Criticality and Vigilance Bulletin {DOMAIN}",
             ATTR_MANUFACTURER: MANUFACTURER,
             ATTR_SW_VERSION: VERSION,

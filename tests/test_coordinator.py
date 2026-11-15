@@ -15,10 +15,10 @@ from homeassistant.const import (
     CONF_LONGITUDE,
     CONF_NAME,
     STATE_ON,
-    STATE_UNAVAILABLE,
     STATE_UNKNOWN,
     Platform,
 )
+from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 from homeassistant.setup import async_setup_component
 import pytest
@@ -39,7 +39,6 @@ from . import (
     CRIT_ID,
     LATITUDE,
     LONGITUDE,
-    NAME,
     binary_sensor_unique_id,
     geojson_requests,
     get_entity_id,
@@ -96,7 +95,7 @@ def risk_state(hass: HomeAssistant, kind: str) -> str:
 
 async def update(hass: HomeAssistant, entry: MockConfigEntry) -> None:
     """Update the bulletins of an entry, as its update interval does."""
-    await hass.data[DOMAIN][entry.entry_id].async_refresh()
+    await entry.runtime_data.async_refresh()
     await hass.async_block_till_done()
 
 
@@ -182,7 +181,7 @@ async def test_bulletins_are_kept_when_dpc_is_unreachable(
     freezer: FrozenDateTimeFactory,
 ) -> None:
     """Test that the bulletins stay while DPC is unreachable, retrying sooner."""
-    coordinator = hass.data[DOMAIN][init_integration.entry_id]
+    coordinator = init_integration.runtime_data
     aioclient_mock.clear_requests()
     aioclient_mock.get(CRITICALITY_PAGE_URL, exc=aiohttp.ClientError)
     aioclient_mock.get(VIGILANCE_PAGE_URL, exc=aiohttp.ClientError)
@@ -201,24 +200,6 @@ async def test_bulletins_are_kept_when_dpc_is_unreachable(
     await update(hass, init_integration)
 
     assert coordinator.update_interval == timedelta(minutes=DEFAULT_SCAN_INTERVAL)
-
-
-@pytest.mark.usefixtures("mock_dpc")
-async def test_location_outside_the_alert_zones(hass: HomeAssistant) -> None:
-    """Test that the entities are unavailable for a location DPC does not cover."""
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        version=2,
-        unique_id="48.856600_2.352200",
-        data={CONF_NAME: NAME, CONF_LATITUDE: 48.8566, CONF_LONGITUDE: 2.3522},
-        options={CONF_MUNICIPALITY: ""},
-    )
-
-    await setup_integration(hass, entry)
-
-    unique_id = f"{NAME}_criticality_48.8566_2.3522"
-    entity_id = get_entity_id(hass, Platform.SENSOR, unique_id)
-    assert hass.states.get(entity_id).state == STATE_UNAVAILABLE
 
 
 async def test_places_share_the_downloads(
@@ -267,11 +248,12 @@ async def test_place_outside_alone(
 ) -> None:
     """Test that a place outside every zone does not affect the others."""
     paris = place_entry(48.8566, 2.3522)
+    paris.add_to_hass(hass)
 
-    await setup_integration(hass, paris)
+    assert not await hass.config_entries.async_setup(paris.entry_id)
     await update(hass, init_integration)
 
-    assert criticality_state(hass, paris) == STATE_UNAVAILABLE
+    assert paris.state is ConfigEntryState.SETUP_ERROR
     assert criticality_state(hass, init_integration) == "3"
 
 

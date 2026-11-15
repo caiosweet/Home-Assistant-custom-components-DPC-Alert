@@ -11,7 +11,6 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE, CONF_NAME
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.util import slugify
 
 from .attributes import (
     criticality_attributes,
@@ -31,27 +30,16 @@ from .const import (
     ATTR_TOTAL_ALERTS,
     ATTR_TOTAL_PHENOMENA,
     ATTR_ZONE_NAME,
-    DEFAULT_NAME,
-    DOMAIN,
 )
-from .coordinator import DpcDataUpdateCoordinator
-from .entity import DpcEntity
+from .coordinator import DpcConfigEntry, DpcDataUpdateCoordinator
+from .entity import DpcEntity, language_independent_entity_id
+
+# The coordinator updates the entities: nothing to limit
+PARALLEL_UPDATES = 0
 
 ICON = {"safety": "mdi:shield-check", "danger": "mdi:hazard-lights"}  # shield-account
 
 EVENTS = {ATTR_TODAY: ATTR_EVENTS_TODAY, ATTR_TOMORROW: ATTR_EVENTS_TOMORROW}
-
-
-def _language_independent_entity_id(entry: ConfigEntry, suffix: str) -> str:
-    """Return sensor.<name>_<suffix>, the entity ID used before names were translated.
-
-    For languages such as Italian and Portuguese, Home Assistant derives new entity
-    IDs from the translated name (e.g. sensor.dpc_allerta). Suggesting the ID keeps
-    it the same in every language. Existing entities keep their registered ID anyway.
-    """
-    return ENTITY_ID_FORMAT.format(
-        slugify(f"{entry.data.get(CONF_NAME) or DEFAULT_NAME} {suffix}")
-    )
 
 
 def _covered[DayT](days: dict[str, DayT | None]) -> dict[str, DayT]:
@@ -60,10 +48,10 @@ def _covered[DayT](days: dict[str, DayT | None]) -> dict[str, DayT]:
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant, entry: DpcConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
     """Setup sensor platform."""
-    coordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator = entry.runtime_data
     async_add_entities(
         [
             DpcSensorCriticality(coordinator, entry),
@@ -82,7 +70,9 @@ class DpcSensorCriticality(DpcEntity, SensorEntity):
     ) -> None:
         """Initialize Entities."""
         super().__init__(coordinator, entry)
-        self.entity_id = _language_independent_entity_id(entry, "alert")
+        self.entity_id = language_independent_entity_id(
+            ENTITY_ID_FORMAT, entry, "alert"
+        )
         self._attr_unique_id = (
             f"{entry.data.get(CONF_NAME)}_criticality_"
             f"{entry.data.get(CONF_LATITUDE)}_{entry.data.get(CONF_LONGITUDE)}"
@@ -154,7 +144,9 @@ class DpcSensorVigilance(DpcEntity, SensorEntity):
     ) -> None:
         """Initialize Entities."""
         super().__init__(coordinator, entry)
-        self.entity_id = _language_independent_entity_id(entry, "vigilance")
+        self.entity_id = language_independent_entity_id(
+            ENTITY_ID_FORMAT, entry, "vigilance"
+        )
         self._attr_unique_id = (
             f"{entry.data.get(CONF_NAME)}_vigilance_"
             f"{entry.data.get(CONF_LATITUDE)}_{entry.data.get(CONF_LONGITUDE)}"

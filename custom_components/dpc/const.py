@@ -39,6 +39,9 @@ DEFAULT_SCAN_INTERVAL = 30  # min
 RETRY_INTERVAL: Final = timedelta(minutes=10)
 """Interval of the next update after a bulletin could not be fetched."""
 
+MIN_DISTANCE_BETWEEN_PLACES: Final = 1000.0
+"""Meters under which two places would get the same bulletins: one is enough."""
+
 LATEST_ID_CHECK_INTERVAL: Final = 60.0
 """Seconds during which the places share a check of the latest bulletin ID."""
 

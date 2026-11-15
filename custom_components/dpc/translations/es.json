@@ -18,7 +18,8 @@
                     "location": "Lugar"
                 },
                 "data_description": {
-                    "name": "Aparece delante de los nombres de sus entidades."
+                    "name": "Aparece delante de los nombres de sus entidades.",
+                    "location": "El lugar debe estar en Italia: los boletines del DPC solo cubren Italia."
                 }
             },
             "zone": {
@@ -29,6 +30,7 @@
                     "name": "Nombre"
                 },
                 "data_description": {
+                    "zone": "Se copia la posición de la zona: mover la zona después no mueve el lugar.",
                     "name": "Opcional. Si está vacío, se usa el nombre de la zona."
                 }
             },
@@ -46,7 +48,9 @@
         "error": {
             "coordinates_outside": "Las coordenadas están fuera de las zonas de alerta del DPC.",
             "cannot_connect": "No se pudieron validar las coordenadas. Comprueba tu conexión.",
-            "zone_not_found": "No se encontró la zona."
+            "zone_not_found": "No se encontró la zona.",
+            "place_nearby": "{place} está a menos de 1 km: sus boletines serían los mismos.",
+            "name_exists": "Otro lugar ya tiene este nombre."
         },
         "abort": {
             "single_instance_allowed": "Se admiten varias instancias. Cada ubicación solo se puede añadir una vez.",

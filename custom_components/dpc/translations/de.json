@@ -18,7 +18,8 @@
                     "location": "Ort"
                 },
                 "data_description": {
-                    "name": "Steht vor den Namen seiner Entitäten."
+                    "name": "Steht vor den Namen seiner Entitäten.",
+                    "location": "Der Ort muss in Italien liegen: Die Bulletins des DPC decken nur Italien ab."
                 }
             },
             "zone": {
@@ -29,6 +30,7 @@
                     "name": "Name"
                 },
                 "data_description": {
+                    "zone": "Die Position der Zone wird übernommen: Wird die Zone später verschoben, bleibt der Ort unverändert.",
                     "name": "Optional. Wenn leer, wird der Name der Zone verwendet."
                 }
             },
@@ -46,7 +48,9 @@
         "error": {
             "coordinates_outside": "Die Koordinaten liegen außerhalb der Warngebiete des DPC.",
             "cannot_connect": "Die Koordinaten konnten nicht geprüft werden. Überprüfe deine Verbindung.",
-            "zone_not_found": "Zone nicht gefunden."
+            "zone_not_found": "Zone nicht gefunden.",
+            "place_nearby": "{place} ist weniger als 1 km entfernt: Die Bulletins wären dieselben.",
+            "name_exists": "Ein anderer Ort hat bereits diesen Namen."
         },
         "abort": {
             "single_instance_allowed": "Mehrere Instanzen werden unterstützt. Jeder Standort kann nur einmal hinzugefügt werden.",

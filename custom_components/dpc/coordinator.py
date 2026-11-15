@@ -8,10 +8,17 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from functools import partial
 
-from aiodpc import BulletinKind, CriticalityBulletin, DpcError, VigilanceBulletin
+from aiodpc import (
+    BulletinKind,
+    CriticalityBulletin,
+    DpcError,
+    DpcLocationError,
+    VigilanceBulletin,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_SCAN_INTERVAL
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryError
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.util import dt as dt_util
 
@@ -44,7 +51,7 @@ class DpcDataUpdateCoordinator(DataUpdateCoordinator[DpcData]):
     until they are over, and the next update comes sooner.
     """
 
-    config_entry: ConfigEntry
+    config_entry: DpcConfigEntry
 
     def __init__(
         self, hass: HomeAssistant, entry: ConfigEntry, bulletins: DpcBulletins
@@ -84,8 +91,16 @@ class DpcDataUpdateCoordinator(DataUpdateCoordinator[DpcData]):
         )
         data = DpcData(self._criticality.latest, self._vigilance.latest)
         if data.criticality is None and data.vigilance is None:
+            if all(isinstance(err, DpcLocationError) for err in errors):
+                # Permanent: retrying does not help
+                raise ConfigEntryError(
+                    f"{self.config_entry.title} is not inside any DPC alert zone"
+                )
             raise UpdateFailed(f"No DPC bulletin could be fetched: {errors[0]}")
         return data
+
+
+type DpcConfigEntry = ConfigEntry[DpcDataUpdateCoordinator]
 
 
 class _BulletinTracker[BulletinT: (CriticalityBulletin, VigilanceBulletin)]:

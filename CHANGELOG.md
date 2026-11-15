@@ -41,6 +41,8 @@ Entity IDs, states and the other attributes do not change.
   such as Home ([#90]).
 - The setup shows the DPC alert zone of the place and offers the
   municipalities of that zone to choose from, as do the options ([#90]).
+- A new place is refused when it is less than 1 km from another one, whose
+  bulletins would be the same, or when another place has its name ([#90]).
 
 ### Changed
 
@@ -49,9 +51,17 @@ Entity IDs, states and the other attributes do not change.
 - The places share the downloads: each bulletin is downloaded once for all of
   them, instead of about 18 MB for each place, and read outside the event
   loop ([#90]).
+- When DPC cannot be reached at startup, Home Assistant retries the setup
+  within seconds, instead of adding the place with unavailable entities for 10
+  minutes. A place outside every DPC alert zone fails to set up, with an
+  error ([#90]).
 - Entities are unavailable, instead of empty, while their bulletin has never
   been fetched ([#90]).
 - The radius option cannot be negative ([#90]).
+- The device of a place is named after its entry, so renaming the entry
+  renames the device. The binary sensors of new places get entity IDs from
+  the name of the place, like `binary_sensor.casa_idraulico_oggi`, instead of
+  its coordinates; existing entities keep their IDs ([#90]).
 - HACS lists the integration as "DPC Alert (Protezione Civile)", and Home
   Assistant lists it under Weather & alerts, as a public warnings service
   ([#90]).

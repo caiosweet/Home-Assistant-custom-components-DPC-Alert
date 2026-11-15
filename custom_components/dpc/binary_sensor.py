@@ -14,13 +14,15 @@ from homeassistant.components.binary_sensor import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import async_generate_entity_id
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .attributes import criticality_attributes, risk_day_attributes
-from .const import DOMAIN, RISK_ICONS
-from .coordinator import DpcDataUpdateCoordinator
-from .entity import DpcEntity
+from .const import RISK_ICONS
+from .coordinator import DpcConfigEntry, DpcDataUpdateCoordinator
+from .entity import DpcEntity, language_independent_entity_id
+
+# The coordinator updates the entities: nothing to limit
+PARALLEL_UPDATES = 0
 
 # The keys are the Italian names the sensors have always had: their unique IDs,
 # entity IDs and translations are built from them.
@@ -55,18 +57,16 @@ RISK_DESCRIPTIONS = tuple(
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant, entry: DpcConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
     """Setup binary_sensor platform."""
-    coordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator = entry.runtime_data
     async_add_entities(
         DpcRiskBinarySensor(
             coordinator,
             entry,
             description,
-            async_generate_entity_id(
-                ENTITY_ID_FORMAT, f"{entry.unique_id}_{description.key}", hass=hass
-            ),
+            language_independent_entity_id(ENTITY_ID_FORMAT, entry, description.key),
         )
         for description in RISK_DESCRIPTIONS
     )

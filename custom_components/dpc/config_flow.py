@@ -22,7 +22,6 @@ from homeassistant.const import (
     CONF_ZONE,
 )
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.data_entry_flow import AbortFlow
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.selector import (
     EntitySelector,
@@ -33,6 +32,7 @@ from homeassistant.helpers.selector import (
     SelectSelectorConfig,
     SelectSelectorMode,
 )
+from homeassistant.util.location import distance
 
 from .const import (
     CONF_MUNICIPALITY,
@@ -43,6 +43,7 @@ from .const import (
     DEFAULT_WARNING_LEVEL,
     DOMAIN,
     LOGGER,
+    MIN_DISTANCE_BETWEEN_PLACES,
     PLATFORMS,
     WARNING_LEVELS,
 )
@@ -91,6 +92,8 @@ class DpcFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """Initialize the flow."""
         self._place: dict[str, Any] = {}
         self._alert_zone: AlertZone | None = None
+        self._placeholders: dict[str, str] = {}
+        """Placeholders of the errors of the place, e.g. the nearby place."""
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -122,7 +125,7 @@ class DpcFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             }
         )
         home = {
-            CONF_NAME: DEFAULT_NAME,
+            CONF_NAME: self.hass.config.location_name or DEFAULT_NAME,
             CONF_LOCATION: {
                 CONF_LATITUDE: self.hass.config.latitude,
                 CONF_LONGITUDE: self.hass.config.longitude,
@@ -132,6 +135,7 @@ class DpcFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="map",
             data_schema=self.add_suggested_values_to_schema(schema, user_input or home),
             errors=errors,
+            description_placeholders=self._placeholders,
         )
 
     async def async_step_zone(
@@ -165,6 +169,7 @@ class DpcFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 schema, user_input or {CONF_ZONE: HOME_ZONE}
             ),
             errors=errors,
+            description_placeholders=self._placeholders,
         )
 
     async def async_step_municipality(
@@ -194,15 +199,20 @@ class DpcFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     async def _async_set_place(
         self, name: str, latitude: float, longitude: float
     ) -> dict[str, str]:
-        """Check a place with DPC and keep it; return the errors, if any.
+        """Check a place and keep it; return the errors, if any.
 
-        Aborts the flow when the place is already configured.
+        Aborts the flow when the place is already configured. A place less
+        than 1 km from another one is refused too: its bulletins would be the
+        same. So is a name already given to another place.
         """
         latitude, longitude = round(latitude, 6), round(longitude, 6)
-        if self._is_location_configured(latitude, longitude):
-            raise AbortFlow("already_configured")
         await self.async_set_unique_id(f"{latitude:.6f}_{longitude:.6f}")
         self._abort_if_unique_id_configured()
+        if (nearby := self._nearby_place(latitude, longitude)) is not None:
+            self._placeholders = {"place": nearby.title}
+            return {"base": "place_nearby"}
+        if self._name_in_use(name):
+            return {CONF_NAME: "name_exists"}
 
         try:
             self._alert_zone = await async_get_alert_zone(
@@ -220,16 +230,31 @@ class DpcFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         }
         return {}
 
-    def _is_location_configured(self, latitude: float, longitude: float) -> bool:
-        """Check if a config entry already exists for this location."""
-        for entry in self._async_current_entries():
-            entry_lat = entry.data.get(CONF_LATITUDE)
-            entry_lon = entry.data.get(CONF_LONGITUDE)
-            if entry_lat is None or entry_lon is None:
+    def _nearby_place(
+        self, latitude: float, longitude: float
+    ) -> config_entries.ConfigEntry | None:
+        """Return a configured place less than 1 km away, if any."""
+        for entry in self._async_current_entries(include_ignore=False):
+            other_latitude = entry.data.get(CONF_LATITUDE)
+            other_longitude = entry.data.get(CONF_LONGITUDE)
+            if other_latitude is None or other_longitude is None:
                 continue
-            if round(entry_lat, 6) == latitude and round(entry_lon, 6) == longitude:
-                return True
-        return False
+            meters = distance(latitude, longitude, other_latitude, other_longitude)
+            if meters is not None and meters < MIN_DISTANCE_BETWEEN_PLACES:
+                return entry
+        return None
+
+    def _name_in_use(self, name: str) -> bool:
+        """Return whether another place has this name, ignoring case."""
+        wanted = name.strip().casefold()
+        return any(
+            wanted
+            in {
+                entry.title.strip().casefold(),
+                str(entry.data.get(CONF_NAME, "")).strip().casefold(),
+            }
+            for entry in self._async_current_entries(include_ignore=False)
+        )
 
     @staticmethod
     @callback
