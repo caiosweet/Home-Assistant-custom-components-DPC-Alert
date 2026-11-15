@@ -18,6 +18,7 @@ from homeassistant.util import slugify
 
 from .const import (
     ATTRIBUTION,
+    CONF_MUNICIPALITY,
     CONF_WARNING_LEVEL,
     DEFAULT_NAME,
     DEFAULT_WARNING_LEVEL,
@@ -71,8 +72,10 @@ class DpcEntity(CoordinatorEntity[DpcDataUpdateCoordinator]):
                     self.config_entry.data[CONF_LONGITUDE],
                 )
             },
-            # The name of the place: renaming the entry renames the device
-            name=self.config_entry.title
+            # The place: its municipality when one is set, otherwise the name
+            # of its entry, so that renaming the entry renames the device
+            name=self.config_entry.options.get(CONF_MUNICIPALITY)
+            or self.config_entry.title
             or self.config_entry.data.get(CONF_NAME)
             or DEFAULT_NAME,
             model=f"Criticality and Vigilance Bulletin {DOMAIN}",

@@ -43,6 +43,10 @@ Entity IDs, states and the other attributes do not change.
   municipalities of that zone to choose from, as do the options ([#90]).
 - A new place is refused when it is less than 1 km from another one, whose
   bulletins would be the same, or when another place has its name ([#90]).
+- The errors of the setup are translated, and the device links to the page
+  of the DPC bulletin.
+- The integration follows the Home Assistant integration quality scale up to
+  platinum; `quality_scale.yaml` gives the status of each rule.
 
 ### Changed
 
@@ -58,10 +62,14 @@ Entity IDs, states and the other attributes do not change.
 - Entities are unavailable, instead of empty, while their bulletin has never
   been fetched ([#90]).
 - The radius option cannot be negative ([#90]).
-- The device of a place is named after its entry, so renaming the entry
-  renames the device. The binary sensors of new places get entity IDs from
-  the name of the place, like `binary_sensor.casa_idraulico_oggi`, instead of
-  its coordinates; existing entities keep their IDs ([#90]).
+- The icons of the alert and vigilance sensors come from icon translations:
+  they show a warning from level 2 (yellow) up, whatever the warning level of
+  the options.
+- The device of a place is named after its municipality, or after its entry
+  when it has none, so that renaming the entry renames it. The binary sensors
+  of new places get entity IDs from the name of the place, like
+  `binary_sensor.casa_idraulico_oggi`, instead of its coordinates; existing
+  entities keep their IDs ([#90]).
 - HACS lists the integration as "DPC Alert (Protezione Civile)", and Home
   Assistant lists it under Weather & alerts, as a public warnings service
   ([#90]).
