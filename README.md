@@ -21,7 +21,7 @@ How the alert system works: [_Civil Protection Department_](https://rischi.prote
 - **Six binary sensors**: hydraulic, hydrogeological and thunderstorm risk, for today and tomorrow. Each one is on when its risk reaches the alert level you choose (1 green to 4 red).
 - **Alert sensor**: the highest alert level of today and tomorrow, with the assessment of each risk in its attributes.
 - **Vigilance sensor**: the expected precipitation of the next three days, and the weather phenomena within the radius you choose: rain, snow, thunderstorms, wind, frost, fog, rough sea and temperature.
-- **Several places**, picked on a map or from a zone, optionally with their municipality. Each bulletin is downloaded once for all of them.
+- **Several places**, picked on a map or from a zone, each with its municipality. Each bulletin is downloaded once for all of them.
 - **Six languages**: English, Italian, French, German, Spanish and Brazilian Portuguese.
 - **Official data**: the criticality and weather vigilance bulletins that DPC publishes every day.
 
@@ -52,13 +52,13 @@ Requires Home Assistant 2025.2 or newer. See the [changelog](https://github.com/
 
 1. In Home Assistant, go to **Settings → Devices & services → Add integration** and search for `Dpc`, or use the button above.
 2. Choose how to give the place to monitor:
-   - **Pick it on a map**: the map starts at your home, named after it; move the pin and give the place a name.
-   - **Use a zone**, such as Home: the place is named after the zone, unless you give it a name.
-3. The integration checks the place with DPC and shows its alert zone. Choose your **municipality** among those of the zone, or leave it empty: a municipality that spans several alert zones gets the highest alert of all of them.
+   - **Pick it on a map**: the map starts at your home; move the pin.
+   - **Use a zone**, such as Home.
+3. The integration checks the place with DPC and shows its alert zone. Choose its **municipality** among those of the zone: a municipality that spans several alert zones gets the highest alert of all of them.
 
-Add as many places as you want. Each needs its own name, and must be at least 1 km from the others: closer places would get the same bulletins. The places share the downloads: each bulletin is downloaded once for all of them.
+Add as many places as you want, each with its own municipality: two places in the same municipality would get the same bulletins. The places share the downloads: each bulletin is downloaded once for all of them.
 
-The device of a place is named after its municipality, or after the place when it has none. The entity IDs come from the name of the place, e.g. `sensor.casa_alert` and `binary_sensor.casa_idraulico_oggi` for a place named Casa.
+A place is named after its alert zone, and its device and entity IDs after its municipality: for Portula, in the alert zone Val Sesia, Cervo e Chiusella, the device is Portula and the entities are `sensor.dpc_portula_alert`, `binary_sensor.dpc_portula_idraulico_oggi` and so on.
 
 ### Options
 
@@ -66,7 +66,7 @@ The device of a place is named after its municipality, or after the place when i
 
 1. Binary sensors enabled
 2. Sensors enabled
-3. Municipality: one of the alert zone of the place, or any other name
+3. Municipality, among those of the alert zone of the place
 4. Update interval (minutes, default 30)
 5. Minimum level of warning (1 green to 4 red, default 2)
 6. Radius of the weather phenomena (km, default 50)
@@ -89,7 +89,7 @@ The device of a place is named after its municipality, or after the place when i
 
 - DPC covers Italy only. San Marino and Vatican City are in no DPC alert zone.
 - The criticality bulletin covers today and tomorrow; the vigilance bulletin, three days.
-- Two places must be at least 1 km apart: closer places get the same bulletins.
+- Each municipality can be added once: two places in it would get the same bulletins.
 - The texts of the bulletins, such as `info`, `alert`, `precipitation` and the phenomena, are in Italian, as DPC writes them. The names of the entities and of their attributes are translated.
 - Municipalities are named as DPC writes them, in Italian; in South Tyrol, the German names work too.
 
@@ -97,9 +97,9 @@ The device of a place is named after its municipality, or after the place when i
 
 - **The integration shows "Retrying setup"**: DPC cannot be reached. Home Assistant retries on its own; check that it can reach `mappe.protezionecivile.gov.it` and `raw.githubusercontent.com`.
 - **"… is not inside any DPC alert zone"**: the place is outside Italy, or in San Marino or Vatican City. Delete it and add a place in Italy.
-- **After an update, texts in English or names such as `place_nearby` in the forms**: the browser keeps the texts of the previous version. Reload the page, clearing its cache (Ctrl+F5).
+- **After an update, texts in English or names such as `municipality_in_use` in the forms**: the browser keeps the texts of the previous version. Reload the page, clearing its cache (Ctrl+F5).
 - **Entity names in another language**: Home Assistant names entities in the language of the system, not of your profile: **Settings → System → General → Language**.
-- **The alert zone is not the one of your town**: large municipalities span several alert zones. Choose your municipality in the options to get the highest alert of all of them.
+- **A place added before 2026.11 asks for its municipality** when you open its options: the municipality has become required. Choose it in the list of its alert zone.
 - **Reporting a problem**: on the integration, choose **Enable debug logging** in the **⋮** menu, reproduce the problem, then disable it to download the log. Add the diagnostics (**⋮ → Download diagnostics**: they leave out where the place is) to an [issue](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/issues).
 
 ## Preview [From my Natural Events project.][guide]
@@ -254,7 +254,7 @@ friendly_name: DPC Hydrogeological risk tomorrow
 
 ## Here are some advanced examples of using the entities created with this component
 
-The examples use a place named DPC, as in `sensor.dpc_alert`: replace `dpc` with the name of your place.
+The examples use a place named DPC without municipality, as in `sensor.dpc_alert`: replace `dpc` with the start of your entity IDs, e.g. `dpc_portula`.
 
 ### Lovelace markdown card example sensor
 

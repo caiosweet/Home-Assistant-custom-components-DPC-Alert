@@ -39,10 +39,11 @@ Entity IDs, states and the other attributes do not change.
 - Automated tests with a CI workflow ([#90]).
 - The place is picked on a map, which starts at home, or taken from a zone
   such as Home ([#90]).
-- The setup shows the DPC alert zone of the place and offers the
-  municipalities of that zone to choose from, as do the options ([#90]).
-- A new place is refused when it is less than 1 km from another one, whose
-  bulletins would be the same, or when another place has its name ([#90]).
+- The setup shows the DPC alert zone of the place, after which the place is
+  named, and asks for its municipality among those of the zone. The options
+  ask for it too, also for the places added before ([#90]).
+- Each municipality can be added once: two places in it would get the same
+  bulletins ([#90]).
 - The errors of the setup are translated, and the device links to the page
   of the DPC bulletin.
 - The integration follows the Home Assistant integration quality scale up to
@@ -66,10 +67,10 @@ Entity IDs, states and the other attributes do not change.
   they show a warning from level 2 (yellow) up, whatever the warning level of
   the options.
 - The device of a place is named after its municipality, or after its entry
-  when it has none, so that renaming the entry renames it. The binary sensors
-  of new places get entity IDs from the name of the place, like
-  `binary_sensor.casa_idraulico_oggi`, instead of its coordinates; existing
-  entities keep their IDs ([#90]).
+  when it has none, so that renaming the entry renames it. The entities of new
+  places get IDs from their municipality, like `sensor.dpc_portula_alert`
+  and `binary_sensor.dpc_portula_idraulico_oggi`; binary sensors no longer get
+  IDs from the coordinates. Existing entities keep their IDs ([#90]).
 - HACS lists the integration as "DPC Alert (Protezione Civile)", and Home
   Assistant lists it under Weather & alerts, as a public warnings service
   ([#90]).

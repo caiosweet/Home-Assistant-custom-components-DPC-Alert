@@ -33,25 +33,37 @@ from pytest_homeassistant_custom_component.test_util.aiohttp import (
 
 from custom_components.dpc.const import CONF_MUNICIPALITY, CONF_WARNING_LEVEL, DOMAIN
 
-from . import LATITUDE, LONGITUDE, NAME, PUBLICATION_DAY, UNIQUE_ID, mock_dpc_responses
+from . import LATITUDE, LONGITUDE, PUBLICATION_DAY, UNIQUE_ID, mock_dpc_responses
 
-PLACE = {CONF_NAME: NAME, CONF_LATITUDE: LATITUDE, CONF_LONGITUDE: LONGITUDE}
-MAP_INPUT = {
-    CONF_NAME: NAME,
-    CONF_LOCATION: {CONF_LATITUDE: LATITUDE, CONF_LONGITUDE: LONGITUDE},
-}
+MAP_INPUT = {CONF_LOCATION: {CONF_LATITUDE: LATITUDE, CONF_LONGITUDE: LONGITUDE}}
 ROME_ZONE = AlertZone("Bacini di Roma", ("Roma", "Fiumicino", "Tivoli"))
+BOLZANO_ZONE = AlertZone(
+    "Provincia Autonoma di Bolzano", ("Bolzano/Bozen", "Merano/Meran")
+)
+# A place is named after its alert zone
+PLACE = {
+    CONF_NAME: "Bacini di Roma",
+    CONF_LATITUDE: LATITUDE,
+    CONF_LONGITUDE: LONGITUDE,
+}
 GET_ALERT_ZONE = "custom_components.dpc.config_flow.DpcClient.get_alert_zone"
 
 pytestmark = pytest.mark.usefixtures("mock_setup_entry")
 
 
+def schema_key(result: FlowResult, field: str) -> Any:
+    """Return the key of a field of a form, e.g. to know if it is required."""
+    return next(key for key in result["data_schema"].schema if key == field)
+
+
 def selector_config(result: FlowResult, field: str) -> dict[str, Any]:
     """Return the selector configuration of a field of a form."""
-    for key, validator in result["data_schema"].schema.items():
-        if key == field:
-            return validator.config
-    raise AssertionError(f"no field {field}")
+    return result["data_schema"].schema[schema_key(result, field)].config
+
+
+def is_required(result: FlowResult, field: str) -> bool:
+    """Return whether a field of a form is required."""
+    return type(schema_key(result, field)).__name__ == "Required"
 
 
 async def start(hass: HomeAssistant, menu_option: str) -> FlowResult:
@@ -66,32 +78,45 @@ async def start(hass: HomeAssistant, menu_option: str) -> FlowResult:
     )
 
 
+async def to_municipality(
+    hass: HomeAssistant, alert_zone: AlertZone = ROME_ZONE
+) -> FlowResult:
+    """Pick the place on the map, up to the choice of its municipality."""
+    result = await start(hass, "map")
+    with patch(GET_ALERT_ZONE, return_value=alert_zone):
+        return await hass.config_entries.flow.async_configure(
+            result["flow_id"], MAP_INPUT
+        )
+
+
 async def test_map_flow(hass: HomeAssistant, mock_setup_entry: AsyncMock) -> None:
-    """Test a place picked on the map, with its municipality."""
+    """Test a place picked on the map, named after its alert zone."""
     result = await start(hass, "map")
     assert result["type"] is FlowResultType.FORM
     assert result["step_id"] == "map"
+    assert [str(key) for key in result["data_schema"].schema] == [CONF_LOCATION]
 
     with patch(GET_ALERT_ZONE, return_value=ROME_ZONE):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], MAP_INPUT
         )
 
-    assert result["type"] is FlowResultType.FORM
     assert result["step_id"] == "municipality"
     assert result["description_placeholders"] == {"zone": "Bacini di Roma"}
+    assert is_required(result, CONF_MUNICIPALITY)
     assert selector_config(result, CONF_MUNICIPALITY)["options"] == [
         "Fiumicino",
         "Roma",
         "Tivoli",
     ]
 
+    # Typed in the search: saved as DPC lists it
     result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], {CONF_MUNICIPALITY: "Roma"}
+        result["flow_id"], {CONF_MUNICIPALITY: " roma "}
     )
 
     assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert result["title"] == NAME
+    assert result["title"] == "Bacini di Roma"
     assert result["data"] == PLACE
     assert result["options"] == {CONF_MUNICIPALITY: "Roma"}
     assert result["result"].unique_id == UNIQUE_ID
@@ -99,38 +124,17 @@ async def test_map_flow(hass: HomeAssistant, mock_setup_entry: AsyncMock) -> Non
 
 
 async def test_map_flow_starts_at_home(hass: HomeAssistant) -> None:
-    """Test that the map starts at the home of Home Assistant, named after it."""
+    """Test that the map starts at the home of Home Assistant."""
     result = await start(hass, "map")
 
-    suggested = {
-        str(key): key.description["suggested_value"]
-        for key in result["data_schema"].schema
-    }
-    assert suggested[CONF_LOCATION] == {
+    assert schema_key(result, CONF_LOCATION).description["suggested_value"] == {
         CONF_LATITUDE: hass.config.latitude,
         CONF_LONGITUDE: hass.config.longitude,
     }
-    # The place is named after the home
-    assert suggested[CONF_NAME] == hass.config.location_name
 
 
-async def test_municipality_left_empty(hass: HomeAssistant) -> None:
-    """Test a place without municipality: its alert zone only is used."""
-    result = await start(hass, "map")
-    with patch(GET_ALERT_ZONE, return_value=ROME_ZONE):
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], MAP_INPUT
-        )
-
-    result = await hass.config_entries.flow.async_configure(result["flow_id"], {})
-
-    assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert result["options"] == {CONF_MUNICIPALITY: ""}
-
-
-@pytest.mark.parametrize(("name", "title"), [(None, "Casa"), ("Ufficio", "Ufficio")])
-async def test_zone_flow(hass: HomeAssistant, name: str | None, title: str) -> None:
-    """Test a place taken from a zone, named after it unless named."""
+async def test_zone_flow(hass: HomeAssistant) -> None:
+    """Test a place taken from a zone."""
     hass.states.async_set(
         "zone.home",
         "0",
@@ -138,19 +142,19 @@ async def test_zone_flow(hass: HomeAssistant, name: str | None, title: str) -> N
     )
     result = await start(hass, "zone")
     assert result["step_id"] == "zone"
+    assert [str(key) for key in result["data_schema"].schema] == [CONF_ZONE]
 
-    user_input = {CONF_ZONE: "zone.home"} | ({CONF_NAME: name} if name else {})
     with patch(GET_ALERT_ZONE, return_value=ROME_ZONE):
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], user_input
+            result["flow_id"], {CONF_ZONE: "zone.home"}
         )
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], {CONF_MUNICIPALITY: "Roma"}
     )
 
     assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert result["title"] == title
-    assert result["data"] == PLACE | {CONF_NAME: title}
+    assert result["title"] == "Bacini di Roma"
+    assert result["data"] == PLACE
 
 
 async def test_zone_not_found(hass: HomeAssistant) -> None:
@@ -203,7 +207,7 @@ async def test_place_already_configured(
 
     with patch(GET_ALERT_ZONE) as get_alert_zone:
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], MAP_INPUT | {CONF_NAME: "Casa"}
+            result["flow_id"], MAP_INPUT
         )
 
     assert result["type"] is FlowResultType.ABORT
@@ -234,14 +238,11 @@ async def test_place_checked_with_dpc(
 
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
-        {
-            CONF_NAME: NAME,
-            CONF_LOCATION: {CONF_LATITUDE: latitude, CONF_LONGITUDE: longitude},
-        },
+        {CONF_LOCATION: {CONF_LATITUDE: latitude, CONF_LONGITUDE: longitude}},
     )
 
     assert result["step_id"] == step_id
-    assert result.get("errors") == errors
+    assert (result.get("errors") or None) == errors
 
 
 async def test_place_when_dpc_is_unreachable(
@@ -256,6 +257,47 @@ async def test_place_when_dpc_is_unreachable(
     )
 
     assert result["errors"] == {"base": "cannot_connect"}
+
+
+async def test_municipality_not_listed(hass: HomeAssistant) -> None:
+    """Test that the municipality must be one of the alert zone."""
+    result = await to_municipality(hass)
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_MUNICIPALITY: "Milano"}
+    )
+
+    assert result["step_id"] == "municipality"
+    assert result["errors"] == {CONF_MUNICIPALITY: "municipality_not_listed"}
+
+
+@pytest.mark.parametrize("municipality", ["Bolzano/Bozen", "Bozen", "bolzano"])
+async def test_municipality_of_another_place(
+    hass: HomeAssistant, municipality: str
+) -> None:
+    """Test that a municipality can be added once, whatever its name."""
+    MockConfigEntry(
+        domain=DOMAIN,
+        version=2,
+        title="Provincia Autonoma di Bolzano",
+        data={
+            CONF_NAME: "Provincia Autonoma di Bolzano",
+            CONF_LATITUDE: 46.5,
+            CONF_LONGITUDE: 11.35,
+        },
+        options={CONF_MUNICIPALITY: "Bolzano/Bozen"},
+    ).add_to_hass(hass)
+    result = await to_municipality(hass, BOLZANO_ZONE)
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_MUNICIPALITY: municipality}
+    )
+
+    assert result["errors"] == {CONF_MUNICIPALITY: "municipality_in_use"}
+    assert result["description_placeholders"] == {
+        "zone": "Provincia Autonoma di Bolzano",
+        "municipality": "Bolzano/Bozen",
+    }
 
 
 async def test_options_flow(
@@ -275,11 +317,13 @@ async def test_options_flow(
         "Roma",
         "Tivoli",
     ]
+    # Required, also for the places added before it was
+    assert is_required(result, CONF_MUNICIPALITY)
 
     options = {
         "binary_sensor": False,
         "sensor": True,
-        CONF_MUNICIPALITY: "Roma",
+        CONF_MUNICIPALITY: "roma",
         CONF_SCAN_INTERVAL: 15,
         CONF_WARNING_LEVEL: 3,
         CONF_RADIUS: 30,
@@ -289,12 +333,22 @@ async def test_options_flow(
     )
 
     assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert mock_config_entry.options == {**options, CONF_RADIUS: 30.0}
+    assert mock_config_entry.options == {
+        **options,
+        CONF_MUNICIPALITY: "Roma",
+        CONF_RADIUS: 30.0,
+    }
 
 
+@pytest.mark.parametrize(
+    ("municipality", "saved"), [("Tivoli", "Tivoli"), ("  ", None)]
+)
 @pytest.mark.parametrize("entry_options", [{CONF_MUNICIPALITY: "Roma"}])
 async def test_options_flow_without_alert_zone(
-    hass: HomeAssistant, mock_config_entry: MockConfigEntry
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    municipality: str,
+    saved: str | None,
 ) -> None:
     """Test that any municipality can be typed when DPC is unreachable."""
     mock_config_entry.add_to_hass(hass)
@@ -308,95 +362,60 @@ async def test_options_flow_without_alert_zone(
     assert config["custom_value"] is True
 
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {CONF_MUNICIPALITY: "Tivoli", CONF_RADIUS: 50}
+        result["flow_id"], {CONF_MUNICIPALITY: municipality, CONF_RADIUS: 50}
     )
 
-    assert mock_config_entry.options[CONF_MUNICIPALITY] == "Tivoli"
+    if saved:
+        assert mock_config_entry.options[CONF_MUNICIPALITY] == saved
+    else:
+        assert result["errors"] == {CONF_MUNICIPALITY: "municipality_not_listed"}
 
 
+@pytest.mark.parametrize(
+    ("municipality", "errors"),
+    [
+        # Not in the alert zone of the place
+        ("Milano", {CONF_MUNICIPALITY: "municipality_not_listed"}),
+        # The municipality of another place
+        ("Tivoli", {CONF_MUNICIPALITY: "municipality_in_use"}),
+        # Its own municipality
+        ("Roma", None),
+    ],
+)
 @pytest.mark.parametrize("entry_options", [{CONF_MUNICIPALITY: "Roma"}])
-async def test_options_flow_clears_the_municipality(
-    hass: HomeAssistant, mock_config_entry: MockConfigEntry
+async def test_options_flow_checks_the_municipality(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    municipality: str,
+    errors: dict[str, str] | None,
 ) -> None:
-    """Test that a cleared municipality is saved as empty."""
+    """Test that the options check the municipality, keeping what was entered."""
     mock_config_entry.add_to_hass(hass)
+    MockConfigEntry(
+        domain=DOMAIN,
+        version=2,
+        title="Bacini di Roma",
+        data={
+            CONF_NAME: "Bacini di Roma",
+            CONF_LATITUDE: 41.96,
+            CONF_LONGITUDE: 12.8,
+        },
+        options={CONF_MUNICIPALITY: "Tivoli"},
+    ).add_to_hass(hass)
     with patch(GET_ALERT_ZONE, return_value=ROME_ZONE):
         result = await hass.config_entries.options.async_init(
             mock_config_entry.entry_id
         )
-
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {CONF_RADIUS: 50}
+        result["flow_id"], {CONF_MUNICIPALITY: municipality, CONF_RADIUS: 40}
     )
 
-    assert mock_config_entry.options[CONF_MUNICIPALITY] == ""
-
-
-async def test_place_of_an_entry_without_unique_id(hass: HomeAssistant) -> None:
-    """Test a place added when entries had no unique ID, and one without data."""
-    MockConfigEntry(domain=DOMAIN, version=2, data={}).add_to_hass(hass)
-    MockConfigEntry(
-        domain=DOMAIN, version=2, title="Casa", unique_id="Casa", data=PLACE
-    ).add_to_hass(hass)
-    result = await start(hass, "map")
-
-    with patch(GET_ALERT_ZONE) as get_alert_zone:
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], MAP_INPUT
-        )
-
-    assert result["errors"] == {"base": "place_nearby"}
-    assert result["description_placeholders"] == {"place": "Casa"}
-    get_alert_zone.assert_not_called()
-
-
-@pytest.mark.parametrize(
-    ("latitude", "errors"),
-    [
-        # About 555 m north: the bulletins would be the same
-        (LATITUDE + 0.005, {"base": "place_nearby"}),
-        # About 2.2 km north
-        (LATITUDE + 0.02, None),
-    ],
-)
-async def test_place_near_another_one(
-    hass: HomeAssistant,
-    mock_config_entry: MockConfigEntry,
-    latitude: float,
-    errors: dict[str, str] | None,
-) -> None:
-    """Test that a place less than 1 km from another one is refused."""
-    mock_config_entry.add_to_hass(hass)
-    result = await start(hass, "map")
-
-    with patch(GET_ALERT_ZONE, return_value=ROME_ZONE):
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            {
-                CONF_NAME: "Ufficio",
-                CONF_LOCATION: {CONF_LATITUDE: latitude, CONF_LONGITUDE: LONGITUDE},
-            },
-        )
-
-    assert result.get("errors") == errors
-    if errors:
-        assert result["description_placeholders"] == {"place": NAME}
-
-
-async def test_name_of_another_place(
-    hass: HomeAssistant, mock_config_entry: MockConfigEntry
-) -> None:
-    """Test that the name of another place is refused, whatever its case."""
-    mock_config_entry.add_to_hass(hass)
-    result = await start(hass, "map")
-
-    with patch(GET_ALERT_ZONE, return_value=ROME_ZONE):
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            {
-                CONF_NAME: NAME.lower(),
-                CONF_LOCATION: {CONF_LATITUDE: 45.46, CONF_LONGITUDE: 9.19},
-            },
-        )
-
-    assert result["errors"] == {CONF_NAME: "name_exists"}
+    assert (result.get("errors") or None) == errors
+    if not errors:
+        assert mock_config_entry.options[CONF_MUNICIPALITY] == municipality
+        return
+    assert result["type"] is FlowResultType.FORM
+    key = schema_key(result, CONF_MUNICIPALITY)
+    assert key.description["suggested_value"] == municipality
+    if errors == {CONF_MUNICIPALITY: "municipality_in_use"}:
+        assert result["description_placeholders"] == {"municipality": "Tivoli"}

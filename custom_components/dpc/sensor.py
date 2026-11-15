@@ -32,7 +32,7 @@ from .const import (
     ATTR_ZONE_NAME,
 )
 from .coordinator import DpcConfigEntry, DpcDataUpdateCoordinator
-from .entity import DpcEntity, language_independent_entity_id
+from .entity import DpcEntity, place_entity_id
 
 # The coordinator updates the entities: nothing to limit
 PARALLEL_UPDATES = 0
@@ -68,9 +68,7 @@ class DpcSensorCriticality(DpcEntity, SensorEntity):
     ) -> None:
         """Initialize Entities."""
         super().__init__(coordinator, entry)
-        self.entity_id = language_independent_entity_id(
-            ENTITY_ID_FORMAT, entry, "alert"
-        )
+        self.entity_id = place_entity_id(ENTITY_ID_FORMAT, entry, "alert")
         self._attr_unique_id = (
             f"{entry.data.get(CONF_NAME)}_criticality_"
             f"{entry.data.get(CONF_LATITUDE)}_{entry.data.get(CONF_LONGITUDE)}"
@@ -136,9 +134,7 @@ class DpcSensorVigilance(DpcEntity, SensorEntity):
     ) -> None:
         """Initialize Entities."""
         super().__init__(coordinator, entry)
-        self.entity_id = language_independent_entity_id(
-            ENTITY_ID_FORMAT, entry, "vigilance"
-        )
+        self.entity_id = place_entity_id(ENTITY_ID_FORMAT, entry, "vigilance")
         self._attr_unique_id = (
             f"{entry.data.get(CONF_NAME)}_vigilance_"
             f"{entry.data.get(CONF_LATITUDE)}_{entry.data.get(CONF_LONGITUDE)}"

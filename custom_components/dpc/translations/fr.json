@@ -14,11 +14,9 @@
                 "title": "Lieu sur la carte",
                 "description": "Déplacez le repère sur le lieu à surveiller.",
                 "data": {
-                    "name": "Nom",
                     "location": "Lieu"
                 },
                 "data_description": {
-                    "name": "Affiché devant les noms de ses entités.",
                     "location": "Le lieu doit être en Italie : les bulletins du DPC ne couvrent que l'Italie."
                 }
             },
@@ -26,22 +24,20 @@
                 "title": "Lieu d'une zone",
                 "description": "Choisissez une de vos zones de Home Assistant.",
                 "data": {
-                    "zone": "Zone",
-                    "name": "Nom"
+                    "zone": "Zone"
                 },
                 "data_description": {
-                    "zone": "La position de la zone est copiée : déplacer la zone ensuite ne déplace pas le lieu.",
-                    "name": "Facultatif. S'il est vide, le nom de la zone est utilisé."
+                    "zone": "La position de la zone est copiée : déplacer la zone ensuite ne déplace pas le lieu."
                 }
             },
             "municipality": {
                 "title": "Commune",
-                "description": "Le lieu est dans la zone d'alerte du DPC **{zone}**.",
+                "description": "Le lieu est dans la zone d'alerte du DPC **{zone}**. Choisissez sa commune.",
                 "data": {
                     "municipality": "Commune"
                 },
                 "data_description": {
-                    "municipality": "Facultatif. Une commune qui s'étend sur plusieurs zones d'alerte reçoit l'alerte la plus élevée d'entre elles. Laissez vide pour utiliser uniquement la zone d'alerte du lieu."
+                    "municipality": "Les grandes communes s'étendent sur plusieurs zones d'alerte : le lieu reçoit alors l'alerte la plus élevée d'entre elles. Chaque commune ne peut être ajoutée qu'une seule fois."
                 }
             }
         },
@@ -49,8 +45,8 @@
             "coordinates_outside": "Les coordonnées sont en dehors des zones d'alerte du DPC.",
             "cannot_connect": "Impossible de valider les coordonnées. Vérifiez votre connexion.",
             "zone_not_found": "Zone introuvable.",
-            "place_nearby": "{place} est à moins de 1 km : ses bulletins seraient les mêmes.",
-            "name_exists": "Un autre lieu porte déjà ce nom."
+            "municipality_in_use": "{municipality} est déjà configurée : chaque commune ne peut être ajoutée qu'une seule fois.",
+            "municipality_not_listed": "Choisissez une commune de la liste."
         },
         "abort": {
             "single_instance_allowed": "Plusieurs instances sont prises en charge. Chaque lieu ne peut être ajouté qu'une seule fois.",
@@ -71,9 +67,13 @@
                     "radius": "Rayon (km, 50 par défaut)"
                 },
                 "data_description": {
-                    "municipality": "Facultatif. Une commune qui s'étend sur plusieurs zones d'alerte reçoit l'alerte la plus élevée d'entre elles. Laissez vide pour utiliser uniquement la zone d'alerte du lieu."
+                    "municipality": "Les grandes communes s'étendent sur plusieurs zones d'alerte : le lieu reçoit alors l'alerte la plus élevée d'entre elles. Chaque commune ne peut être ajoutée qu'une seule fois."
                 }
             }
+        },
+        "error": {
+            "municipality_not_listed": "Choisissez une commune de la liste.",
+            "municipality_in_use": "{municipality} est déjà configurée : chaque commune ne peut être ajoutée qu'une seule fois."
         }
     },
     "entity": {

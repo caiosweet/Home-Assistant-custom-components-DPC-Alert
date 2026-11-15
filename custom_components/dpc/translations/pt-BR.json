@@ -14,11 +14,9 @@
                 "title": "Local no mapa",
                 "description": "Mova o marcador para o local a monitorar.",
                 "data": {
-                    "name": "Nome",
                     "location": "Local"
                 },
                 "data_description": {
-                    "name": "Aparece antes dos nomes das entidades dele.",
                     "location": "O local precisa estar na Itália: os boletins do DPC cobrem só a Itália."
                 }
             },
@@ -26,22 +24,20 @@
                 "title": "Local de uma zona",
                 "description": "Escolha uma das suas zonas do Home Assistant.",
                 "data": {
-                    "zone": "Zona",
-                    "name": "Nome"
+                    "zone": "Zona"
                 },
                 "data_description": {
-                    "zone": "A posição da zona é copiada: mover a zona depois não move o local.",
-                    "name": "Opcional. Se vazio, usa o nome da zona."
+                    "zone": "A posição da zona é copiada: mover a zona depois não move o local."
                 }
             },
             "municipality": {
                 "title": "Município",
-                "description": "O local fica na zona de alerta do DPC **{zone}**.",
+                "description": "O local fica na zona de alerta do DPC **{zone}**. Escolha o município dele.",
                 "data": {
                     "municipality": "Município"
                 },
                 "data_description": {
-                    "municipality": "Opcional. Um município que abrange várias zonas de alerta recebe o alerta mais alto entre todas. Deixe vazio para usar só a zona de alerta do local."
+                    "municipality": "Municípios grandes abrangem várias zonas de alerta: o local recebe então o alerta mais alto entre todas. Cada município pode ser adicionado uma única vez."
                 }
             }
         },
@@ -49,8 +45,8 @@
             "coordinates_outside": "As coordenadas estão fora das áreas de alerta do DPC.",
             "cannot_connect": "Não foi possível validar as coordenadas. Verifique sua conexão.",
             "zone_not_found": "Zona não encontrada.",
-            "place_nearby": "{place} fica a menos de 1 km: os boletins seriam os mesmos.",
-            "name_exists": "Outro local já tem este nome."
+            "municipality_in_use": "{municipality} já está configurado: cada município pode ser adicionado uma única vez.",
+            "municipality_not_listed": "Escolha um município da lista."
         },
         "abort": {
             "single_instance_allowed": "Várias instâncias são suportadas. Cada local pode ser adicionado apenas uma vez.",
@@ -71,9 +67,13 @@
                     "radius": "Raio (km, padrão 50)"
                 },
                 "data_description": {
-                    "municipality": "Opcional. Um município que abrange várias zonas de alerta recebe o alerta mais alto entre todas. Deixe vazio para usar só a zona de alerta do local."
+                    "municipality": "Municípios grandes abrangem várias zonas de alerta: o local recebe então o alerta mais alto entre todas. Cada município pode ser adicionado uma única vez."
                 }
             }
+        },
+        "error": {
+            "municipality_not_listed": "Escolha um município da lista.",
+            "municipality_in_use": "{municipality} já está configurado: cada município pode ser adicionado uma única vez."
         }
     },
     "entity": {

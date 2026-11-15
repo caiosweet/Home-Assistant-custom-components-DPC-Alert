@@ -29,19 +29,20 @@ from .const import (
 from .coordinator import DpcDataUpdateCoordinator
 
 
-def language_independent_entity_id(
-    entity_id_format: str, entry: ConfigEntry, suffix: str
-) -> str:
-    """Return <platform>.<name of the place>_<suffix>, the same in every language.
+def place_entity_id(entity_id_format: str, entry: ConfigEntry, suffix: str) -> str:
+    """Return <platform>.dpc_<municipality>_<suffix>, e.g. sensor.dpc_portula_alert.
 
-    Home Assistant derives the entity IDs of new entities from their translated
-    names (e.g. sensor.casa_allerta in Italian): suggesting the ID keeps it the
-    same in every language. Existing entities keep their registered ID, and a
-    taken ID gets a suffix (_2).
+    The places added before 2026.11 without municipality use their name
+    instead: sensor.dpc_casa_alert, or sensor.dpc_alert for the name DPC.
+    Suggesting the ID keeps it the same in every language: Home Assistant would
+    derive it from the translated entity name. Existing entities keep their
+    registered ID, and a taken ID gets a suffix (_2).
     """
-    return entity_id_format.format(
-        slugify(f"{entry.data.get(CONF_NAME) or DEFAULT_NAME} {suffix}")
+    place = slugify(
+        entry.options.get(CONF_MUNICIPALITY) or entry.data.get(CONF_NAME) or ""
     )
+    prefix = DOMAIN if place in ("", DOMAIN) else f"{DOMAIN}_{place}"
+    return entity_id_format.format(f"{prefix}_{suffix}")
 
 
 class DpcEntity(CoordinatorEntity[DpcDataUpdateCoordinator]):

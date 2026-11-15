@@ -22,7 +22,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .attributes import criticality_attributes, risk_day_attributes
 from .coordinator import DpcConfigEntry, DpcDataUpdateCoordinator
-from .entity import DpcEntity, language_independent_entity_id
+from .entity import DpcEntity, place_entity_id
 
 # The coordinator updates the entities: nothing to limit
 PARALLEL_UPDATES = 0
@@ -68,7 +68,7 @@ async def async_setup_entry(
             coordinator,
             entry,
             description,
-            language_independent_entity_id(ENTITY_ID_FORMAT, entry, description.key),
+            place_entity_id(ENTITY_ID_FORMAT, entry, description.key),
         )
         for description in RISK_DESCRIPTIONS
     )

@@ -14,11 +14,9 @@
                 "title": "Luogo sulla mappa",
                 "description": "Sposta il segnaposto sul luogo da monitorare.",
                 "data": {
-                    "name": "Nome",
                     "location": "Luogo"
                 },
                 "data_description": {
-                    "name": "Mostrato davanti ai nomi delle sue entità.",
                     "location": "Il luogo deve essere in Italia: i bollettini del DPC coprono solo l'Italia."
                 }
             },
@@ -26,22 +24,20 @@
                 "title": "Luogo di una zona",
                 "description": "Scegli una delle tue zone di Home Assistant.",
                 "data": {
-                    "zone": "Zona",
-                    "name": "Nome"
+                    "zone": "Zona"
                 },
                 "data_description": {
-                    "zone": "La posizione della zona viene copiata: spostare la zona in seguito non sposta il luogo.",
-                    "name": "Facoltativo. Se vuoto, si usa il nome della zona."
+                    "zone": "La posizione della zona viene copiata: spostare la zona in seguito non sposta il luogo."
                 }
             },
             "municipality": {
                 "title": "Comune",
-                "description": "Il luogo è nella zona di allerta DPC **{zone}**.",
+                "description": "Il luogo è nella zona di allerta DPC **{zone}**. Scegli il suo comune.",
                 "data": {
                     "municipality": "Comune"
                 },
                 "data_description": {
-                    "municipality": "Facoltativo. Un comune che si estende su più zone di allerta riceve l'allerta più alta tra tutte. Lascia vuoto per usare solo la zona di allerta del luogo."
+                    "municipality": "I comuni grandi si estendono su più zone di allerta: il luogo riceve allora l'allerta più alta tra tutte. Ogni comune può essere aggiunto una sola volta."
                 }
             }
         },
@@ -49,8 +45,8 @@
             "coordinates_outside": "Le coordinate sono fuori dalle aree di allerta DPC.",
             "cannot_connect": "Impossibile verificare le coordinate. Controlla la connessione.",
             "zone_not_found": "Zona non trovata.",
-            "place_nearby": "{place} è a meno di 1 km: i suoi bollettini sarebbero gli stessi.",
-            "name_exists": "Un altro luogo ha già questo nome."
+            "municipality_in_use": "{municipality} è già configurato: ogni comune può essere aggiunto una sola volta.",
+            "municipality_not_listed": "Scegli un comune dell'elenco."
         },
         "abort": {
             "single_instance_allowed": "Sono supportate più istanze. Ogni posizione può essere aggiunta una sola volta.",
@@ -71,9 +67,13 @@
                     "radius": "Raggio (Km, default 50)"
                 },
                 "data_description": {
-                    "municipality": "Facoltativo. Un comune che si estende su più zone di allerta riceve l'allerta più alta tra tutte. Lascia vuoto per usare solo la zona di allerta del luogo."
+                    "municipality": "I comuni grandi si estendono su più zone di allerta: il luogo riceve allora l'allerta più alta tra tutte. Ogni comune può essere aggiunto una sola volta."
                 }
             }
+        },
+        "error": {
+            "municipality_not_listed": "Scegli un comune dell'elenco.",
+            "municipality_in_use": "{municipality} è già configurato: ogni comune può essere aggiunto una sola volta."
         }
     },
     "entity": {

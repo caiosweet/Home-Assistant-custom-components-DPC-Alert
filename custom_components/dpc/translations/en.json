@@ -14,11 +14,9 @@
                 "title": "Place on the map",
                 "description": "Move the pin to the place to monitor.",
                 "data": {
-                    "name": "Name",
                     "location": "Place"
                 },
                 "data_description": {
-                    "name": "Shown in front of the names of its entities.",
                     "location": "The place must be in Italy: the DPC bulletins cover Italy only."
                 }
             },
@@ -26,22 +24,20 @@
                 "title": "Place of a zone",
                 "description": "Choose one of your zones in Home Assistant.",
                 "data": {
-                    "zone": "Zone",
-                    "name": "Name"
+                    "zone": "Zone"
                 },
                 "data_description": {
-                    "zone": "The place of the zone is copied: moving the zone later does not move the place.",
-                    "name": "Optional. The name of the zone is used when empty."
+                    "zone": "The place of the zone is copied: moving the zone later does not move the place."
                 }
             },
             "municipality": {
                 "title": "Municipality",
-                "description": "The place is in the DPC alert zone **{zone}**.",
+                "description": "The place is in the DPC alert zone **{zone}**. Choose its municipality.",
                 "data": {
                     "municipality": "Municipality"
                 },
                 "data_description": {
-                    "municipality": "Optional. A municipality that spans several alert zones gets the highest alert of all of them. Leave empty to use only the alert zone of the place."
+                    "municipality": "Large municipalities span several alert zones: the place then gets the highest alert of all of them. Each municipality can be added once."
                 }
             }
         },
@@ -49,8 +45,8 @@
             "coordinates_outside": "Coordinates are outside DPC alert areas.",
             "cannot_connect": "Unable to validate coordinates. Check your connection.",
             "zone_not_found": "The zone was not found.",
-            "place_nearby": "{place} is less than 1 km away: its bulletins would be the same.",
-            "name_exists": "Another place already has this name."
+            "municipality_in_use": "{municipality} is already configured: each municipality can be added once.",
+            "municipality_not_listed": "Choose a municipality of the list."
         },
         "abort": {
             "single_instance_allowed": "Multiple instances are supported. Each location can be added once.",
@@ -71,9 +67,13 @@
                     "radius": "Radius (Km, default 50)"
                 },
                 "data_description": {
-                    "municipality": "Optional. A municipality that spans several alert zones gets the highest alert of all of them. Leave empty to use only the alert zone of the place."
+                    "municipality": "Large municipalities span several alert zones: the place then gets the highest alert of all of them. Each municipality can be added once."
                 }
             }
+        },
+        "error": {
+            "municipality_not_listed": "Choose a municipality of the list.",
+            "municipality_in_use": "{municipality} is already configured: each municipality can be added once."
         }
     },
     "entity": {

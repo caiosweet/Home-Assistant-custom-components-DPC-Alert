@@ -14,11 +14,9 @@
                 "title": "Ort auf der Karte",
                 "description": "Verschiebe die Markierung auf den zu überwachenden Ort.",
                 "data": {
-                    "name": "Name",
                     "location": "Ort"
                 },
                 "data_description": {
-                    "name": "Steht vor den Namen seiner Entitäten.",
                     "location": "Der Ort muss in Italien liegen: Die Bulletins des DPC decken nur Italien ab."
                 }
             },
@@ -26,22 +24,20 @@
                 "title": "Ort einer Zone",
                 "description": "Wähle eine deiner Zonen in Home Assistant.",
                 "data": {
-                    "zone": "Zone",
-                    "name": "Name"
+                    "zone": "Zone"
                 },
                 "data_description": {
-                    "zone": "Die Position der Zone wird übernommen: Wird die Zone später verschoben, bleibt der Ort unverändert.",
-                    "name": "Optional. Wenn leer, wird der Name der Zone verwendet."
+                    "zone": "Die Position der Zone wird übernommen: Wird die Zone später verschoben, bleibt der Ort unverändert."
                 }
             },
             "municipality": {
                 "title": "Gemeinde",
-                "description": "Der Ort liegt im Warngebiet **{zone}** des DPC.",
+                "description": "Der Ort liegt im Warngebiet **{zone}** des DPC. Wähle seine Gemeinde.",
                 "data": {
                     "municipality": "Gemeinde"
                 },
                 "data_description": {
-                    "municipality": "Optional. Eine Gemeinde, die sich über mehrere Warngebiete erstreckt, erhält die höchste Warnung all dieser Gebiete. Leer lassen, um nur das Warngebiet des Ortes zu verwenden."
+                    "municipality": "Große Gemeinden erstrecken sich über mehrere Warngebiete: Der Ort erhält dann die höchste Warnung all dieser Gebiete. Jede Gemeinde kann nur einmal hinzugefügt werden."
                 }
             }
         },
@@ -49,8 +45,8 @@
             "coordinates_outside": "Die Koordinaten liegen außerhalb der Warngebiete des DPC.",
             "cannot_connect": "Die Koordinaten konnten nicht geprüft werden. Überprüfe deine Verbindung.",
             "zone_not_found": "Zone nicht gefunden.",
-            "place_nearby": "{place} ist weniger als 1 km entfernt: Die Bulletins wären dieselben.",
-            "name_exists": "Ein anderer Ort hat bereits diesen Namen."
+            "municipality_in_use": "{municipality} ist bereits eingerichtet: Jede Gemeinde kann nur einmal hinzugefügt werden.",
+            "municipality_not_listed": "Wähle eine Gemeinde aus der Liste."
         },
         "abort": {
             "single_instance_allowed": "Mehrere Instanzen werden unterstützt. Jeder Standort kann nur einmal hinzugefügt werden.",
@@ -71,9 +67,13 @@
                     "radius": "Radius (km, Standard 50)"
                 },
                 "data_description": {
-                    "municipality": "Optional. Eine Gemeinde, die sich über mehrere Warngebiete erstreckt, erhält die höchste Warnung all dieser Gebiete. Leer lassen, um nur das Warngebiet des Ortes zu verwenden."
+                    "municipality": "Große Gemeinden erstrecken sich über mehrere Warngebiete: Der Ort erhält dann die höchste Warnung all dieser Gebiete. Jede Gemeinde kann nur einmal hinzugefügt werden."
                 }
             }
+        },
+        "error": {
+            "municipality_not_listed": "Wähle eine Gemeinde aus der Liste.",
+            "municipality_in_use": "{municipality} ist bereits eingerichtet: Jede Gemeinde kann nur einmal hinzugefügt werden."
         }
     },
     "entity": {

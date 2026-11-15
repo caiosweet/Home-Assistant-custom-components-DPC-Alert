@@ -169,7 +169,8 @@ async def test_options_update_reloads_entry(
 
     result = await hass.config_entries.options.async_init(entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {**entry.options, CONF_WARNING_LEVEL: 3}
+        result["flow_id"],
+        {**entry.options, CONF_MUNICIPALITY: "Roma", CONF_WARNING_LEVEL: 3},
     )
     await hass.async_block_till_done()
 
@@ -182,26 +183,36 @@ async def test_options_update_reloads_entry(
 
 
 @pytest.mark.parametrize(
-    ("municipality", "device_name"), [("", "Casa"), ("Roma", "Roma")]
+    ("name", "municipality", "device_name", "place"),
+    [
+        # Since 2026.11, a place is named after its alert zone
+        ("Bacini di Roma", "Roma", "Roma", "dpc_roma"),
+        # Before, it had any name and no municipality, or the name DPC
+        ("Casa", "", "Casa", "dpc_casa"),
+        ("DPC", "Portula", "Portula", "dpc_portula"),
+        ("DPC", "", "DPC", "dpc"),
+    ],
 )
 async def test_device_and_entity_ids_of_a_place(
     hass: HomeAssistant,
     device_registry: dr.DeviceRegistry,
     entity_registry: er.EntityRegistry,
     mock_dpc: AiohttpClientMocker,
+    name: str,
     municipality: str,
     device_name: str,
+    place: str,
 ) -> None:
     """Test that a place names its device after its municipality, or itself.
 
-    Its entity IDs always come from its name.
+    Its entity IDs are dpc_<municipality>_<kind>, or dpc_<name>_<kind> without one.
     """
     entry = MockConfigEntry(
         domain=DOMAIN,
         version=2,
-        title="Casa",
+        title=name,
         unique_id=UNIQUE_ID,
-        data={CONF_NAME: "Casa", CONF_LATITUDE: LATITUDE, CONF_LONGITUDE: LONGITUDE},
+        data={CONF_NAME: name, CONF_LATITUDE: LATITUDE, CONF_LONGITUDE: LONGITUDE},
         options={CONF_MUNICIPALITY: municipality},
     )
 
@@ -213,8 +224,11 @@ async def test_device_and_entity_ids_of_a_place(
         item.entity_id
         for item in er.async_entries_for_config_entry(entity_registry, entry.entry_id)
     }
-    assert {"sensor.casa_alert", "sensor.casa_vigilance"} <= entity_ids
-    assert "binary_sensor.casa_idraulico_oggi" in entity_ids
+    assert {
+        f"sensor.{place}_alert",
+        f"sensor.{place}_vigilance",
+        f"binary_sensor.{place}_idraulico_oggi",
+    } <= entity_ids
 
 
 async def test_places_with_the_same_name(
