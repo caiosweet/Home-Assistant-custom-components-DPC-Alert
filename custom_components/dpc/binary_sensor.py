@@ -7,7 +7,6 @@ from typing import Any
 
 from aiodpc import CriticalityDay, Day, RiskType
 from homeassistant.components.binary_sensor import (
-    ENTITY_ID_FORMAT,
     BinarySensorEntity,
     BinarySensorEntityDescription,
 )
@@ -22,7 +21,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .attributes import criticality_attributes, risk_day_attributes
 from .coordinator import DpcConfigEntry, DpcDataUpdateCoordinator
-from .entity import DpcEntity, place_entity_id
+from .entity import DpcEntity
 
 # The coordinator updates the entities: nothing to limit
 PARALLEL_UPDATES = 0
@@ -66,12 +65,7 @@ async def async_setup_entry(
     """Setup binary_sensor platform."""
     coordinator = entry.runtime_data
     async_add_entities(
-        DpcRiskBinarySensor(
-            coordinator,
-            entry,
-            description,
-            place_entity_id(ENTITY_ID_FORMAT, entry, description.key),
-        )
+        DpcRiskBinarySensor(coordinator, entry, description)
         for description in RISK_DESCRIPTIONS
     )
 
@@ -86,12 +80,10 @@ class DpcRiskBinarySensor(DpcEntity, BinarySensorEntity):
         coordinator: DpcDataUpdateCoordinator,
         entry: ConfigEntry,
         description: DpcRiskEntityDescription,
-        entity_id: str,
     ) -> None:
         """Initialize Entities."""
         super().__init__(coordinator, entry)
         self.entity_description = description
-        self.entity_id = entity_id
         self._attr_unique_id = f"{entry.unique_id}-{description.key}"
 
     @property

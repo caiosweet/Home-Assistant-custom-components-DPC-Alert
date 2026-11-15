@@ -7,15 +7,13 @@ from http import HTTPStatus
 from aiodpc.urls import criticality_preview_url, vigilance_preview_url
 from freezegun.api import FrozenDateTimeFactory
 from homeassistant.components.image import ImageEntity
-from homeassistant.const import STATE_UNKNOWN, Platform
+from homeassistant.const import STATE_UNAVAILABLE, Platform
 from homeassistant.core import HomeAssistant
 import httpx
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 from pytest_homeassistant_custom_component.typing import ClientSessionGenerator
 import respx
-
-from custom_components.dpc.image import PLACEHOLDER_IMAGE
 
 from . import CRIT_ID, UNIQUE_ID, VIGI_ID, get_entity_id
 
@@ -51,17 +49,6 @@ async def test_maps_of_the_days(hass: HomeAssistant) -> None:
     assert today is not None
     # The state is when the map shown last changed: at the setup
     assert today.state == "2026-11-14T14:00:00+00:00"
-
-
-@respx.mock
-async def test_missing_map_uses_placeholder_image(
-    hass: HomeAssistant,
-    init_integration: MockConfigEntry,
-) -> None:
-    """Test that an absent map is served by a generic placeholder image."""
-    map_entity_ = map_entity(hass, "criticality_map_tomorrow")
-    assert map_entity_.image_url is None
-    assert await map_entity_.async_image() == PLACEHOLDER_IMAGE
 
 
 @respx.mock
@@ -110,11 +97,13 @@ async def test_map_changes_at_midnight(
     state = hass.states.get("image.dpc_criticality_map_today")
     assert state is not None
     assert state.state == "2026-11-14T23:10:00+00:00"
-    # Until the next bulletin there is no map of tomorrow
+    # Until the next bulletin there is no map of tomorrow: unavailable, without
+    # the access token the frontend would request a broken image with
     assert map_entity(hass, "criticality_map_tomorrow").image_url is None
     tomorrow = hass.states.get("image.dpc_criticality_map_tomorrow")
     assert tomorrow is not None
-    assert tomorrow.state == STATE_UNKNOWN
+    assert tomorrow.state == STATE_UNAVAILABLE
+    assert "access_token" not in tomorrow.attributes
 
 
 @respx.mock

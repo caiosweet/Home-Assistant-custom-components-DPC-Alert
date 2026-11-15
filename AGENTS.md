@@ -51,7 +51,8 @@ custom_components/dpc/
   dashboard.py       serves frontend/dpc-dashboard.js and has the frontend load it
   frontend/          the dashboard strategy: plain JavaScript, no build, native
                      cards only
-  attributes.py      state attributes, unchanged from the integration's old client
+  attributes.py      the Italian attributes of the binary, alert and vigilance
+                     sensors, kept for existing automations
   diagnostics.py     redacts everything that locates a place
   const.py, icons.json, strings.json, translations/, quality_scale.yaml
   manifest.json, version.py
@@ -86,9 +87,12 @@ Users' automations and dashboards depend on what the integration exposes.
   sensors `"{entry.unique_id}-{key}"`.
 - Never rename attributes or change their values. A change that users must
   act on goes under "Breaking changes" in the changelog, with what to do.
-- Entity IDs are generated only for new entities: `<platform>.dpc_<municipality>_<key>`,
-  e.g. `sensor.dpc_portula_alert`. Home Assistant keeps the IDs of existing
-  entities in its registry and adds `_2` to a repeated ID.
+- Never set `entity_id`: Home Assistant builds the ID of a new entity from
+  the device and the English name (`binary_sensor.portula_hydraulic_risk_today`),
+  keeps the IDs of existing entities in its registry (such as
+  `binary_sensor.dpc_portula_idraulico_oggi`, from before), adds `_2` to a
+  repeated ID, and lets users recreate the IDs. A suggested ID would block
+  that.
 - Changing the shape of config entry data or options needs a new
   `ConfigFlow.VERSION` and a step in `async_migrate_entry`.
 - Supported Home Assistant: from the `homeassistant` version in `hacs.json`
@@ -117,8 +121,12 @@ Users' automations and dashboards depend on what the integration exposes.
 - `strings.json` is the source of the texts and `translations/en.json` is
   identical to it. Every key exists in the six languages: en, it, pt-BR, fr,
   de, es. The top-level `title` is the translated name of the integration.
-- Entity names follow the language of Home Assistant. Texts written by DPC
-  (`info`, `alert`, phenomena) stay in Italian.
+- Entity names follow the language of Home Assistant. What DPC gives as a
+  fixed list (levels, risks, phenomena) is a state or attribute value that
+  Home Assistant translates: the English names of the aiodpc enums, with a
+  `state` translation in `strings.json`. The text DPC writes stays next to it,
+  in Italian, in `description`. The binary, alert and vigilance sensors keep
+  their Italian attributes (`info`, `alert`, `risk`) for existing automations.
 - Errors shown to users use translation keys: `config.error`,
   `options.error`, `exceptions`.
 - Every entity has an icon in `icons.json`; the alert icons use `range`.

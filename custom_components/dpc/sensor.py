@@ -2,33 +2,22 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from typing import Any
 
 from aiodpc import AlertLevel, CriticalityDay, Precipitation, Risk, VigilanceDay
-from homeassistant.components.sensor import (
-    ENTITY_ID_FORMAT,
-    SensorDeviceClass,
-    SensorEntity,
-)
+from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE, CONF_NAME
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .attributes import (
-    criticality_attributes,
-    criticality_day_attributes,
-    risk_event_attributes,
-    vigilance_attributes,
-    vigilance_day_attributes,
-)
+from .attributes import criticality_attributes, vigilance_attributes
 from .const import (
     ALERT_LEVEL_STATES,
     ATTR_AFTERTOMORROW,
-    ATTR_EVENTS_TODAY,
-    ATTR_EVENTS_TOMORROW,
+    ATTR_DESCRIPTION,
     ATTR_MAX_LEVEL,
-    ATTR_PHENOMENA,
     ATTR_RISKS,
     ATTR_TODAY,
     ATTR_TOMORROW,
@@ -39,12 +28,10 @@ from .const import (
     PRECIPITATION_STATES,
 )
 from .coordinator import DpcConfigEntry, DpcDataUpdateCoordinator
-from .entity import DpcEntity, place_entity_id
+from .entity import DpcEntity
 
 # The coordinator updates the entities: nothing to limit
 PARALLEL_UPDATES = 0
-
-EVENTS = {ATTR_TODAY: ATTR_EVENTS_TODAY, ATTR_TOMORROW: ATTR_EVENTS_TOMORROW}
 
 
 async def async_setup_entry(
@@ -68,6 +55,16 @@ async def async_setup_entry(
     )
 
 
+def _zone_of_the_last_day(
+    days: Iterable[CriticalityDay | VigilanceDay],
+) -> dict[str, str]:
+    """Return the zone of the last day covered by the bulletin, if any."""
+    covered = list(days)
+    if not covered:
+        return {}
+    return {ATTR_ZONE_NAME: covered[-1].zone}
+
+
 class DpcSensorCriticality(DpcEntity, SensorEntity):
     """Highest alert level of today and tomorrow (1 green to 4 red)."""
 
@@ -78,7 +75,6 @@ class DpcSensorCriticality(DpcEntity, SensorEntity):
     ) -> None:
         """Initialize Entities."""
         super().__init__(coordinator, entry)
-        self.entity_id = place_entity_id(ENTITY_ID_FORMAT, entry, "alert")
         self._attr_unique_id = (
             f"{entry.data.get(CONF_NAME)}_criticality_"
             f"{entry.data.get(CONF_LATITUDE)}_{entry.data.get(CONF_LONGITUDE)}"
@@ -99,13 +95,9 @@ class DpcSensorCriticality(DpcEntity, SensorEntity):
         """Return the highest alert level of the days; 0 when unknown."""
         return max((day.level.value for day in self._days.values()), default=0)
 
-    def _events(self, day: CriticalityDay) -> list[dict[str, Any]]:
-        """Return the risks of a day at or above the warning level."""
-        return [
-            risk_event_attributes(risk)
-            for risk in day.risks
-            if risk.level >= self.warning_level
-        ]
+    def _warnings(self, day: CriticalityDay) -> int:
+        """Return the number of risks of a day at or above the warning level."""
+        return sum(risk.level >= self.warning_level for risk in day.risks)
 
     @property
     def native_value(self) -> int | None:
@@ -120,13 +112,8 @@ class DpcSensorCriticality(DpcEntity, SensorEntity):
             return attributes
         attributes |= criticality_attributes(latest)
         attributes[ATTR_MAX_LEVEL] = self._max_level
-        attributes[ATTR_TOTAL_ALERTS] = 0
-        for name, day in self._days.items():
-            attributes[name] = criticality_day_attributes(day)
-            attributes[ATTR_ZONE_NAME] = day.zone
-            if events := self._events(day):
-                attributes[EVENTS[name]] = events
-                attributes[ATTR_TOTAL_ALERTS] += len(events)
+        attributes[ATTR_TOTAL_ALERTS] = sum(map(self._warnings, self._days.values()))
+        attributes |= _zone_of_the_last_day(self._days.values())
         return attributes
 
 
@@ -140,7 +127,6 @@ class DpcSensorVigilance(DpcEntity, SensorEntity):
     ) -> None:
         """Initialize Entities."""
         super().__init__(coordinator, entry)
-        self.entity_id = place_entity_id(ENTITY_ID_FORMAT, entry, "vigilance")
         self._attr_unique_id = (
             f"{entry.data.get(CONF_NAME)}_vigilance_"
             f"{entry.data.get(CONF_LATITUDE)}_{entry.data.get(CONF_LONGITUDE)}"
@@ -180,13 +166,15 @@ class DpcSensorVigilance(DpcEntity, SensorEntity):
         if (latest := self.coordinator.data.vigilance) is None:
             return attributes
         attributes |= vigilance_attributes(latest)
-        attributes[ATTR_TOTAL_PHENOMENA] = 0
-        for name, day in self._days.items():
-            attributes[name] = vigilance_day_attributes(day)
-            attributes[ATTR_ZONE_NAME] = day.zone
-            attributes[ATTR_TOTAL_PHENOMENA] += len(attributes[name][ATTR_PHENOMENA])
+        attributes[ATTR_TOTAL_PHENOMENA] = sum(
+            # Codes unknown to aiodpc have no category: they were never listed
+            phenomenon.category is not None
+            for day in self._days.values()
+            for phenomenon in day.phenomena
+        )
         attributes[ATTR_MAX_LEVEL] = self._max_level
         attributes[ATTR_TOTAL_ALERTS] = self._total_alerts
+        attributes |= _zone_of_the_last_day(self._days.values())
         return attributes
 
 
@@ -212,7 +200,6 @@ class DpcDaySensor(DpcEntity, SensorEntity):
         self._day = day
         self._attr_translation_key = key
         self._attr_unique_id = f"{entry.unique_id}-{key}"
-        self.entity_id = place_entity_id(ENTITY_ID_FORMAT, entry, key)
 
 
 class DpcAlertDaySensor(DpcDaySensor):
@@ -252,6 +239,8 @@ class DpcAlertDaySensor(DpcDaySensor):
         if (risk := self._risk) is not None:
             attributes[ATTR_RISKS] = [str(risk_type) for risk_type in risk.types]
             attributes[ATTR_VALID_UNTIL] = risk.valid_until
+            # The summary as DPC writes it, in Italian, next to the translated state
+            attributes[ATTR_DESCRIPTION] = risk.description
         return attributes
 
 

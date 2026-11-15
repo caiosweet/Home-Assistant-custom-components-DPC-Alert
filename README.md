@@ -63,7 +63,7 @@ Requires Home Assistant 2025.2 or newer. See the [changelog](https://github.com/
 
 Add as many places as you want, each with its own municipality: two places in the same municipality would get the same bulletins. The places share the downloads: each bulletin is downloaded once for all of them.
 
-A place is named after its alert zone, and its device and entity IDs after its municipality: for Portula, in the alert zone Val Sesia, Cervo e Chiusella, the device is Portula and the entities are `sensor.dpc_portula_alert`, `binary_sensor.dpc_portula_idraulico_oggi` and so on.
+A place is named after its alert zone, and its device after its municipality: for Portula, in the alert zone Val Sesia, Cervo e Chiusella, the device is Portula. Home Assistant gives its entities IDs made of the device and the English names, as for other integrations: `sensor.portula_alert`, `binary_sensor.portula_hydraulic_risk_today` and so on. See [Entities](#entities) for all of them.
 
 ### Options
 
@@ -93,7 +93,7 @@ It has a tab for each place:
 - **Alerts**: the alert of today and tomorrow, in the color of its level and with the risks at that level; a banner for each risk at or above the warning level; the criticality maps.
 - **Weather vigilance**: the expected precipitation of the next three days; the weather phenomena within the radius on a map; the vigilance maps.
 
-The dashboard follows your places: it changes by itself when you add one, and when a bulletin brings other phenomena. The colored banners of the risks need Home Assistant 2026.9 or newer; before, the risks are shown as tiles.
+The dashboard follows your places: it changes by itself when you add one, and when a bulletin brings other phenomena. What has no data is hidden, such as the alert and the maps of tomorrow after midnight, until DPC publishes the next bulletin. The colored banners of the risks need Home Assistant 2026.9 or newer; before, the risks are shown as tiles.
 
 To show a place in another dashboard, add a view with the strategy of the dashboard and the ID of the device of the place, the end of the address of its device page:
 
@@ -114,7 +114,7 @@ The entities fit the cards of Home Assistant without templates. For a place in P
 ```yaml
 # The alert of tomorrow and the risks at its level: "Orange alert · Hydrogeological risk"
 type: tile
-entity: sensor.dpc_portula_alert_tomorrow
+entity: sensor.portula_alert_tomorrow
 state_content:
   - state
   - risks
@@ -124,14 +124,14 @@ state_content:
 # A banner while the hydrogeological risk of tomorrow is at or above the warning
 # level (Home Assistant 2026.9 or newer)
 type: alert
-entity: binary_sensor.dpc_portula_idrogeologico_domani
+entity: binary_sensor.portula_hydrogeological_risk_tomorrow
 alert_color: orange
 ```
 
 ```yaml
 # The criticality map of today
 type: picture-entity
-entity: image.dpc_portula_criticality_map_today
+entity: image.portula_criticality_map_today
 show_state: false
 ```
 
@@ -154,8 +154,9 @@ geo_location_sources:
 
 - DPC covers Italy only. San Marino and Vatican City are in no DPC alert zone.
 - The criticality bulletin covers today and tomorrow; the vigilance bulletin, three days.
-- Each municipality can be added once: two places in it would get the same bulletins. Municipalities of the same name far apart, such as Peglio, in Lombardy and in the Marche, are different ones: the entity IDs of the second end in `_2`, e.g. `sensor.dpc_peglio_alert_2`.
-- The values of the attributes of the alert, vigilance and binary sensors are in Italian, so that existing automations keep working: `info` and the `value` of the phenomena as DPC writes them, and `alert`, `precipitation`, `risk` and `event`. The states and attributes of the sensors of each day, the maps and the phenomena are translated, except the `description` of a phenomenon, in Italian as DPC writes it.
+- Each municipality can be added once: two places in it would get the same bulletins. Municipalities of the same name far apart, such as Peglio, in Lombardy and in the Marche, are different ones: the entity IDs of the second end in `_2`, e.g. `sensor.peglio_alert_2`.
+- Home Assistant translates the states and attributes of the sensors of each day and of the phenomena. The texts of DPC stay, in Italian, next to them: the `description` of the alert of a day and of a phenomenon. The binary sensors of the risks keep their attributes in Italian (`risk`, `info`, `alert`), so that existing automations keep working.
+- In templates and notifications, `state_translated()` gives the translated state; `state_attr_translated()` (Home Assistant 2026.4 or newer) a translated attribute, such as the `phenomenon` of a phenomenon. Lists, such as the `risks` of the alert of a day, are translated by the dashboards only.
 - Municipalities are named as DPC writes them, in Italian; in South Tyrol, the German names work too.
 
 ## Troubleshooting
@@ -163,132 +164,34 @@ geo_location_sources:
 - **The integration shows "Retrying setup"**: DPC cannot be reached. Home Assistant retries on its own; check that it can reach `mappe.protezionecivile.gov.it` and `raw.githubusercontent.com`.
 - **"… is not inside any DPC alert zone"**: the place is outside Italy, or in San Marino or Vatican City. Delete it and add a place in Italy.
 - **After an update, texts in English or names such as `municipality_in_use` in the forms**: the browser keeps the texts of the previous version. Reload the page, clearing its cache (Ctrl+F5).
-- **Entity names in another language**: Home Assistant names entities in the language of the system, not of your profile: **Settings → System → General → Language**.
+- **Entity names in another language**: Home Assistant names entities in the language of the system, not of your profile: **Settings → System → General → Language**. The labels and the translated values of the attributes follow your profile.
+- **Entity IDs such as `binary_sensor.dpc_portula_idraulico_oggi`**: the entities of places added with an earlier version keep their IDs, so that automations keep working. To give them the IDs of new places, select them in **Settings → Entities**, then **⋮ → Recreate entity IDs**, and update the automations and dashboards that use them.
 - **DPC Alert is not among the community dashboards**: the browser loads it when it opens Home Assistant. Reload the page after installing or updating the integration.
 - **A place added before 2026.11 asks for its municipality** when you open its options: the municipality has become required. Choose it in the list of its alert zone.
 - **Reporting a problem**: on the integration, choose **Enable debug logging** in the **⋮** menu, reproduce the problem, then disable it to download the log. Add the diagnostics (**⋮ → Download diagnostics**: they leave out where the place is) to an [issue](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/issues).
 
 ## Entities
 
-### Representation of the attributes present in the sensor
+For a place in Portula, with Home Assistant in English:
 
-For a place named DPC in Rome, with Home Assistant in English:
+| Entity | State |
+| --- | --- |
+| `binary_sensor.portula_hydraulic_risk_today`, `…_thunderstorm_risk_today`, `…_hydrogeological_risk_today`, and the same `…_tomorrow` | On when the risk reaches the minimum level of warning of the options |
+| `sensor.portula_alert_today`, `sensor.portula_alert_tomorrow` | The alert of the day: no alert, yellow, orange or red |
+| `sensor.portula_precipitation_today`, `…_tomorrow`, `…_aftertomorrow` | The expected precipitation of the day: none to very heavy |
+| `image.portula_criticality_map_today`, `…_tomorrow`, `image.portula_vigilance_map_today`, `…_tomorrow` | The national map of the bulletin, as DPC previews it |
+| `geo_location.portula_nearby_wind` and so on | A weather phenomenon within the radius: its distance, in km |
+| `sensor.portula_alert` | The highest alert level of today and tomorrow, 1 (green) to 4 (red) |
+| `sensor.portula_vigilance` | The highest expected precipitation of the next three days, 1 (none) to 5 (very heavy) |
 
-<details>
-<summary>DPC Alert attributes</summary>
-
-```yaml
-attribution: Data provided by Civil Protection Department
-integration: dpc
-id: '20261114_1430'
-publication_date: '2026-11-14T14:30:00+01:00'
-last_update: '2026-11-14T15:00:00+01:00'
-link: https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-criticita/
-max_level: 3
-total_alerts: 3
-today:
-  info: Ordinaria per rischio temporali
-  alert: ALLERTA GIALLA
-  level: 2
-  image_url: https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Criticita-Idrogeologica-Idraulica/master/files/preview/20261114_1430_oggi.png
-  expires: '2026-11-15T00:00:00+01:00'
-  zone_name: Bacini di Roma
-zone_name: Bacini di Roma
-events_today:
-- risk: Temporali
-  info: Ordinaria
-  alert: ALLERTA GIALLA
-  level: 2
-  icon: mdi:weather-lightning
-- risk: Idrogeologico
-  info: Ordinaria
-  alert: ALLERTA GIALLA
-  level: 2
-  icon: mdi:waves
-tomorrow:
-  info: Moderata per rischio idrogeologico
-  alert: ALLERTA ARANCIONE
-  level: 3
-  image_url: https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Criticita-Idrogeologica-Idraulica/master/files/preview/20261114_1430_domani.png
-  expires: '2026-11-16T00:00:00+01:00'
-  zone_name: Bacini di Roma
-events_tomorrow:
-- risk: Idrogeologico
-  info: Moderata
-  alert: ALLERTA ARANCIONE
-  level: 3
-  icon: mdi:waves
-friendly_name: DPC Alert
-```
-
-</details>
+Home Assistant translates the states, and the values of the attributes in the dashboards. Templates and automations see the values below.
 
 <details>
-<summary>DPC Vigilance attributes</summary>
+<summary>Binary sensors of the risks</summary>
 
 ```yaml
-attribution: Data provided by Civil Protection Department
-integration: dpc
-id: '20261114'
-publication_date: '2026-11-14T00:00:00+01:00'
-last_update: '2026-11-14T15:00:00+01:00'
-link: https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-vigilanza/
-total_phenomena: 2
-today:
-  icon: mdi:numeric-2-circle
-  image_url: https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Vigilanza-Meteorologica/master/files/preview/20261114_oggi.png
-  level: 2
-  precipitation: Deboli
-  zone_name: Lazio centrale
-  phenomena:
-  - id: 202611141
-    date: 2026-11-14Z
-    id_event: 5
-    event: Precipitazioni
-    value: rovesci o temporali a carattere isolato
-    latitude: 41.573134169859415
-    longitude: 12.674774846264892
-    distance: 39.1
-    direction: SSE
-    degrees: 158
-    icon: mdi:lightning-bolt
-zone_name: Lazio centrale
-tomorrow:
-  icon: mdi:numeric-3-circle
-  image_url: https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Vigilanza-Meteorologica/master/files/preview/20261114_domani.png
-  level: 3
-  precipitation: Moderati
-  zone_name: Lazio centrale
-  phenomena:
-  - id: 202611142
-    date: 2026-11-14Z
-    id_event: 40
-    event: Mari
-    value: molto mosso
-    latitude: 41.75
-    longitude: 12.3
-    distance: 23.5
-    direction: SW
-    degrees: 224
-    icon: mdi:waves
-aftertomorrow:
-  icon: mdi:numeric-1-circle
-  image_url: null
-  level: 1
-  precipitation: Assenti o non rilevanti
-  zone_name: Lazio centrale
-  phenomena: []
-max_level: 3
-total_alerts: 2
-friendly_name: DPC Vigilance
-```
-
-</details>
-
-<details open>
-<summary>Representation of the attributes present in the binary sensor</summary>
-
-```yaml
+# binary_sensor.portula_hydrogeological_risk_tomorrow
+state: 'on'
 attribution: Data provided by Civil Protection Department
 integration: dpc
 id: '20261114_1430'
@@ -301,262 +204,204 @@ alert: ALLERTA ARANCIONE
 level: 3
 image_url: https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Criticita-Idrogeologica-Idraulica/master/files/preview/20261114_1430_domani.png
 expires: '2026-11-16T00:00:00+01:00'
-zone_name: Bacini di Roma
+zone_name: Val Sesia, Cervo e Chiusella
 device_class: safety
-friendly_name: DPC Hydrogeological risk tomorrow
+friendly_name: Portula Hydrogeological risk tomorrow
 ```
+
+`risk`, `info` and `alert` are in Italian, as DPC writes them: these attributes are as they have always been, for existing automations.
 
 </details>
 
-### Sensors of each day
-
-Their states and attributes are translated by Home Assistant; templates and automations see the values below.
+<details>
+<summary>Sensors of each day</summary>
 
 ```yaml
-# sensor.dpc_portula_alert_today and sensor.dpc_portula_alert_tomorrow
+# sensor.portula_alert_tomorrow
 state: orange # green (no alert), yellow, orange or red
 risks: # the risks at that level, none when green
   - hydrogeological # hydraulic, thunderstorms or hydrogeological
 valid_until: '2026-11-16T00:00:00+01:00'
+description: Moderata per rischio idrogeologico # as DPC writes it
 ```
 
 ```yaml
-# sensor.dpc_portula_precipitation_today, _tomorrow and _aftertomorrow
+# sensor.portula_precipitation_today, _tomorrow and _aftertomorrow
 state: light # none, light, moderate, heavy or very_heavy
 valid_until: '2026-11-15T00:00:00+01:00'
 ```
 
 The alert of a day is the level of the bulletin, whatever the minimum level of warning of the options. After midnight, until DPC publishes the next bulletin, the alert of tomorrow is unknown.
 
-### Maps
+</details>
 
-`image.dpc_portula_criticality_map_today`, `image.dpc_portula_criticality_map_tomorrow`, `image.dpc_portula_vigilance_map_today` and `image.dpc_portula_vigilance_map_tomorrow` show the national map of the bulletin, as DPC previews it. DPC publishes no vigilance map for the day after tomorrow.
+<details>
+<summary>Maps</summary>
 
-### Weather phenomena
+Each map shows the national map of its bulletin and day, as DPC previews it. After midnight, until DPC publishes the next bulletin, the maps of tomorrow are unavailable: the dashboards hide them. DPC publishes no vigilance map for the day after tomorrow.
 
-Each phenomenon within the radius is an entity such as `geo_location.dpc_portula_wind`, named after its kind: precipitation, wind, frost, fog, sea, waves or temperature. They come and go with the bulletins.
+</details>
+
+<details>
+<summary>Weather phenomena</summary>
+
+Each phenomenon within the radius is an entity of the source `dpc`, named after its category: nearby precipitation, wind, frost, fog, sea state, waves or temperature. They come and go with the bulletins.
 
 ```yaml
-state: 23.5 # the distance from the place, in km
+# geo_location.portula_nearby_precipitation
+state: 44.3 # the distance from the place, in km
 source: dpc
-latitude: 41.75
-longitude: 12.3
+latitude: 46.07
+longitude: 8.3
+phenomenon: light_snow # shown as "Light or moderate snowfall"
 day: tomorrow # today, tomorrow or aftertomorrow
-valid_until: '2026-11-16T00:00:00+01:00'
-description: molto mosso # as DPC writes it
-direction: SW # from the place
+valid_until: '2026-11-17T00:00:00+01:00'
+direction: NNE # from the place
+description: nevicate deboli o moderate # as DPC writes it
 ```
+
+</details>
+
+<details>
+<summary>Alert and vigilance sensors</summary>
+
+```yaml
+# sensor.portula_alert
+state: 3
+attribution: Data provided by Civil Protection Department
+integration: dpc
+id: '20261114_1430'
+publication_date: '2026-11-14T14:30:00+01:00'
+last_update: '2026-11-14T15:00:00+01:00'
+link: https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-criticita/
+max_level: 3
+total_alerts: 3 # the risks at or above the minimum level of warning
+zone_name: Val Sesia, Cervo e Chiusella
+```
+
+```yaml
+# sensor.portula_vigilance
+state: 3
+attribution: Data provided by Civil Protection Department
+integration: dpc
+id: '20261114'
+publication_date: '2026-11-14T00:00:00+01:00'
+last_update: '2026-11-14T15:00:00+01:00'
+link: https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-vigilanza/
+total_phenomena: 2
+max_level: 3
+total_alerts: 2 # the days at or above the minimum level of warning
+zone_name: Novarese, vercellese, biellese
+```
+
+</details>
 
 ## Automation examples
 
-The examples use a place named DPC without municipality, as in `sensor.dpc_alert`: replace `dpc` with the start of your entity IDs, e.g. `dpc_portula`.
+The examples use Portula: replace `portula` with the start of the entity IDs of your place, and `notify.mobile_app_your_phone` with your notification. Paste an example into the YAML editor of a new automation. The messages are in the language of Home Assistant.
 
-### Automation example using the sensors (Compatible with UI Automation Editor)
+<details>
+<summary>Notify the alert of today or tomorrow</summary>
 
 ```yaml
-alias: protezione_civile_notifications_criticita_sensor
-trigger:
-  - platform: state
+alias: DPC alert
+triggers:
+  - trigger: state
     entity_id:
-      - sensor.dpc_alert
-condition:
-  - condition: template
-    value_template: >-
-      {{ not trigger.from_state.state in ["unavailable","unknown"]  and (
-      trigger.from_state.attributes.total_alerts !=
-      trigger.to_state.attributes.total_alerts or
-          ( trigger.to_state.attributes.id != trigger.from_state.attributes.id and trigger.to_state.attributes.total_alerts > 0 )) }}
-action:
-  - variables:
-      BULLETIN: >-
-        https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-criticita
-      WARNING_SIGN:
-        "0": ⚪
-        "1": 🟢
-        "2": 🟡
-        "3": 🟠
-        "4": 🔴
-      WARN_DPC:
-        none: ❌
-        Temporali: ⚡
-        Idraulico: 💧
-        Idrogeologico: 🌊
-      ENTITY: "{{ trigger.entity_id |default('sensor.dpc', true) }}"
-      DAYS:
-        "1": today
-        "2": tomorrow
-      GIORNI:
-        "1": oggi
-        "2": domani
-  - repeat:
-      while:
-        - condition: template
-          value_template: "{{ repeat.index <= DAYS|length }}"
-      sequence:
-        - variables:
-            giorno: "{{ GIORNI[repeat.index|string] }}"
-            day: "{{ DAYS[repeat.index|string] }}"
-            event: "{{ 'events_' + day }}"
-        - choose:
-            - conditions:
-                - condition: template
-                  value_template: "{{ state_attr(ENTITY, event) is not none }}"
-              sequence:
-                - service: notify.discord
-                  data:
-                    title: DPC Criticità
-                    message: >
-                      {% set attr = state_attr(ENTITY, event) %}
-
-                      Criticità per {{giorno}}
-
-                      {%- for d in attr %}
-
-                      {{WARNING_SIGN[d['level']|string]}} {{ WARN_DPC[d['risk']]
-                      }} {{ d['info'] }} {{ d['alert'] }} per rischio {{
-                      d['risk'] }}.
-
-                      {%- endfor %}
-
-                      Zona: {{ state_attr(ENTITY, 'zone_name') }}
+      - sensor.portula_alert_today
+      - sensor.portula_alert_tomorrow
+    to:
+      - yellow
+      - orange
+      - red
+actions:
+  - action: notify.mobile_app_your_phone
+    data:
+      title: "{{ state_attr(trigger.entity_id, 'friendly_name') }}"
+      message: "{{ state_translated(trigger.entity_id) }}"
 mode: queued
-max_exceeded: silent
-max: 10
 ```
 
+For example *Portula Alert tomorrow: Orange alert*, when the alert of a day becomes yellow, orange or red, or changes between them.
+
+</details>
+
+<details>
+<summary>Notify a risk at the minimum level of warning</summary>
+
 ```yaml
-alias: protezione_civile_notifications_vigilance_sensor
-trigger:
-  - platform: state
+alias: DPC risks
+triggers:
+  - trigger: state
     entity_id:
-      - sensor.dpc_vigilance
-condition:
-  - condition: template
-    value_template: >-
-      {{ trigger.from_state.state not in ["unavailable","unknown"]  and (
-      trigger.from_state.attributes.total_alerts !=
-      trigger.to_state.attributes.total_alerts or
-          ( trigger.to_state.attributes.id != trigger.from_state.attributes.id and
-          ( trigger.to_state.attributes.total_phenomena > 0 or trigger.to_state.attributes.total_alerts > 0 ))) }}
-action:
-  - variables:
-      BULLETIN: >-
-        https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-vigilanza
-      ENTITY: "{{ trigger.entity_id |default('sensor.dpc_vigilance', true) }}"
-      DAYS:
-        "1": today
-        "2": tomorrow
-        "3": aftertomorrow
-      GIORNI:
-        "1": oggi
-        "2": domani
-        "3": dopodomani
-      WARNING_SIGN:
-        "0": ⚪
-        "1": 🟢
-        "2": 🟡
-        "3": 🟠
-        "4": 🔴
-  - repeat:
-      while:
-        - condition: template
-          value_template: "{{ repeat.index <= DAYS|length }}"
-      sequence:
-        - variables:
-            giorno: "{{ GIORNI[repeat.index|string] }}"
-            day: "{{ DAYS[repeat.index|string] }}"
-        - choose:
-            - conditions:
-                - condition: template
-                  value_template: "{{ state_attr(ENTITY, day) is not none }}"
-                - condition: template
-                  value_template: "{{ state_attr(ENTITY, day).level|default|int > 1 }}"
-              sequence:
-                - service: notify.pushover
-                  data:
-                    title: DPC Vigilanza Meteo
-                    message: >
-                      {% set attr = state_attr(ENTITY, day) %}
-
-                      Vigilanza meteo per {{giorno}}
-
-                      {{WARNING_SIGN[attr['level']|string]}} Quantitativi
-                      previsti {{attr['precipitation']}}
-
-                      {% if 'phenomena' in attr %}
-
-                      Fenomeni nelle vicinanze:
-
-                      {% for f in attr['phenomena'] %}
-
-                      ➡️ {{f.event}}: {{f.value}} in direzione {{f.direction}}
-                      alla distanza di {{f.distance}}km.
-
-                      {% endfor %}
-
-                      {% endif %}
-
-
-                      Zona: {{ state_attr(ENTITY, 'zone_name') }}
+      - binary_sensor.portula_hydraulic_risk_today
+      - binary_sensor.portula_thunderstorm_risk_today
+      - binary_sensor.portula_hydrogeological_risk_today
+      - binary_sensor.portula_hydraulic_risk_tomorrow
+      - binary_sensor.portula_thunderstorm_risk_tomorrow
+      - binary_sensor.portula_hydrogeological_risk_tomorrow
+    to: "on"
+actions:
+  - action: notify.mobile_app_your_phone
+    data:
+      title: "{{ state_attr(trigger.entity_id, 'friendly_name') }}"
+      message: "Level {{ state_attr(trigger.entity_id, 'level') }} of 4"
 mode: queued
-max_exceeded: silent
-max: 10
 ```
 
-### Automation example using the binary sensor (Compatible with UI Automation Editor)
+The binary sensors turn on at the minimum level of warning of the options, one risk at a time.
+
+</details>
+
+<details>
+<summary>Notify heavy precipitation</summary>
 
 ```yaml
-automation:
-  - alias: Protezione Civile Notifications
-    mode: queued
-    max_exceeded: silent
-    max: 10
-    trigger:
-      - platform: state
-        entity_id:
-          - binary_sensor.dpc_idrogeologico_oggi
-          - binary_sensor.dpc_idraulico_oggi
-          - binary_sensor.dpc_temporali_oggi
-          - binary_sensor.dpc_idrogeologico_domani
-          - binary_sensor.dpc_idraulico_domani
-          - binary_sensor.dpc_temporali_domani
-    condition:
-      - condition: template
-        value_template: >-
-          {{ trigger.to_state.state == 'on' and (trigger.from_state.state == 'off'
-          or (trigger.to_state.attributes != trigger.from_state.attributes))}}
-    action:
-      - variables:
-          BULLETIN: "https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-criticita"
-          dpc_tts_msg: >-
-            {% set attr = trigger.to_state.attributes if trigger.to_state is defined else ({}) %}
-            Attenzione. {{ attr.get('friendly_name','Test DPC') }}.
-            Allerta {{ attr.get('alert','Bianca') }} {{ attr.get('info','Nessuna info') }}.
-      - service: notify.pushover
-        data:
-          title: >-
-            {% set attr = trigger.to_state.attributes if trigger.to_state is defined else ({}) %}
-            Protezione Civile - {{ attr.get('risk') }}
-          message: |
-            {% set attr = trigger.to_state.attributes if trigger.to_state is defined else ({}) %}
-            {% set alert = {'0': '⚪', '1':'🟢', '2':'🟡', '3':'🟠', '4': '🔴'} %}
-            {% set risk = {none: '❌', 'Temporali':'⚡', 'Idraulico':'💧', 'Idrogeologico':'🌊'} %}
-            {{ risk[attr.get('risk')] }} {{ attr.get('friendly_name','Test DPC') }}.
-            {{ alert[attr.get('level', 0)|string] }} {{ attr.get('alert','Bianca') }}
-            {{ attr.get('info','No info') }}.
-
-            Bollettino di criticità {{ attr.get('link', BULLETIN) }}
-      - service: tts.google_translate_say
-        data:
-          message: "{{ dpc_tts_msg }}"
-          entity_id: media_player.red
-      - service: notify.alexa_media
-        data:
-          message: "{{ dpc_tts_msg }}"
-          data:
-            type: tts
-          target: "media_player.studio"
+alias: DPC precipitation
+triggers:
+  - trigger: state
+    entity_id:
+      - sensor.portula_precipitation_today
+      - sensor.portula_precipitation_tomorrow
+      - sensor.portula_precipitation_aftertomorrow
+    to:
+      - moderate
+      - heavy
+      - very_heavy
+actions:
+  - action: notify.mobile_app_your_phone
+    data:
+      title: "{{ state_attr(trigger.entity_id, 'friendly_name') }}"
+      message: "{{ state_translated(trigger.entity_id) }}"
+mode: queued
 ```
+
+</details>
+
+<details>
+<summary>Notify a weather phenomenon near home</summary>
+
+```yaml
+alias: DPC phenomena near home
+triggers:
+  - trigger: geo_location
+    source: dpc
+    zone: zone.around_home
+    event: enter
+actions:
+  - action: notify.mobile_app_your_phone
+    data:
+      title: "{{ state_attr(trigger.to_state.entity_id, 'friendly_name') }}"
+      message: >-
+        {{ state_attr_translated(trigger.to_state.entity_id, 'phenomenon') }},
+        {{ trigger.to_state.state }} km
+        {{ state_attr(trigger.to_state.entity_id, 'direction') }}
+mode: queued
+```
+
+`zone.around_home` is a zone you create around home, with the radius you care about, such as 20 km, in **Settings → Areas, labels & zones → Zones**: the zone Home is usually too small. The automation runs when a phenomenon of the bulletin is inside it, for example *Portula Nearby precipitation: Light or moderate snowfall, 44.3 km NNE*. `state_attr_translated` needs Home Assistant 2026.4 or newer.
+
+</details>
 
 ## License
 

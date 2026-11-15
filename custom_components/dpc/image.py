@@ -2,15 +2,10 @@
 
 from __future__ import annotations
 
-import base64
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from homeassistant.components.image import (
-    ENTITY_ID_FORMAT,
-    ImageEntity,
-    ImageEntityDescription,
-)
+from homeassistant.components.image import ImageEntity, ImageEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -18,17 +13,10 @@ from homeassistant.util import dt as dt_util
 
 from .const import ATTR_TODAY, ATTR_TOMORROW
 from .coordinator import DpcConfigEntry, DpcData, DpcDataUpdateCoordinator
-from .entity import DpcEntity, place_entity_id
+from .entity import DpcEntity
 
 # The coordinator updates the entities: nothing to limit
 PARALLEL_UPDATES = 0
-
-# A generic placeholder used when DPC has no map for a day yet, such as when the
-# bulletin covers only today and tomorrow and the next day is still unavailable.
-PLACEHOLDER_IMAGE = base64.b64decode(
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAF" \
-    "tig3AAAAAXNSR0IAr+s3AAAAA1JREFUGFdjYAAAAAIAAeIhvAAAAABJRU5ErkJggg=="
-)
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -111,7 +99,6 @@ class DpcMapImage(DpcEntity, ImageEntity):
         DpcEntity.__init__(self, coordinator, entry)
         ImageEntity.__init__(self, hass)
         self.entity_description = description
-        self.entity_id = place_entity_id(ENTITY_ID_FORMAT, entry, description.key)
         self._attr_unique_id = f"{entry.unique_id}-{description.key}"
         self._show_the_map_of_the_day()
 
@@ -121,11 +108,14 @@ class DpcMapImage(DpcEntity, ImageEntity):
         self._show_the_map_of_the_day()
         super()._handle_coordinator_update()
 
-    async def async_image(self) -> bytes | None:
-        """Return the map preview or a generic placeholder when no map exists."""
-        if self.image_url is not None:
-            return await super().async_image()
-        return PLACEHOLDER_IMAGE
+    @property
+    def available(self) -> bool:
+        """Return whether the day has a map.
+
+        After midnight, until DPC publishes the next bulletin, tomorrow has
+        none: unavailable, the map is not shown at all instead of broken.
+        """
+        return super().available and self._attr_image_url is not None
 
     def _show_the_map_of_the_day(self) -> None:
         """Point to the map of the day, and forget the previous one if it changed."""

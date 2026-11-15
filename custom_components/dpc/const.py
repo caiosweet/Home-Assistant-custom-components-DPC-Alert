@@ -5,7 +5,7 @@ from datetime import timedelta
 import logging
 from typing import Final
 
-from aiodpc import AlertLevel, PhenomenonCategory, Precipitation, RiskType
+from aiodpc import AlertLevel, Precipitation, RiskType
 from homeassistant.const import Platform
 
 from .version import __version__
@@ -69,8 +69,8 @@ If you have any issues with this you need to open an issue here:
 -------------------------------------------------------------------
 """
 
-# The values below are the entity attributes as the integration has always shown
-# them, mostly in Italian as DPC writes them, so automations and templates keep working.
+# The values below are attributes of the binary sensors as they have always been,
+# in Italian as DPC writes them, so automations and templates keep working.
 
 ALERT_TEXTS: Final[Mapping[AlertLevel, str]] = {
     AlertLevel.UNKNOWN: "",
@@ -86,83 +86,16 @@ RISK_NAMES: Final[Mapping[RiskType, str]] = {
     RiskType.HYDROGEOLOGICAL: "Idrogeologico",
 }
 
-RISK_ICONS: Final[Mapping[RiskType, str]] = {
-    RiskType.HYDRAULIC: "mdi:home-flood",
-    RiskType.THUNDERSTORMS: "mdi:weather-lightning",
-    RiskType.HYDROGEOLOGICAL: "mdi:waves",
-}
-
-PRECIPITATION_TEXTS: Final[Mapping[Precipitation, str | None]] = {
-    Precipitation.UNKNOWN: None,
-    Precipitation.NONE: "Assenti o non rilevanti",
-    Precipitation.LIGHT: "Deboli",
-    Precipitation.MODERATE: "Moderati",
-    Precipitation.HEAVY: "Elevati",
-    Precipitation.VERY_HEAVY: "Molto elevati",
-}
-
-PRECIPITATION_ICONS: Final[Mapping[Precipitation, str | None]] = {
-    Precipitation.UNKNOWN: None,
-    Precipitation.NONE: "mdi:numeric-1-circle",
-    Precipitation.LIGHT: "mdi:numeric-2-circle",
-    Precipitation.MODERATE: "mdi:numeric-3-circle",
-    Precipitation.HEAVY: "mdi:numeric-4-circle",
-    Precipitation.VERY_HEAVY: "mdi:numeric-5-circle",
-}
-
-PHENOMENON_CATEGORY_NAMES: Final[Mapping[PhenomenonCategory, str]] = {
-    PhenomenonCategory.PRECIPITATION: "Precipitazioni",
-    PhenomenonCategory.WIND: "Venti",
-    PhenomenonCategory.FROST: "Gelate",
-    PhenomenonCategory.FOG: "Nebbie",
-    PhenomenonCategory.SEA: "Mari",
-    PhenomenonCategory.WAVE_MOTION: "Moto_ondoso",
-    PhenomenonCategory.TEMPERATURE: "Temperature",
-}
-
-DEFAULT_PHENOMENON_ICON = "mdi:hazard-lights"
-PHENOMENON_ICONS: Final[Mapping[int, str]] = {
-    1: "mdi:water",
-    2: "mdi:water-plus",
-    3: "mdi:snowflake",
-    4: "mdi:snowflake-alert",
-    5: "mdi:lightning-bolt",
-    6: "mdi:flash",
-    7: "mdi:flash-alert",
-    10: "mdi:weather-windy-variant",
-    11: "mdi:weather-windy",
-    12: "mdi:windsock",
-    13: "mdi:wind-turbine",
-    20: "mdi:image-filter-hdr",
-    21: "mdi:snowflake-variant",
-    30: "mdi:weather-fog",
-    31: "mdi:weather-hazy",
-    40: "mdi:waves",
-    41: "mdi:waves",
-    42: "mdi:hydro-power",
-    50: "mdi:arrow-up-thick",
-    51: "mdi:arrow-down-thick",
-    60: "mdi:thermometer-chevron-up",
-    61: "mdi:thermometer-plus",
-    62: "mdi:thermometer-chevron-down",
-    63: "mdi:thermometer-minus",
-}
-"""Icons of the DPC phenomenon codes (``id_fenomeno``)."""
-
 ATTR_AFTERTOMORROW = "aftertomorrow"
 ATTR_ALERT = "alert"
 ATTR_ID = "id"
 ATTR_EXPIRES = "expires"
-ATTR_EVENTS_TODAY = "events_today"
-ATTR_EVENTS_TOMORROW = "events_tomorrow"
 ATTR_IMAGE_URL = "image_url"
 ATTR_INFO = "info"
 ATTR_LAST_UPDATE = "last_update"
 ATTR_LEVEL = "level"
 ATTR_LINK = "link"
 ATTR_MAX_LEVEL = "max_level"
-ATTR_PHENOMENA = "phenomena"
-ATTR_PRECIPITATION = "precipitation"
 ATTR_PUBLICATION_DATE = "publication_date"
 ATTR_RISK = "risk"
 ATTR_TODAY = "today"
@@ -177,6 +110,7 @@ ATTR_ZONE_NAME = "zone_name"
 ATTR_DAY = "day"
 ATTR_DESCRIPTION = "description"
 ATTR_DIRECTION = "direction"
+ATTR_PHENOMENON = "phenomenon"
 ATTR_RISKS = "risks"
 ATTR_VALID_UNTIL = "valid_until"
 

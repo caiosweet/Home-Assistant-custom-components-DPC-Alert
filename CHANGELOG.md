@@ -8,32 +8,62 @@ that followed them.
 
 ## [Unreleased]
 
+### Breaking changes
+
+- **The alert and vigilance sensors no longer repeat the days of the
+  bulletins.** `sensor.<place>_alert` loses `today`, `tomorrow`,
+  `events_today` and `events_tomorrow`; `sensor.<place>_vigilance` loses
+  `today`, `tomorrow` and `aftertomorrow`. Their state and the other
+  attributes (`max_level`, `total_alerts`, `zone_name`...) do not change.
+  Templates that read the days use the new entities instead:
+
+  | Before | Now |
+  | --- | --- |
+  | `state_attr('sensor.<place>_alert', 'today').level` | `states('sensor.<place>_alert_today')`: green, yellow, orange or red |
+  | `….today.info`, `….today.expires` | the `description` and `valid_until` of `sensor.<place>_alert_today` |
+  | `events_today`, `events_tomorrow` | the binary sensors of the risks, or the `risks` of `sensor.<place>_alert_today` |
+  | `….today.image_url` | `image.<place>_criticality_map_today` |
+  | `state_attr('sensor.<place>_vigilance', 'today').precipitation` | `states('sensor.<place>_precipitation_today')` |
+  | `….today.phenomena` | the entities `geo_location.<place>_nearby_…` |
+
+  The binary sensors of the risks keep all their attributes.
+
 ### Added
 
 - **The DPC Alert dashboard**: in **Settings → Dashboards → Add dashboard**,
   under Community dashboards. It has a tab for each place, with the alert of
   each day, a banner for each risk at or above the warning level, the expected
   precipitation, the phenomena on a map and the maps of the bulletins, all
-  with the cards of Home Assistant. Adding a place now ends with a pointer to
-  it.
+  with the cards of Home Assistant. What has no data, such as the maps of
+  tomorrow after midnight, is hidden. Adding a place now ends with a pointer
+  to it.
 - Sensors of each day, translated by Home Assistant, which dashboards show
   without templates: the alert of today and tomorrow
-  (`sensor.dpc_<place>_alert_today`: no alert, yellow, orange or red), with
-  the risks at that level in `risks`, and the expected precipitation of today,
-  tomorrow and the day after (`sensor.dpc_<place>_precipitation_today`: none
-  to very heavy).
+  (`sensor.<place>_alert_today`: no alert, yellow, orange or red), with the
+  risks at that level in `risks` and the summary of DPC in `description`, and
+  the expected precipitation of today, tomorrow and the day after
+  (`sensor.<place>_precipitation_today`: none to very heavy).
 - The criticality and vigilance maps of today and tomorrow as images
-  (`image.dpc_<place>_criticality_map_today` and so on), for a picture card
-  instead of an iframe.
+  (`image.<place>_criticality_map_today` and so on), for a picture card
+  instead of an iframe. A map is unavailable while its day has none.
 - The weather phenomena within the radius as geolocation entities of the
-  source `dpc`: the map card shows them with `geo_location_sources: [dpc]`.
+  source `dpc`, such as `geo_location.<place>_nearby_wind`: the map card shows
+  them with `geo_location_sources: [dpc]`. Their `phenomenon` (gale, light
+  snowfall...) is translated, next to the legend of DPC in `description`.
 - The options can turn off the maps and the phenomena, like the sensors.
 
 ### Changed
 
+- **Entity IDs of new places** are made by Home Assistant from the device and
+  the English names, as for other integrations: `sensor.portula_alert`,
+  `binary_sensor.portula_hydraulic_risk_today`. Existing entities keep their
+  IDs, such as `binary_sensor.dpc_portula_idraulico_oggi`; **Recreate entity
+  IDs**, in **Settings → Entities**, now gives them the new ones.
 - The README shows the dashboard and the cards of Home Assistant, instead of
   layouts that needed other cards (card-mod, auto-entities,
-  config-template-card, card-templater).
+  config-template-card, card-templater), and its automation examples use the
+  translated states.
+- Requires aiodpc 0.6.0.
 
 ### Fixed
 

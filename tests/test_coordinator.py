@@ -19,7 +19,7 @@ from homeassistant.const import (
     Platform,
 )
 from homeassistant.config_entries import ConfigEntryState
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, State
 from homeassistant.setup import async_setup_component
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -39,6 +39,7 @@ from . import (
     CRIT_ID,
     LATITUDE,
     LONGITUDE,
+    UNIQUE_ID,
     binary_sensor_unique_id,
     geojson_requests,
     get_entity_id,
@@ -85,6 +86,12 @@ def criticality_attributes(hass: HomeAssistant) -> dict[str, Any]:
     return hass.states.get(entity_id).attributes
 
 
+def alert_of(hass: HomeAssistant, day: str) -> State:
+    """Return the state of the alert sensor of a day: today or tomorrow."""
+    entity_id = get_entity_id(hass, Platform.SENSOR, f"{UNIQUE_ID}-alert_{day}")
+    return hass.states.get(entity_id)
+
+
 def risk_state(hass: HomeAssistant, kind: str) -> str:
     """Return the state of the binary sensor of a risk kind."""
     entity_id = get_entity_id(
@@ -107,10 +114,8 @@ async def update(hass: HomeAssistant, entry: MockConfigEntry) -> None:
 @pytest.mark.usefixtures("init_integration")
 async def test_expires_on_publication_day(hass: HomeAssistant) -> None:
     """Test the expiration of the bulletin issued on 2026-11-14 on that day."""
-    attributes = criticality_attributes(hass)
-
-    assert attributes["today"]["expires"] == rome(2026, 11, 15)
-    assert attributes["tomorrow"]["expires"] == rome(2026, 11, 16)
+    assert alert_of(hass, "today").attributes["valid_until"] == rome(2026, 11, 15)
+    assert alert_of(hass, "tomorrow").attributes["valid_until"] == rome(2026, 11, 16)
 
 
 async def test_tomorrow_becomes_today_at_midnight(
@@ -120,16 +125,16 @@ async def test_tomorrow_becomes_today_at_midnight(
     freezer: FrozenDateTimeFactory,
 ) -> None:
     """Test that tomorrow moves to today at midnight and keeps its expiration."""
-    tomorrow = criticality_attributes(hass)["tomorrow"]
+    tomorrow = alert_of(hass, "tomorrow")
     downloaded = geojson_requests(aioclient_mock)
 
     freezer.move_to("2026-11-15 00:10:00+01:00")
     await update(hass, init_integration)
 
-    attributes = criticality_attributes(hass)
-    assert attributes["today"] == tomorrow
-    assert attributes["today"]["expires"] == rome(2026, 11, 16)
-    assert "tomorrow" not in attributes
+    today = alert_of(hass, "today")
+    assert today.state == tomorrow.state
+    assert today.attributes["valid_until"] == rome(2026, 11, 16)
+    assert alert_of(hass, "tomorrow").state == STATE_UNKNOWN
     assert risk_state(hass, "idrogeologico_oggi") == STATE_ON
     assert risk_state(hass, "idrogeologico_domani") == STATE_UNKNOWN
     # The bulletin did not change, so it is not downloaded again
@@ -150,9 +155,8 @@ async def test_start_before_the_new_bulletin(
 
     # Yesterday's assessment is over, so it is not downloaded
     assert criticality_geojson_url(CRIT_ID, 0) not in geojson_requests(aioclient_mock)
-    attributes = criticality_attributes(hass)
-    assert attributes["today"]["expires"] == rome(2026, 11, 16)
-    assert "tomorrow" not in attributes
+    assert alert_of(hass, "today").attributes["valid_until"] == rome(2026, 11, 16)
+    assert alert_of(hass, "tomorrow").state == STATE_UNKNOWN
 
 
 async def test_next_bulletin_replaces_the_previous_one(
@@ -168,10 +172,9 @@ async def test_next_bulletin_replaces_the_previous_one(
 
     await update(hass, init_integration)
 
-    attributes = criticality_attributes(hass)
-    assert attributes["id"] == "20261115_1500"
-    assert attributes["today"]["expires"] == rome(2026, 11, 16)
-    assert attributes["tomorrow"]["expires"] == rome(2026, 11, 17)
+    assert criticality_attributes(hass)["id"] == "20261115_1500"
+    assert alert_of(hass, "today").attributes["valid_until"] == rome(2026, 11, 16)
+    assert alert_of(hass, "tomorrow").attributes["valid_until"] == rome(2026, 11, 17)
 
 
 async def test_bulletins_are_kept_when_dpc_is_unreachable(

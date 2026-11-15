@@ -52,22 +52,27 @@ async def test_phenomena_near_the_place(
 
     showers = nearby[SHOWERS_TODAY]
     assert showers is not None
-    assert showers.entity_id == "geo_location.dpc_precipitation"
+    assert showers.entity_id == "geo_location.dpc_nearby_precipitation"
+    assert showers.attributes["friendly_name"] == "DPC Nearby precipitation"
     assert float(showers.state) < 50
     assert showers.attributes["unit_of_measurement"] == UnitOfLength.KILOMETERS
     assert showers.attributes["source"] == DOMAIN
     assert showers.attributes["latitude"] == 41.57313
     assert showers.attributes["longitude"] == 12.67477
+    # Translated by Home Assistant: "Isolated showers or thunderstorms"
+    assert showers.attributes["phenomenon"] == "isolated_thunderstorms"
     assert showers.attributes["day"] == "today"
     assert showers.attributes["valid_until"] == rome(2026, 11, 15)
     assert (
+        # The legend as DPC writes it
         showers.attributes["description"] == "rovesci o temporali a carattere isolato"
     )
     assert showers.attributes["direction"] == "SSE"
 
     rough_sea = nearby[ROUGH_SEA_TOMORROW]
     assert rough_sea is not None
-    assert rough_sea.entity_id == "geo_location.dpc_sea"
+    assert rough_sea.entity_id == "geo_location.dpc_nearby_sea_state"
+    assert rough_sea.attributes["phenomenon"] == "moderate_sea"
     assert rough_sea.attributes["day"] == "tomorrow"
 
 

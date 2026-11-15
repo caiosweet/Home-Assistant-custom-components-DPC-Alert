@@ -78,6 +78,7 @@ export const RISK_LEVEL_COLORS = { 1: "green", 2: "yellow", 3: "orange", 4: "red
 /** The first versions of Home Assistant with the features the dashboard uses. */
 const ALERT_CARD_VERSION = [2026, 9];
 const ENTITY_NAME_VERSION = [2025, 11];
+/** States of an entity without data, such as the map of tomorrow after midnight. */
 const NO_DATA_STATES = ["unknown", "unavailable"];
 
 /** The texts of the dashboard, in the languages of the integration. */
@@ -258,8 +259,8 @@ export function slugify(name) {
 
 /**
  * Return the variants of a card, one per state, each in the color of its
- * state and visible only in that state; and the card without color for the
- * other states, such as unknown.
+ * state and visible only in that state; and the card without color for any
+ * other state. Without data (unknown, unavailable), the card is hidden.
  *
  * Cards have a fixed color: the variants give them the color of the state.
  *
@@ -513,8 +514,9 @@ if (globalThis.customElements && globalThis.HTMLElement) {
       return generateDashboard(hass);
     }
 
-    static getCreateSuggestions() {
-      return dashboardSuggestion(document.documentElement.lang || navigator.language);
+    /** @param {Hass} hass */
+    static getCreateSuggestions(hass) {
+      return dashboardSuggestion(hass.locale?.language ?? hass.language);
     }
   }
 

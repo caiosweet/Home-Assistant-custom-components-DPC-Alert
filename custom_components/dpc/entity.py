@@ -14,7 +14,6 @@ from homeassistant.const import (
 )
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from homeassistant.util import slugify
 
 from .const import (
     ATTRIBUTION,
@@ -29,25 +28,16 @@ from .const import (
 from .coordinator import DpcDataUpdateCoordinator
 
 
-def place_entity_id(entity_id_format: str, entry: ConfigEntry, suffix: str) -> str:
-    """Return <platform>.dpc_<municipality>_<suffix>, e.g. sensor.dpc_portula_alert.
-
-    The places added before 2026.11 without municipality use their name
-    instead: sensor.dpc_casa_alert, or sensor.dpc_alert for the name DPC.
-    Suggesting the ID keeps it the same in every language: Home Assistant would
-    derive it from the translated entity name. Existing entities keep their
-    registered ID, and a taken ID gets a suffix (_2).
-    """
-    place = slugify(
-        entry.options.get(CONF_MUNICIPALITY) or entry.data.get(CONF_NAME) or ""
-    )
-    prefix = DOMAIN if place in ("", DOMAIN) else f"{DOMAIN}_{place}"
-    return entity_id_format.format(f"{prefix}_{suffix}")
-
-
 class DpcEntity(CoordinatorEntity[DpcDataUpdateCoordinator]):
-    # Entity names come from translations (entity.<platform>.<translation_key>.name)
-    # and are prefixed by the device name, i.e. the configured location name.
+    """An entity of a place, named after the place and its translation key.
+
+    Home Assistant names it in its language and builds the entity ID of a new
+    entity from the English name, e.g. binary_sensor.portula_hydraulic_risk_today,
+    as it does for other integrations. The entities registered before keep
+    their ID, like binary_sensor.dpc_portula_idraulico_oggi, until the user
+    recreates it.
+    """
+
     _attr_has_entity_name = True
 
     def __init__(

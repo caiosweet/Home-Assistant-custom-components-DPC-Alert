@@ -353,18 +353,6 @@
                     "total_alerts": {
                         "name": "Número de alertas"
                     },
-                    "today": {
-                        "name": "Hoy"
-                    },
-                    "events_today": {
-                        "name": "Alertas para hoy"
-                    },
-                    "tomorrow": {
-                        "name": "Mañana"
-                    },
-                    "events_tomorrow": {
-                        "name": "Alertas para mañana"
-                    },
                     "zone_name": {
                         "name": "Zona de alerta"
                     },
@@ -390,15 +378,6 @@
                     },
                     "zone_name": {
                         "name": "Zona de vigilancia"
-                    },
-                    "today": {
-                        "name": "Hoy"
-                    },
-                    "tomorrow": {
-                        "name": "Mañana"
-                    },
-                    "aftertomorrow": {
-                        "name": "Pasado mañana"
                     },
                     "last_update": {
                         "name": "Última actualización"
@@ -436,6 +415,9 @@
                     },
                     "valid_until": {
                         "name": "Válido hasta"
+                    },
+                    "description": {
+                        "name": "Descripción del DPC"
                     }
                 }
             },
@@ -461,6 +443,9 @@
                     },
                     "valid_until": {
                         "name": "Válido hasta"
+                    },
+                    "description": {
+                        "name": "Descripción del DPC"
                     }
                 }
             },
@@ -555,7 +540,7 @@
         },
         "geo_location": {
             "precipitation": {
-                "name": "Precipitación",
+                "name": "Precipitación cercana",
                 "state_attributes": {
                     "integration": {
                         "name": "Integración"
@@ -572,15 +557,44 @@
                         "name": "Válido hasta"
                     },
                     "description": {
-                        "name": "Descripción"
+                        "name": "Descripción del DPC"
                     },
                     "direction": {
                         "name": "Dirección"
+                    },
+                    "phenomenon": {
+                        "name": "Fenómeno",
+                        "state": {
+                            "scattered_rain": "Lluvias dispersas o intermitentes",
+                            "widespread_rain": "Lluvias generalizadas y continuas",
+                            "light_snow": "Nevadas débiles o moderadas",
+                            "heavy_snow": "Nevadas abundantes",
+                            "isolated_thunderstorms": "Chubascos o tormentas aislados",
+                            "scattered_thunderstorms": "Chubascos o tormentas dispersos",
+                            "widespread_thunderstorms": "Chubascos o tormentas generalizados",
+                            "strong_wind": "Vientos fuertes",
+                            "gale": "Temporal",
+                            "storm": "Temporal duro",
+                            "frequent_gusts": "Rachas frecuentes",
+                            "ice_on_hills": "Hielo generalizado en el suelo en zonas de colina",
+                            "ice_on_plains": "Hielo generalizado en el suelo en zonas llanas",
+                            "night_fog": "Nieblas generalizadas por la noche y a primera hora de la mañana",
+                            "persistent_fog": "Nieblas generalizadas y persistentes también durante el día",
+                            "moderate_sea": "Marejada",
+                            "rough_sea": "Fuerte marejada o mar gruesa",
+                            "high_sea": "Mar muy gruesa o arbolada",
+                            "rising_waves": "Oleaje en aumento",
+                            "falling_waves": "Oleaje en disminución",
+                            "high_temperatures": "Temperaturas altas o en notable ascenso",
+                            "very_high_temperatures": "Temperaturas muy altas o en marcado ascenso",
+                            "low_temperatures": "Temperaturas bajas o en notable descenso",
+                            "very_low_temperatures": "Temperaturas muy bajas o en marcado descenso"
+                        }
                     }
                 }
             },
             "wind": {
-                "name": "Viento",
+                "name": "Viento cercano",
                 "state_attributes": {
                     "integration": {
                         "name": "Integración"
@@ -597,15 +611,44 @@
                         "name": "Válido hasta"
                     },
                     "description": {
-                        "name": "Descripción"
+                        "name": "Descripción del DPC"
                     },
                     "direction": {
                         "name": "Dirección"
+                    },
+                    "phenomenon": {
+                        "name": "Fenómeno",
+                        "state": {
+                            "scattered_rain": "Lluvias dispersas o intermitentes",
+                            "widespread_rain": "Lluvias generalizadas y continuas",
+                            "light_snow": "Nevadas débiles o moderadas",
+                            "heavy_snow": "Nevadas abundantes",
+                            "isolated_thunderstorms": "Chubascos o tormentas aislados",
+                            "scattered_thunderstorms": "Chubascos o tormentas dispersos",
+                            "widespread_thunderstorms": "Chubascos o tormentas generalizados",
+                            "strong_wind": "Vientos fuertes",
+                            "gale": "Temporal",
+                            "storm": "Temporal duro",
+                            "frequent_gusts": "Rachas frecuentes",
+                            "ice_on_hills": "Hielo generalizado en el suelo en zonas de colina",
+                            "ice_on_plains": "Hielo generalizado en el suelo en zonas llanas",
+                            "night_fog": "Nieblas generalizadas por la noche y a primera hora de la mañana",
+                            "persistent_fog": "Nieblas generalizadas y persistentes también durante el día",
+                            "moderate_sea": "Marejada",
+                            "rough_sea": "Fuerte marejada o mar gruesa",
+                            "high_sea": "Mar muy gruesa o arbolada",
+                            "rising_waves": "Oleaje en aumento",
+                            "falling_waves": "Oleaje en disminución",
+                            "high_temperatures": "Temperaturas altas o en notable ascenso",
+                            "very_high_temperatures": "Temperaturas muy altas o en marcado ascenso",
+                            "low_temperatures": "Temperaturas bajas o en notable descenso",
+                            "very_low_temperatures": "Temperaturas muy bajas o en marcado descenso"
+                        }
                     }
                 }
             },
             "frost": {
-                "name": "Heladas",
+                "name": "Heladas cercanas",
                 "state_attributes": {
                     "integration": {
                         "name": "Integración"
@@ -622,15 +665,44 @@
                         "name": "Válido hasta"
                     },
                     "description": {
-                        "name": "Descripción"
+                        "name": "Descripción del DPC"
                     },
                     "direction": {
                         "name": "Dirección"
+                    },
+                    "phenomenon": {
+                        "name": "Fenómeno",
+                        "state": {
+                            "scattered_rain": "Lluvias dispersas o intermitentes",
+                            "widespread_rain": "Lluvias generalizadas y continuas",
+                            "light_snow": "Nevadas débiles o moderadas",
+                            "heavy_snow": "Nevadas abundantes",
+                            "isolated_thunderstorms": "Chubascos o tormentas aislados",
+                            "scattered_thunderstorms": "Chubascos o tormentas dispersos",
+                            "widespread_thunderstorms": "Chubascos o tormentas generalizados",
+                            "strong_wind": "Vientos fuertes",
+                            "gale": "Temporal",
+                            "storm": "Temporal duro",
+                            "frequent_gusts": "Rachas frecuentes",
+                            "ice_on_hills": "Hielo generalizado en el suelo en zonas de colina",
+                            "ice_on_plains": "Hielo generalizado en el suelo en zonas llanas",
+                            "night_fog": "Nieblas generalizadas por la noche y a primera hora de la mañana",
+                            "persistent_fog": "Nieblas generalizadas y persistentes también durante el día",
+                            "moderate_sea": "Marejada",
+                            "rough_sea": "Fuerte marejada o mar gruesa",
+                            "high_sea": "Mar muy gruesa o arbolada",
+                            "rising_waves": "Oleaje en aumento",
+                            "falling_waves": "Oleaje en disminución",
+                            "high_temperatures": "Temperaturas altas o en notable ascenso",
+                            "very_high_temperatures": "Temperaturas muy altas o en marcado ascenso",
+                            "low_temperatures": "Temperaturas bajas o en notable descenso",
+                            "very_low_temperatures": "Temperaturas muy bajas o en marcado descenso"
+                        }
                     }
                 }
             },
             "fog": {
-                "name": "Niebla",
+                "name": "Niebla cercana",
                 "state_attributes": {
                     "integration": {
                         "name": "Integración"
@@ -647,15 +719,44 @@
                         "name": "Válido hasta"
                     },
                     "description": {
-                        "name": "Descripción"
+                        "name": "Descripción del DPC"
                     },
                     "direction": {
                         "name": "Dirección"
+                    },
+                    "phenomenon": {
+                        "name": "Fenómeno",
+                        "state": {
+                            "scattered_rain": "Lluvias dispersas o intermitentes",
+                            "widespread_rain": "Lluvias generalizadas y continuas",
+                            "light_snow": "Nevadas débiles o moderadas",
+                            "heavy_snow": "Nevadas abundantes",
+                            "isolated_thunderstorms": "Chubascos o tormentas aislados",
+                            "scattered_thunderstorms": "Chubascos o tormentas dispersos",
+                            "widespread_thunderstorms": "Chubascos o tormentas generalizados",
+                            "strong_wind": "Vientos fuertes",
+                            "gale": "Temporal",
+                            "storm": "Temporal duro",
+                            "frequent_gusts": "Rachas frecuentes",
+                            "ice_on_hills": "Hielo generalizado en el suelo en zonas de colina",
+                            "ice_on_plains": "Hielo generalizado en el suelo en zonas llanas",
+                            "night_fog": "Nieblas generalizadas por la noche y a primera hora de la mañana",
+                            "persistent_fog": "Nieblas generalizadas y persistentes también durante el día",
+                            "moderate_sea": "Marejada",
+                            "rough_sea": "Fuerte marejada o mar gruesa",
+                            "high_sea": "Mar muy gruesa o arbolada",
+                            "rising_waves": "Oleaje en aumento",
+                            "falling_waves": "Oleaje en disminución",
+                            "high_temperatures": "Temperaturas altas o en notable ascenso",
+                            "very_high_temperatures": "Temperaturas muy altas o en marcado ascenso",
+                            "low_temperatures": "Temperaturas bajas o en notable descenso",
+                            "very_low_temperatures": "Temperaturas muy bajas o en marcado descenso"
+                        }
                     }
                 }
             },
             "sea": {
-                "name": "Mar",
+                "name": "Estado del mar cercano",
                 "state_attributes": {
                     "integration": {
                         "name": "Integración"
@@ -672,15 +773,44 @@
                         "name": "Válido hasta"
                     },
                     "description": {
-                        "name": "Descripción"
+                        "name": "Descripción del DPC"
                     },
                     "direction": {
                         "name": "Dirección"
+                    },
+                    "phenomenon": {
+                        "name": "Fenómeno",
+                        "state": {
+                            "scattered_rain": "Lluvias dispersas o intermitentes",
+                            "widespread_rain": "Lluvias generalizadas y continuas",
+                            "light_snow": "Nevadas débiles o moderadas",
+                            "heavy_snow": "Nevadas abundantes",
+                            "isolated_thunderstorms": "Chubascos o tormentas aislados",
+                            "scattered_thunderstorms": "Chubascos o tormentas dispersos",
+                            "widespread_thunderstorms": "Chubascos o tormentas generalizados",
+                            "strong_wind": "Vientos fuertes",
+                            "gale": "Temporal",
+                            "storm": "Temporal duro",
+                            "frequent_gusts": "Rachas frecuentes",
+                            "ice_on_hills": "Hielo generalizado en el suelo en zonas de colina",
+                            "ice_on_plains": "Hielo generalizado en el suelo en zonas llanas",
+                            "night_fog": "Nieblas generalizadas por la noche y a primera hora de la mañana",
+                            "persistent_fog": "Nieblas generalizadas y persistentes también durante el día",
+                            "moderate_sea": "Marejada",
+                            "rough_sea": "Fuerte marejada o mar gruesa",
+                            "high_sea": "Mar muy gruesa o arbolada",
+                            "rising_waves": "Oleaje en aumento",
+                            "falling_waves": "Oleaje en disminución",
+                            "high_temperatures": "Temperaturas altas o en notable ascenso",
+                            "very_high_temperatures": "Temperaturas muy altas o en marcado ascenso",
+                            "low_temperatures": "Temperaturas bajas o en notable descenso",
+                            "very_low_temperatures": "Temperaturas muy bajas o en marcado descenso"
+                        }
                     }
                 }
             },
             "wave_motion": {
-                "name": "Oleaje",
+                "name": "Oleaje cercano",
                 "state_attributes": {
                     "integration": {
                         "name": "Integración"
@@ -697,15 +827,44 @@
                         "name": "Válido hasta"
                     },
                     "description": {
-                        "name": "Descripción"
+                        "name": "Descripción del DPC"
                     },
                     "direction": {
                         "name": "Dirección"
+                    },
+                    "phenomenon": {
+                        "name": "Fenómeno",
+                        "state": {
+                            "scattered_rain": "Lluvias dispersas o intermitentes",
+                            "widespread_rain": "Lluvias generalizadas y continuas",
+                            "light_snow": "Nevadas débiles o moderadas",
+                            "heavy_snow": "Nevadas abundantes",
+                            "isolated_thunderstorms": "Chubascos o tormentas aislados",
+                            "scattered_thunderstorms": "Chubascos o tormentas dispersos",
+                            "widespread_thunderstorms": "Chubascos o tormentas generalizados",
+                            "strong_wind": "Vientos fuertes",
+                            "gale": "Temporal",
+                            "storm": "Temporal duro",
+                            "frequent_gusts": "Rachas frecuentes",
+                            "ice_on_hills": "Hielo generalizado en el suelo en zonas de colina",
+                            "ice_on_plains": "Hielo generalizado en el suelo en zonas llanas",
+                            "night_fog": "Nieblas generalizadas por la noche y a primera hora de la mañana",
+                            "persistent_fog": "Nieblas generalizadas y persistentes también durante el día",
+                            "moderate_sea": "Marejada",
+                            "rough_sea": "Fuerte marejada o mar gruesa",
+                            "high_sea": "Mar muy gruesa o arbolada",
+                            "rising_waves": "Oleaje en aumento",
+                            "falling_waves": "Oleaje en disminución",
+                            "high_temperatures": "Temperaturas altas o en notable ascenso",
+                            "very_high_temperatures": "Temperaturas muy altas o en marcado ascenso",
+                            "low_temperatures": "Temperaturas bajas o en notable descenso",
+                            "very_low_temperatures": "Temperaturas muy bajas o en marcado descenso"
+                        }
                     }
                 }
             },
             "temperature": {
-                "name": "Temperatura",
+                "name": "Temperatura cercana",
                 "state_attributes": {
                     "integration": {
                         "name": "Integración"
@@ -722,10 +881,39 @@
                         "name": "Válido hasta"
                     },
                     "description": {
-                        "name": "Descripción"
+                        "name": "Descripción del DPC"
                     },
                     "direction": {
                         "name": "Dirección"
+                    },
+                    "phenomenon": {
+                        "name": "Fenómeno",
+                        "state": {
+                            "scattered_rain": "Lluvias dispersas o intermitentes",
+                            "widespread_rain": "Lluvias generalizadas y continuas",
+                            "light_snow": "Nevadas débiles o moderadas",
+                            "heavy_snow": "Nevadas abundantes",
+                            "isolated_thunderstorms": "Chubascos o tormentas aislados",
+                            "scattered_thunderstorms": "Chubascos o tormentas dispersos",
+                            "widespread_thunderstorms": "Chubascos o tormentas generalizados",
+                            "strong_wind": "Vientos fuertes",
+                            "gale": "Temporal",
+                            "storm": "Temporal duro",
+                            "frequent_gusts": "Rachas frecuentes",
+                            "ice_on_hills": "Hielo generalizado en el suelo en zonas de colina",
+                            "ice_on_plains": "Hielo generalizado en el suelo en zonas llanas",
+                            "night_fog": "Nieblas generalizadas por la noche y a primera hora de la mañana",
+                            "persistent_fog": "Nieblas generalizadas y persistentes también durante el día",
+                            "moderate_sea": "Marejada",
+                            "rough_sea": "Fuerte marejada o mar gruesa",
+                            "high_sea": "Mar muy gruesa o arbolada",
+                            "rising_waves": "Oleaje en aumento",
+                            "falling_waves": "Oleaje en disminución",
+                            "high_temperatures": "Temperaturas altas o en notable ascenso",
+                            "very_high_temperatures": "Temperaturas muy altas o en marcado ascenso",
+                            "low_temperatures": "Temperaturas bajas o en notable descenso",
+                            "very_low_temperatures": "Temperaturas muy bajas o en marcado descenso"
+                        }
                     }
                 }
             }

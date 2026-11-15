@@ -353,18 +353,6 @@
                     "total_alerts": {
                         "name": "Total alerts"
                     },
-                    "today": {
-                        "name": "Today"
-                    },
-                    "events_today": {
-                        "name": "Alerts for today"
-                    },
-                    "tomorrow": {
-                        "name": "Tomorrow"
-                    },
-                    "events_tomorrow": {
-                        "name": "Alerts for tomorrow"
-                    },
                     "zone_name": {
                         "name": "Alert zone"
                     },
@@ -390,15 +378,6 @@
                     },
                     "zone_name": {
                         "name": "Vigilance zone"
-                    },
-                    "today": {
-                        "name": "Today"
-                    },
-                    "tomorrow": {
-                        "name": "Tomorrow"
-                    },
-                    "aftertomorrow": {
-                        "name": "Day after tomorrow"
                     },
                     "last_update": {
                         "name": "Last update"
@@ -436,6 +415,9 @@
                     },
                     "valid_until": {
                         "name": "Valid until"
+                    },
+                    "description": {
+                        "name": "DPC description"
                     }
                 }
             },
@@ -461,6 +443,9 @@
                     },
                     "valid_until": {
                         "name": "Valid until"
+                    },
+                    "description": {
+                        "name": "DPC description"
                     }
                 }
             },
@@ -555,7 +540,7 @@
         },
         "geo_location": {
             "precipitation": {
-                "name": "Precipitation",
+                "name": "Nearby precipitation",
                 "state_attributes": {
                     "integration": {
                         "name": "Integration"
@@ -572,15 +557,44 @@
                         "name": "Valid until"
                     },
                     "description": {
-                        "name": "Description"
+                        "name": "DPC description"
                     },
                     "direction": {
                         "name": "Direction"
+                    },
+                    "phenomenon": {
+                        "name": "Phenomenon",
+                        "state": {
+                            "scattered_rain": "Scattered or intermittent rain",
+                            "widespread_rain": "Widespread and continuous rain",
+                            "light_snow": "Light or moderate snowfall",
+                            "heavy_snow": "Heavy snowfall",
+                            "isolated_thunderstorms": "Isolated showers or thunderstorms",
+                            "scattered_thunderstorms": "Scattered showers or thunderstorms",
+                            "widespread_thunderstorms": "Widespread showers or thunderstorms",
+                            "strong_wind": "Strong wind",
+                            "gale": "Gale",
+                            "storm": "Storm",
+                            "frequent_gusts": "Frequent gusts",
+                            "ice_on_hills": "Widespread ice on the ground in the hills",
+                            "ice_on_plains": "Widespread ice on the ground in the plains",
+                            "night_fog": "Widespread fog at night and early morning",
+                            "persistent_fog": "Widespread fog, persisting in the daytime",
+                            "moderate_sea": "Moderate sea",
+                            "rough_sea": "Rough or very rough sea",
+                            "high_sea": "High or very high sea",
+                            "rising_waves": "Rising waves",
+                            "falling_waves": "Falling waves",
+                            "high_temperatures": "High or noticeably rising temperatures",
+                            "very_high_temperatures": "Very high or sharply rising temperatures",
+                            "low_temperatures": "Low or noticeably falling temperatures",
+                            "very_low_temperatures": "Very low or sharply falling temperatures"
+                        }
                     }
                 }
             },
             "wind": {
-                "name": "Wind",
+                "name": "Nearby wind",
                 "state_attributes": {
                     "integration": {
                         "name": "Integration"
@@ -597,15 +611,44 @@
                         "name": "Valid until"
                     },
                     "description": {
-                        "name": "Description"
+                        "name": "DPC description"
                     },
                     "direction": {
                         "name": "Direction"
+                    },
+                    "phenomenon": {
+                        "name": "Phenomenon",
+                        "state": {
+                            "scattered_rain": "Scattered or intermittent rain",
+                            "widespread_rain": "Widespread and continuous rain",
+                            "light_snow": "Light or moderate snowfall",
+                            "heavy_snow": "Heavy snowfall",
+                            "isolated_thunderstorms": "Isolated showers or thunderstorms",
+                            "scattered_thunderstorms": "Scattered showers or thunderstorms",
+                            "widespread_thunderstorms": "Widespread showers or thunderstorms",
+                            "strong_wind": "Strong wind",
+                            "gale": "Gale",
+                            "storm": "Storm",
+                            "frequent_gusts": "Frequent gusts",
+                            "ice_on_hills": "Widespread ice on the ground in the hills",
+                            "ice_on_plains": "Widespread ice on the ground in the plains",
+                            "night_fog": "Widespread fog at night and early morning",
+                            "persistent_fog": "Widespread fog, persisting in the daytime",
+                            "moderate_sea": "Moderate sea",
+                            "rough_sea": "Rough or very rough sea",
+                            "high_sea": "High or very high sea",
+                            "rising_waves": "Rising waves",
+                            "falling_waves": "Falling waves",
+                            "high_temperatures": "High or noticeably rising temperatures",
+                            "very_high_temperatures": "Very high or sharply rising temperatures",
+                            "low_temperatures": "Low or noticeably falling temperatures",
+                            "very_low_temperatures": "Very low or sharply falling temperatures"
+                        }
                     }
                 }
             },
             "frost": {
-                "name": "Frost",
+                "name": "Nearby frost",
                 "state_attributes": {
                     "integration": {
                         "name": "Integration"
@@ -622,15 +665,44 @@
                         "name": "Valid until"
                     },
                     "description": {
-                        "name": "Description"
+                        "name": "DPC description"
                     },
                     "direction": {
                         "name": "Direction"
+                    },
+                    "phenomenon": {
+                        "name": "Phenomenon",
+                        "state": {
+                            "scattered_rain": "Scattered or intermittent rain",
+                            "widespread_rain": "Widespread and continuous rain",
+                            "light_snow": "Light or moderate snowfall",
+                            "heavy_snow": "Heavy snowfall",
+                            "isolated_thunderstorms": "Isolated showers or thunderstorms",
+                            "scattered_thunderstorms": "Scattered showers or thunderstorms",
+                            "widespread_thunderstorms": "Widespread showers or thunderstorms",
+                            "strong_wind": "Strong wind",
+                            "gale": "Gale",
+                            "storm": "Storm",
+                            "frequent_gusts": "Frequent gusts",
+                            "ice_on_hills": "Widespread ice on the ground in the hills",
+                            "ice_on_plains": "Widespread ice on the ground in the plains",
+                            "night_fog": "Widespread fog at night and early morning",
+                            "persistent_fog": "Widespread fog, persisting in the daytime",
+                            "moderate_sea": "Moderate sea",
+                            "rough_sea": "Rough or very rough sea",
+                            "high_sea": "High or very high sea",
+                            "rising_waves": "Rising waves",
+                            "falling_waves": "Falling waves",
+                            "high_temperatures": "High or noticeably rising temperatures",
+                            "very_high_temperatures": "Very high or sharply rising temperatures",
+                            "low_temperatures": "Low or noticeably falling temperatures",
+                            "very_low_temperatures": "Very low or sharply falling temperatures"
+                        }
                     }
                 }
             },
             "fog": {
-                "name": "Fog",
+                "name": "Nearby fog",
                 "state_attributes": {
                     "integration": {
                         "name": "Integration"
@@ -647,15 +719,44 @@
                         "name": "Valid until"
                     },
                     "description": {
-                        "name": "Description"
+                        "name": "DPC description"
                     },
                     "direction": {
                         "name": "Direction"
+                    },
+                    "phenomenon": {
+                        "name": "Phenomenon",
+                        "state": {
+                            "scattered_rain": "Scattered or intermittent rain",
+                            "widespread_rain": "Widespread and continuous rain",
+                            "light_snow": "Light or moderate snowfall",
+                            "heavy_snow": "Heavy snowfall",
+                            "isolated_thunderstorms": "Isolated showers or thunderstorms",
+                            "scattered_thunderstorms": "Scattered showers or thunderstorms",
+                            "widespread_thunderstorms": "Widespread showers or thunderstorms",
+                            "strong_wind": "Strong wind",
+                            "gale": "Gale",
+                            "storm": "Storm",
+                            "frequent_gusts": "Frequent gusts",
+                            "ice_on_hills": "Widespread ice on the ground in the hills",
+                            "ice_on_plains": "Widespread ice on the ground in the plains",
+                            "night_fog": "Widespread fog at night and early morning",
+                            "persistent_fog": "Widespread fog, persisting in the daytime",
+                            "moderate_sea": "Moderate sea",
+                            "rough_sea": "Rough or very rough sea",
+                            "high_sea": "High or very high sea",
+                            "rising_waves": "Rising waves",
+                            "falling_waves": "Falling waves",
+                            "high_temperatures": "High or noticeably rising temperatures",
+                            "very_high_temperatures": "Very high or sharply rising temperatures",
+                            "low_temperatures": "Low or noticeably falling temperatures",
+                            "very_low_temperatures": "Very low or sharply falling temperatures"
+                        }
                     }
                 }
             },
             "sea": {
-                "name": "Sea",
+                "name": "Nearby sea state",
                 "state_attributes": {
                     "integration": {
                         "name": "Integration"
@@ -672,15 +773,44 @@
                         "name": "Valid until"
                     },
                     "description": {
-                        "name": "Description"
+                        "name": "DPC description"
                     },
                     "direction": {
                         "name": "Direction"
+                    },
+                    "phenomenon": {
+                        "name": "Phenomenon",
+                        "state": {
+                            "scattered_rain": "Scattered or intermittent rain",
+                            "widespread_rain": "Widespread and continuous rain",
+                            "light_snow": "Light or moderate snowfall",
+                            "heavy_snow": "Heavy snowfall",
+                            "isolated_thunderstorms": "Isolated showers or thunderstorms",
+                            "scattered_thunderstorms": "Scattered showers or thunderstorms",
+                            "widespread_thunderstorms": "Widespread showers or thunderstorms",
+                            "strong_wind": "Strong wind",
+                            "gale": "Gale",
+                            "storm": "Storm",
+                            "frequent_gusts": "Frequent gusts",
+                            "ice_on_hills": "Widespread ice on the ground in the hills",
+                            "ice_on_plains": "Widespread ice on the ground in the plains",
+                            "night_fog": "Widespread fog at night and early morning",
+                            "persistent_fog": "Widespread fog, persisting in the daytime",
+                            "moderate_sea": "Moderate sea",
+                            "rough_sea": "Rough or very rough sea",
+                            "high_sea": "High or very high sea",
+                            "rising_waves": "Rising waves",
+                            "falling_waves": "Falling waves",
+                            "high_temperatures": "High or noticeably rising temperatures",
+                            "very_high_temperatures": "Very high or sharply rising temperatures",
+                            "low_temperatures": "Low or noticeably falling temperatures",
+                            "very_low_temperatures": "Very low or sharply falling temperatures"
+                        }
                     }
                 }
             },
             "wave_motion": {
-                "name": "Waves",
+                "name": "Nearby waves",
                 "state_attributes": {
                     "integration": {
                         "name": "Integration"
@@ -697,15 +827,44 @@
                         "name": "Valid until"
                     },
                     "description": {
-                        "name": "Description"
+                        "name": "DPC description"
                     },
                     "direction": {
                         "name": "Direction"
+                    },
+                    "phenomenon": {
+                        "name": "Phenomenon",
+                        "state": {
+                            "scattered_rain": "Scattered or intermittent rain",
+                            "widespread_rain": "Widespread and continuous rain",
+                            "light_snow": "Light or moderate snowfall",
+                            "heavy_snow": "Heavy snowfall",
+                            "isolated_thunderstorms": "Isolated showers or thunderstorms",
+                            "scattered_thunderstorms": "Scattered showers or thunderstorms",
+                            "widespread_thunderstorms": "Widespread showers or thunderstorms",
+                            "strong_wind": "Strong wind",
+                            "gale": "Gale",
+                            "storm": "Storm",
+                            "frequent_gusts": "Frequent gusts",
+                            "ice_on_hills": "Widespread ice on the ground in the hills",
+                            "ice_on_plains": "Widespread ice on the ground in the plains",
+                            "night_fog": "Widespread fog at night and early morning",
+                            "persistent_fog": "Widespread fog, persisting in the daytime",
+                            "moderate_sea": "Moderate sea",
+                            "rough_sea": "Rough or very rough sea",
+                            "high_sea": "High or very high sea",
+                            "rising_waves": "Rising waves",
+                            "falling_waves": "Falling waves",
+                            "high_temperatures": "High or noticeably rising temperatures",
+                            "very_high_temperatures": "Very high or sharply rising temperatures",
+                            "low_temperatures": "Low or noticeably falling temperatures",
+                            "very_low_temperatures": "Very low or sharply falling temperatures"
+                        }
                     }
                 }
             },
             "temperature": {
-                "name": "Temperature",
+                "name": "Nearby temperature",
                 "state_attributes": {
                     "integration": {
                         "name": "Integration"
@@ -722,10 +881,39 @@
                         "name": "Valid until"
                     },
                     "description": {
-                        "name": "Description"
+                        "name": "DPC description"
                     },
                     "direction": {
                         "name": "Direction"
+                    },
+                    "phenomenon": {
+                        "name": "Phenomenon",
+                        "state": {
+                            "scattered_rain": "Scattered or intermittent rain",
+                            "widespread_rain": "Widespread and continuous rain",
+                            "light_snow": "Light or moderate snowfall",
+                            "heavy_snow": "Heavy snowfall",
+                            "isolated_thunderstorms": "Isolated showers or thunderstorms",
+                            "scattered_thunderstorms": "Scattered showers or thunderstorms",
+                            "widespread_thunderstorms": "Widespread showers or thunderstorms",
+                            "strong_wind": "Strong wind",
+                            "gale": "Gale",
+                            "storm": "Storm",
+                            "frequent_gusts": "Frequent gusts",
+                            "ice_on_hills": "Widespread ice on the ground in the hills",
+                            "ice_on_plains": "Widespread ice on the ground in the plains",
+                            "night_fog": "Widespread fog at night and early morning",
+                            "persistent_fog": "Widespread fog, persisting in the daytime",
+                            "moderate_sea": "Moderate sea",
+                            "rough_sea": "Rough or very rough sea",
+                            "high_sea": "High or very high sea",
+                            "rising_waves": "Rising waves",
+                            "falling_waves": "Falling waves",
+                            "high_temperatures": "High or noticeably rising temperatures",
+                            "very_high_temperatures": "Very high or sharply rising temperatures",
+                            "low_temperatures": "Low or noticeably falling temperatures",
+                            "very_low_temperatures": "Very low or sharply falling temperatures"
+                        }
                     }
                 }
             }

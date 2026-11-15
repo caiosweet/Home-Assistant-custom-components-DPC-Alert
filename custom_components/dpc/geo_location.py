@@ -3,6 +3,10 @@
 Each phenomenon of the vigilance bulletin within the radius of the place is an
 entity of the source ``dpc``, so the map card shows them with
 ``geo_location_sources: [dpc]``. The entities come and go with the bulletins.
+
+An entity is named after the category of its phenomenon ("Nearby wind"), and
+its type ("Gale") is translated by Home Assistant; the DPC legend stays, in
+Italian, in its description.
 """
 
 from __future__ import annotations
@@ -11,8 +15,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 
-from aiodpc import Phenomenon, PhenomenonCategory
-from homeassistant.components.geo_location import ENTITY_ID_FORMAT, GeolocationEvent
+from aiodpc import Phenomenon, PhenomenonCategory, PhenomenonType
+from homeassistant.components.geo_location import GeolocationEvent
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform, UnitOfLength
 from homeassistant.core import HomeAssistant, callback
@@ -23,11 +27,12 @@ from .const import (
     ATTR_DAY,
     ATTR_DESCRIPTION,
     ATTR_DIRECTION,
+    ATTR_PHENOMENON,
     ATTR_VALID_UNTIL,
     DOMAIN,
 )
 from .coordinator import DpcConfigEntry, DpcData, DpcDataUpdateCoordinator
-from .entity import DpcEntity, place_entity_id
+from .entity import DpcEntity
 
 # The coordinator updates the entities: nothing to limit
 PARALLEL_UPDATES = 0
@@ -42,6 +47,7 @@ class NearbyPhenomenon:
     valid_until: datetime
     """End of the day: the midnight (Europe/Rome) that ends it."""
     category: PhenomenonCategory
+    type: PhenomenonType
     phenomenon: Phenomenon
 
 
@@ -55,12 +61,16 @@ def nearby_phenomena(entry: ConfigEntry, data: DpcData) -> dict[str, NearbyPheno
     phenomena: dict[str, NearbyPhenomenon] = {}
     for name, day in data.vigilance_days.items():
         for phenomenon in day.phenomena:
-            # Codes unknown to aiodpc have no category, nor a name to show
-            if phenomenon.category is None:
+            # Codes unknown to aiodpc have no category nor type, nothing to show
+            if phenomenon.category is None or phenomenon.type is None:
                 continue
             unique_id = f"{entry.unique_id}-{day.date.isoformat()}-{phenomenon.key}"
             phenomena[unique_id] = NearbyPhenomenon(
-                name, day.valid_until, phenomenon.category, phenomenon
+                day=name,
+                valid_until=day.valid_until,
+                category=phenomenon.category,
+                type=phenomenon.type,
+                phenomenon=phenomenon,
             )
     return phenomena
 
@@ -122,7 +132,6 @@ class DpcPhenomenonEvent(DpcEntity, GeolocationEvent):
         super().__init__(coordinator, entry)
         self._attr_unique_id = unique_id
         self._attr_translation_key = str(nearby.category)
-        self.entity_id = place_entity_id(ENTITY_ID_FORMAT, entry, str(nearby.category))
         self._nearby: NearbyPhenomenon | None = None
         self._show(nearby)
 
@@ -149,13 +158,14 @@ class DpcPhenomenonEvent(DpcEntity, GeolocationEvent):
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
-        """Return the day of the phenomenon, its DPC legend and its direction."""
+        """Return the phenomenon, its day and direction, and the DPC legend."""
         attributes = super().extra_state_attributes
         if (nearby := self._nearby) is not None:
             attributes |= {
+                ATTR_PHENOMENON: str(nearby.type),
                 ATTR_DAY: nearby.day,
                 ATTR_VALID_UNTIL: nearby.valid_until,
-                ATTR_DESCRIPTION: nearby.phenomenon.description,
                 ATTR_DIRECTION: nearby.phenomenon.direction,
+                ATTR_DESCRIPTION: nearby.phenomenon.description,
             }
         return attributes

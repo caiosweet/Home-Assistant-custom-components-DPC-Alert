@@ -199,10 +199,10 @@ async def test_options_update_reloads_entry(
     ("name", "municipality", "device_name", "place"),
     [
         # Since 2026.11, a place is named after its alert zone
-        ("Bacini di Roma", "Roma", "Roma", "dpc_roma"),
+        ("Bacini di Roma", "Roma", "Roma", "roma"),
         # Before, it had any name and no municipality, or the name DPC
-        ("Casa", "", "Casa", "dpc_casa"),
-        ("DPC", "Portula", "Portula", "dpc_portula"),
+        ("Casa", "", "Casa", "casa"),
+        ("DPC", "Portula", "Portula", "portula"),
         ("DPC", "", "DPC", "dpc"),
     ],
 )
@@ -218,7 +218,8 @@ async def test_device_and_entity_ids_of_a_place(
 ) -> None:
     """Test that a place names its device after its municipality, or itself.
 
-    Its entity IDs are dpc_<municipality>_<kind>, or dpc_<name>_<kind> without one.
+    Home Assistant builds the entity IDs from the device and the English names,
+    in any language: <municipality>_<name>, or <name of the place>_<name>.
     """
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -239,9 +240,40 @@ async def test_device_and_entity_ids_of_a_place(
     }
     assert {
         f"sensor.{place}_alert",
+        f"sensor.{place}_alert_tomorrow",
         f"sensor.{place}_vigilance",
-        f"binary_sensor.{place}_idraulico_oggi",
+        f"binary_sensor.{place}_hydraulic_risk_today",
+        f"image.{place}_criticality_map_today",
+        f"geo_location.{place}_nearby_precipitation",
     } <= entity_ids
+
+
+async def test_entity_ids_registered_before_are_kept(
+    hass: HomeAssistant,
+    entity_registry: er.EntityRegistry,
+    mock_config_entry: MockConfigEntry,
+    mock_dpc: AiohttpClientMocker,
+) -> None:
+    """Test that an entity keeps its ID, and that recreating it gives the new one."""
+    mock_config_entry.add_to_hass(hass)
+    old = entity_registry.async_get_or_create(
+        Platform.BINARY_SENSOR,
+        DOMAIN,
+        f"{UNIQUE_ID}-idraulico_oggi",
+        suggested_object_id="dpc_idraulico_oggi",
+        config_entry=mock_config_entry,
+    )
+
+    await setup_integration(hass, mock_config_entry)
+
+    entry = entity_registry.async_get(old.entity_id)
+    assert entry is not None
+    assert entry.entity_id == "binary_sensor.dpc_idraulico_oggi"
+    # What Settings → Entities → Recreate entity IDs proposes
+    assert (
+        entity_registry.async_regenerate_entity_id(entry)
+        == "binary_sensor.dpc_hydraulic_risk_today"
+    )
 
 
 async def test_places_with_the_same_name(
