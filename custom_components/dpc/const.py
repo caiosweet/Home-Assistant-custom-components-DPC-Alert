@@ -35,6 +35,14 @@ DEFAULT_WARNING_LEVEL = AlertLevel.YELLOW.value
 DEFAULT_RADIUS = 50  # Km
 DEFAULT_SCAN_INTERVAL = 30  # min
 
+SAME_MUNICIPALITY_KM: Final = 80.0
+"""Distance within which two places with the same municipality name share it.
+
+A few municipalities have the same name, far apart: Peglio is in Lombardy and
+in the Marche. Two places in Rome, the largest municipality, are less than
+60 km apart, while the nearest homonyms, the two Livo, are about 130 km apart.
+"""
+
 RETRY_INTERVAL: Final = timedelta(minutes=10)
 """Interval of the next update after a bulletin could not be fetched."""
 

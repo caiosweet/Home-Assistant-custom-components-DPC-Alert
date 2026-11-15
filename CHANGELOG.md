@@ -43,7 +43,8 @@ Entity IDs, states and the other attributes do not change.
   named, and asks for its municipality among those of the zone. The options
   ask for it too, also for the places added before ([#90]).
 - Each municipality can be added once: two places in it would get the same
-  bulletins ([#90]).
+  bulletins. Municipalities of the same name far apart, such as Peglio, in
+  Lombardy and in the Marche, are different ones ([#90]).
 - The errors of the setup are translated, and the device links to the page
   of the DPC bulletin.
 - The integration follows the Home Assistant integration quality scale up to
@@ -87,6 +88,9 @@ Entity IDs, states and the other attributes do not change.
 - The municipality option finds the municipalities of South Tyrol by their
   Italian or German name ("Bolzano" or "Bozen"); before, it used the
   coordinates instead ([#90]).
+- A municipality with the name of another one far away got the highest alert
+  of both: Peglio, in Lombardy, showed the alerts of the Peglio of the Marche.
+  Only the alert zones near the place count now ([#90]).
 - The integration imported `async_timeout`, which recent Home Assistant
   versions do not install ([#90]).
 - Deprecation warning of the `CONNECTION_CLASS` constant ([#85]).

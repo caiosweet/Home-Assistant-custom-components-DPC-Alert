@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from typing import Any
 
 from aiodpc import AlertZone, DpcClient, DpcError, DpcLocationError, Location
+from aiodpc.geo import distance_km
 from aiodpc.municipalities import municipality_names
 import homeassistant.helpers.config_validation as cv
 
@@ -47,6 +48,7 @@ from .const import (
     DOMAIN,
     LOGGER,
     PLATFORMS,
+    SAME_MUNICIPALITY_KM,
     WARNING_LEVELS,
 )
 
@@ -94,22 +96,37 @@ def listed_municipality(municipalities: Iterable[str], municipality: str) -> str
     )
 
 
+def coordinates(place: Mapping[str, Any]) -> tuple[float, float]:
+    """Return the (latitude, longitude) of the data of a place."""
+    return place[CONF_LATITUDE], place[CONF_LONGITUDE]
+
+
 def place_with_municipality(
-    hass: HomeAssistant, municipality: str, *, other_than: str | None = None
+    hass: HomeAssistant,
+    municipality: str,
+    *,
+    at: tuple[float, float],
+    other_than: str | None = None,
 ) -> config_entries.ConfigEntry | None:
-    """Return the place that already has a municipality, if any.
+    """Return the place that already has the municipality of a place, if any.
 
     The municipality identifies a place: two places with the same municipality
     would get the same bulletins. Any name of it counts: "Bozen" is
-    "Bolzano/Bozen".
+    "Bolzano/Bozen". A place far away has another municipality of the same
+    name, such as the Peglio of the Marche for a place in Lombardy (see
+    :data:`SAME_MUNICIPALITY_KM`).
     """
     names = municipality_names(municipality)
-    for entry in hass.config_entries.async_entries(DOMAIN, include_ignore=False):
-        if entry.entry_id != other_than and names & municipality_names(
-            entry.options.get(CONF_MUNICIPALITY) or ""
-        ):
-            return entry
-    return None
+    return next(
+        (
+            entry
+            for entry in hass.config_entries.async_entries(DOMAIN, include_ignore=False)
+            if entry.entry_id != other_than
+            and names & municipality_names(entry.options.get(CONF_MUNICIPALITY) or "")
+            and distance_km(at, coordinates(entry.data)) <= SAME_MUNICIPALITY_KM
+        ),
+        None,
+    )
 
 
 class DpcFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
@@ -208,7 +225,9 @@ class DpcFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             if municipality is None:
                 errors[CONF_MUNICIPALITY] = "municipality_not_listed"
             elif (
-                other := place_with_municipality(self.hass, municipality)
+                other := place_with_municipality(
+                    self.hass, municipality, at=coordinates(self._place)
+                )
             ) is not None:
                 errors[CONF_MUNICIPALITY] = "municipality_in_use"
                 placeholders["municipality"] = other.options[CONF_MUNICIPALITY]
@@ -282,9 +301,7 @@ class DpcOptionsFlowHandler(config_entries.OptionsFlow):
         """Fetch the municipalities of the alert zone, then show the options."""
         try:
             alert_zone = await async_get_alert_zone(
-                self.hass,
-                self.config_entry.data[CONF_LATITUDE],
-                self.config_entry.data[CONF_LONGITUDE],
+                self.hass, *coordinates(self.config_entry.data)
             )
         except DpcError as err:
             LOGGER.debug("No municipalities to offer, any can be typed: %s", err)
@@ -316,7 +333,10 @@ class DpcOptionsFlowHandler(config_entries.OptionsFlow):
                 errors[CONF_MUNICIPALITY] = "municipality_not_listed"
             elif (
                 other := place_with_municipality(
-                    self.hass, municipality, other_than=self.config_entry.entry_id
+                    self.hass,
+                    municipality,
+                    at=coordinates(self.config_entry.data),
+                    other_than=self.config_entry.entry_id,
                 )
             ) is not None:
                 errors[CONF_MUNICIPALITY] = "municipality_in_use"

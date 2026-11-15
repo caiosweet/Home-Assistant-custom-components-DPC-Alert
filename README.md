@@ -89,7 +89,7 @@ A place is named after its alert zone, and its device and entity IDs after its m
 
 - DPC covers Italy only. San Marino and Vatican City are in no DPC alert zone.
 - The criticality bulletin covers today and tomorrow; the vigilance bulletin, three days.
-- Each municipality can be added once: two places in it would get the same bulletins.
+- Each municipality can be added once: two places in it would get the same bulletins. Municipalities of the same name far apart, such as Peglio, in Lombardy and in the Marche, are different ones: the entity IDs of the second end in `_2`, e.g. `sensor.dpc_peglio_alert_2`.
 - The texts of the bulletins, such as `info`, `alert`, `precipitation` and the phenomena, are in Italian, as DPC writes them. The names of the entities and of their attributes are translated.
 - Municipalities are named as DPC writes them, in Italian; in South Tyrol, the German names work too.
 
