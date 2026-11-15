@@ -36,6 +36,7 @@ from custom_components.dpc.const import CONF_MUNICIPALITY, CONF_WARNING_LEVEL, D
 from . import LATITUDE, LONGITUDE, PUBLICATION_DAY, UNIQUE_ID, mock_dpc_responses
 
 MAP_INPUT = {CONF_LOCATION: {CONF_LATITUDE: LATITUDE, CONF_LONGITUDE: LONGITUDE}}
+BOLZANO = (46.49, 11.33)
 ROME_ZONE = AlertZone("Bacini di Roma", ("Roma", "Fiumicino", "Tivoli"))
 BOLZANO_ZONE = AlertZone(
     "Provincia Autonoma di Bolzano", ("Bolzano/Bozen", "Merano/Meran")
@@ -78,14 +79,34 @@ async def start(hass: HomeAssistant, menu_option: str) -> FlowResult:
     )
 
 
+def map_input(latitude: float, longitude: float) -> dict[str, Any]:
+    """Return the input of the map step for a place."""
+    return {CONF_LOCATION: {CONF_LATITUDE: latitude, CONF_LONGITUDE: longitude}}
+
+
+def place_entry(
+    zone: str, latitude: float, longitude: float, municipality: str
+) -> MockConfigEntry:
+    """Return the config entry of a place, named after its alert zone."""
+    return MockConfigEntry(
+        domain=DOMAIN,
+        version=2,
+        title=zone,
+        data={CONF_NAME: zone, CONF_LATITUDE: latitude, CONF_LONGITUDE: longitude},
+        options={CONF_MUNICIPALITY: municipality},
+    )
+
+
 async def to_municipality(
-    hass: HomeAssistant, alert_zone: AlertZone = ROME_ZONE
+    hass: HomeAssistant,
+    alert_zone: AlertZone = ROME_ZONE,
+    at: tuple[float, float] = (LATITUDE, LONGITUDE),
 ) -> FlowResult:
     """Pick the place on the map, up to the choice of its municipality."""
     result = await start(hass, "map")
     with patch(GET_ALERT_ZONE, return_value=alert_zone):
         return await hass.config_entries.flow.async_configure(
-            result["flow_id"], MAP_INPUT
+            result["flow_id"], map_input(*at)
         )
 
 
@@ -276,18 +297,10 @@ async def test_municipality_of_another_place(
     hass: HomeAssistant, municipality: str
 ) -> None:
     """Test that a municipality can be added once, whatever its name."""
-    MockConfigEntry(
-        domain=DOMAIN,
-        version=2,
-        title="Provincia Autonoma di Bolzano",
-        data={
-            CONF_NAME: "Provincia Autonoma di Bolzano",
-            CONF_LATITUDE: 46.5,
-            CONF_LONGITUDE: 11.35,
-        },
-        options={CONF_MUNICIPALITY: "Bolzano/Bozen"},
+    place_entry(
+        "Provincia Autonoma di Bolzano", 46.5, 11.35, "Bolzano/Bozen"
     ).add_to_hass(hass)
-    result = await to_municipality(hass, BOLZANO_ZONE)
+    result = await to_municipality(hass, BOLZANO_ZONE, at=BOLZANO)
 
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], {CONF_MUNICIPALITY: municipality}
@@ -298,6 +311,27 @@ async def test_municipality_of_another_place(
         "zone": "Provincia Autonoma di Bolzano",
         "municipality": "Bolzano/Bozen",
     }
+
+
+async def test_homonym_of_another_place(hass: HomeAssistant) -> None:
+    """Test that a municipality far away with the same name is another one.
+
+    Peglio is in Lombardy and in the Marche.
+    """
+    place_entry("Lario e Prealpi occidentali", 46.16, 9.295, "Peglio").add_to_hass(hass)
+    result = await to_municipality(
+        hass, AlertZone("Marc-1", ("Peglio", "Urbino")), at=(43.696, 12.497)
+    )
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_MUNICIPALITY: "Peglio"}
+    )
+
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert (result["title"], result["options"]) == (
+        "Marc-1",
+        {CONF_MUNICIPALITY: "Peglio"},
+    )
 
 
 async def test_options_flow(
@@ -391,17 +425,7 @@ async def test_options_flow_checks_the_municipality(
 ) -> None:
     """Test that the options check the municipality, keeping what was entered."""
     mock_config_entry.add_to_hass(hass)
-    MockConfigEntry(
-        domain=DOMAIN,
-        version=2,
-        title="Bacini di Roma",
-        data={
-            CONF_NAME: "Bacini di Roma",
-            CONF_LATITUDE: 41.96,
-            CONF_LONGITUDE: 12.8,
-        },
-        options={CONF_MUNICIPALITY: "Tivoli"},
-    ).add_to_hass(hass)
+    place_entry("Bacini di Roma", 41.96, 12.8, "Tivoli").add_to_hass(hass)
     with patch(GET_ALERT_ZONE, return_value=ROME_ZONE):
         result = await hass.config_entries.options.async_init(
             mock_config_entry.entry_id

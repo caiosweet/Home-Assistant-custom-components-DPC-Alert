@@ -43,7 +43,8 @@ Entity IDs, states and the other attributes do not change.
   named, and asks for its municipality among those of the zone. The options
   ask for it too, also for the places added before ([#90]).
 - Each municipality can be added once: two places in it would get the same
-  bulletins ([#90]).
+  bulletins. Municipalities of the same name far apart, such as Peglio, in
+  Lombardy and in the Marche, are different ones ([#90]).
 - The errors of the setup are translated, and the device links to the page
   of the DPC bulletin.
 - The integration follows the Home Assistant integration quality scale up to
