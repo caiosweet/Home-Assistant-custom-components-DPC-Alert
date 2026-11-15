@@ -6,9 +6,9 @@ import dataclasses
 from typing import Any
 
 from attr import asdict
-from homeassistant.components.diagnostics import async_redact_data
+from homeassistant.components.diagnostics import REDACTED, async_redact_data
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE
+from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
@@ -22,6 +22,12 @@ TO_REDACT = {
     CONF_MUNICIPALITY,
     "identifiers",
     "unique_id",
+    # The positions of the phenomena are public in the DPC bulletins: with their
+    # distance and direction from the place, they would locate it
+    "distance",
+    "distance_km",
+    "direction",
+    "degrees",
 }
 
 
@@ -71,6 +77,9 @@ async def async_get_config_entry_diagnostics(
             if state := hass.states.get(entity.entity_id):
                 state_dict = dict(state.as_dict())
                 state_dict.pop("context", None)
+                if entity.domain == Platform.GEO_LOCATION:
+                    # The state of a phenomenon is its distance from the place
+                    state_dict["state"] = REDACTED
 
             entities.append({"entry": asdict(entity), "state": state_dict})
 

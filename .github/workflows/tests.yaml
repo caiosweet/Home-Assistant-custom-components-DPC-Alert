@@ -10,11 +10,11 @@ on:
 
 jobs:
   pytest:
-    runs-on: "ubuntu-latest"
+    runs-on: "ubuntu-26.04"
     name: With pytest
     steps:
       - name: 📥 Checkout the repository
-        uses: "actions/checkout@v6"
+        uses: "actions/checkout@v7"
 
       - name: 🐍 Set up Python
         uses: "actions/setup-python@v6"
@@ -32,3 +32,19 @@ jobs:
 
       - name: 🧪 Run the tests
         run: pytest --cov --cov-report=term-missing
+
+  node:
+    runs-on: "ubuntu-26.04"
+    name: Dashboard with node --test
+    steps:
+      - name: 📥 Checkout the repository
+        uses: "actions/checkout@v7"
+
+      - name: 🟢 Set up Node.js
+        uses: "actions/setup-node@v7"
+        with:
+          # The strategy runs in the browsers; Node only runs its tests
+          node-version: "24"
+
+      - name: 🧪 Test the dashboard strategy
+        run: node --test "tests/frontend/*.test.mjs"

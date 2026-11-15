@@ -82,8 +82,9 @@ rules:
   entity-device-class:
     status: done
     comment: >-
-      The binary sensors are safety sensors; the sensors are alert levels, which
-      no device class describes.
+      The binary sensors are safety sensors and the sensors of each day are
+      enums; the alert and vigilance sensors are levels, which no device class
+      describes.
   entity-disabled-by-default:
     status: exempt
     comment: No entity is noisy; they change a few times a day at most.

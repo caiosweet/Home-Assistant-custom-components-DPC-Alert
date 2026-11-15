@@ -41,13 +41,22 @@ async def test_setup_and_unload(
     entity_registry: er.EntityRegistry,
     init_integration: MockConfigEntry,
 ) -> None:
-    """Test that the entry sets up 2 sensors and 6 binary sensors, then unloads."""
+    """Test that the entry sets up its entities, then unloads.
+
+    6 binary sensors, the alert and vigilance sensors with the 5 sensors of
+    their days, 4 maps, and the 2 phenomena near Rome in the bulletin.
+    """
     entry = init_integration
     assert entry.state is ConfigEntryState.LOADED
 
     entities = er.async_entries_for_config_entry(entity_registry, entry.entry_id)
     platforms = sorted(entity.domain for entity in entities)
-    assert platforms == [Platform.BINARY_SENSOR] * 6 + [Platform.SENSOR] * 2
+    assert platforms == (
+        [Platform.BINARY_SENSOR] * 6
+        + [Platform.GEO_LOCATION] * 2
+        + [Platform.IMAGE] * 4
+        + [Platform.SENSOR] * 7
+    )
 
     assert await hass.config_entries.async_unload(entry.entry_id)
     await hass.async_block_till_done()
@@ -65,7 +74,11 @@ async def test_setup_without_binary_sensors(
     entities = er.async_entries_for_config_entry(
         entity_registry, init_integration.entry_id
     )
-    assert {entity.domain for entity in entities} == {Platform.SENSOR}
+    assert {entity.domain for entity in entities} == {
+        Platform.SENSOR,
+        Platform.IMAGE,
+        Platform.GEO_LOCATION,
+    }
 
 
 async def test_setup_when_dpc_is_unreachable(
@@ -260,6 +273,7 @@ async def test_places_with_the_same_name(
         }
         for entry in entries
     ]
-    assert [len(ids) for ids in entity_ids] == [8, 8]
+    # Milan has no phenomenon within 50 km in the bulletin, Rome has 2
+    assert [len(ids) for ids in entity_ids] == [19, 17]
     assert not entity_ids[0] & entity_ids[1]
     assert "sensor.dpc_alert_2" in entity_ids[1]

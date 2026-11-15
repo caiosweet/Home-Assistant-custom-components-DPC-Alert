@@ -52,6 +52,9 @@
         "abort": {
             "single_instance_allowed": "Várias instâncias são suportadas. Cada local pode ser adicionado apenas uma vez.",
             "already_configured": "Já existe uma entrada configurada para este local."
+        },
+        "create_entry": {
+            "default": "Para ver os alertas em um painel, vá em **Configurações → Painéis → Adicionar painel** e escolha **DPC Alert** entre os painéis da comunidade. Se ele não aparecer, recarregue a página."
         }
     },
     "options": {
@@ -65,7 +68,9 @@
                     "municipality": "Município",
                     "scan_interval": "Intervalo de atualização (minutos, padrão 30)",
                     "warning_level": "Nível mínimo de alerta",
-                    "radius": "Raio (km, padrão 50)"
+                    "radius": "Raio (km, padrão 50)",
+                    "image": "Imagem ativada",
+                    "geo_location": "Geolocalização ativada"
                 },
                 "data_description": {
                     "municipality": "Municípios grandes abrangem várias zonas de alerta: o local recebe então o alerta mais alto entre todas. Cada município pode ser adicionado uma única vez."
@@ -406,6 +411,321 @@
                     },
                     "total_alerts": {
                         "name": "Total de alertas"
+                    }
+                }
+            },
+            "alert_today": {
+                "name": "Alerta hoje",
+                "state": {
+                    "green": "Sem alerta",
+                    "yellow": "Alerta amarelo",
+                    "orange": "Alerta laranja",
+                    "red": "Alerta vermelho"
+                },
+                "state_attributes": {
+                    "integration": {
+                        "name": "Integração"
+                    },
+                    "risks": {
+                        "name": "Riscos",
+                        "state": {
+                            "hydraulic": "Risco hidráulico",
+                            "thunderstorms": "Risco de tempestades",
+                            "hydrogeological": "Risco hidrogeológico"
+                        }
+                    },
+                    "valid_until": {
+                        "name": "Válido até"
+                    }
+                }
+            },
+            "alert_tomorrow": {
+                "name": "Alerta amanhã",
+                "state": {
+                    "green": "Sem alerta",
+                    "yellow": "Alerta amarelo",
+                    "orange": "Alerta laranja",
+                    "red": "Alerta vermelho"
+                },
+                "state_attributes": {
+                    "integration": {
+                        "name": "Integração"
+                    },
+                    "risks": {
+                        "name": "Riscos",
+                        "state": {
+                            "hydraulic": "Risco hidráulico",
+                            "thunderstorms": "Risco de tempestades",
+                            "hydrogeological": "Risco hidrogeológico"
+                        }
+                    },
+                    "valid_until": {
+                        "name": "Válido até"
+                    }
+                }
+            },
+            "precipitation_today": {
+                "name": "Precipitação hoje",
+                "state": {
+                    "none": "Ausente ou não significativa",
+                    "light": "Fraca",
+                    "moderate": "Moderada",
+                    "heavy": "Elevada",
+                    "very_heavy": "Muito elevada"
+                },
+                "state_attributes": {
+                    "integration": {
+                        "name": "Integração"
+                    },
+                    "valid_until": {
+                        "name": "Válido até"
+                    }
+                }
+            },
+            "precipitation_tomorrow": {
+                "name": "Precipitação amanhã",
+                "state": {
+                    "none": "Ausente ou não significativa",
+                    "light": "Fraca",
+                    "moderate": "Moderada",
+                    "heavy": "Elevada",
+                    "very_heavy": "Muito elevada"
+                },
+                "state_attributes": {
+                    "integration": {
+                        "name": "Integração"
+                    },
+                    "valid_until": {
+                        "name": "Válido até"
+                    }
+                }
+            },
+            "precipitation_aftertomorrow": {
+                "name": "Precipitação depois de amanhã",
+                "state": {
+                    "none": "Ausente ou não significativa",
+                    "light": "Fraca",
+                    "moderate": "Moderada",
+                    "heavy": "Elevada",
+                    "very_heavy": "Muito elevada"
+                },
+                "state_attributes": {
+                    "integration": {
+                        "name": "Integração"
+                    },
+                    "valid_until": {
+                        "name": "Válido até"
+                    }
+                }
+            }
+        },
+        "image": {
+            "criticality_map_today": {
+                "name": "Mapa de criticidade hoje",
+                "state_attributes": {
+                    "integration": {
+                        "name": "Integração"
+                    }
+                }
+            },
+            "criticality_map_tomorrow": {
+                "name": "Mapa de criticidade amanhã",
+                "state_attributes": {
+                    "integration": {
+                        "name": "Integração"
+                    }
+                }
+            },
+            "vigilance_map_today": {
+                "name": "Mapa de vigilância hoje",
+                "state_attributes": {
+                    "integration": {
+                        "name": "Integração"
+                    }
+                }
+            },
+            "vigilance_map_tomorrow": {
+                "name": "Mapa de vigilância amanhã",
+                "state_attributes": {
+                    "integration": {
+                        "name": "Integração"
+                    }
+                }
+            }
+        },
+        "geo_location": {
+            "precipitation": {
+                "name": "Precipitação",
+                "state_attributes": {
+                    "integration": {
+                        "name": "Integração"
+                    },
+                    "day": {
+                        "name": "Dia",
+                        "state": {
+                            "today": "Hoje",
+                            "tomorrow": "Amanhã",
+                            "aftertomorrow": "Depois de amanhã"
+                        }
+                    },
+                    "valid_until": {
+                        "name": "Válido até"
+                    },
+                    "description": {
+                        "name": "Descrição"
+                    },
+                    "direction": {
+                        "name": "Direção"
+                    }
+                }
+            },
+            "wind": {
+                "name": "Vento",
+                "state_attributes": {
+                    "integration": {
+                        "name": "Integração"
+                    },
+                    "day": {
+                        "name": "Dia",
+                        "state": {
+                            "today": "Hoje",
+                            "tomorrow": "Amanhã",
+                            "aftertomorrow": "Depois de amanhã"
+                        }
+                    },
+                    "valid_until": {
+                        "name": "Válido até"
+                    },
+                    "description": {
+                        "name": "Descrição"
+                    },
+                    "direction": {
+                        "name": "Direção"
+                    }
+                }
+            },
+            "frost": {
+                "name": "Geada",
+                "state_attributes": {
+                    "integration": {
+                        "name": "Integração"
+                    },
+                    "day": {
+                        "name": "Dia",
+                        "state": {
+                            "today": "Hoje",
+                            "tomorrow": "Amanhã",
+                            "aftertomorrow": "Depois de amanhã"
+                        }
+                    },
+                    "valid_until": {
+                        "name": "Válido até"
+                    },
+                    "description": {
+                        "name": "Descrição"
+                    },
+                    "direction": {
+                        "name": "Direção"
+                    }
+                }
+            },
+            "fog": {
+                "name": "Nevoeiro",
+                "state_attributes": {
+                    "integration": {
+                        "name": "Integração"
+                    },
+                    "day": {
+                        "name": "Dia",
+                        "state": {
+                            "today": "Hoje",
+                            "tomorrow": "Amanhã",
+                            "aftertomorrow": "Depois de amanhã"
+                        }
+                    },
+                    "valid_until": {
+                        "name": "Válido até"
+                    },
+                    "description": {
+                        "name": "Descrição"
+                    },
+                    "direction": {
+                        "name": "Direção"
+                    }
+                }
+            },
+            "sea": {
+                "name": "Mar",
+                "state_attributes": {
+                    "integration": {
+                        "name": "Integração"
+                    },
+                    "day": {
+                        "name": "Dia",
+                        "state": {
+                            "today": "Hoje",
+                            "tomorrow": "Amanhã",
+                            "aftertomorrow": "Depois de amanhã"
+                        }
+                    },
+                    "valid_until": {
+                        "name": "Válido até"
+                    },
+                    "description": {
+                        "name": "Descrição"
+                    },
+                    "direction": {
+                        "name": "Direção"
+                    }
+                }
+            },
+            "wave_motion": {
+                "name": "Ondulação",
+                "state_attributes": {
+                    "integration": {
+                        "name": "Integração"
+                    },
+                    "day": {
+                        "name": "Dia",
+                        "state": {
+                            "today": "Hoje",
+                            "tomorrow": "Amanhã",
+                            "aftertomorrow": "Depois de amanhã"
+                        }
+                    },
+                    "valid_until": {
+                        "name": "Válido até"
+                    },
+                    "description": {
+                        "name": "Descrição"
+                    },
+                    "direction": {
+                        "name": "Direção"
+                    }
+                }
+            },
+            "temperature": {
+                "name": "Temperatura",
+                "state_attributes": {
+                    "integration": {
+                        "name": "Integração"
+                    },
+                    "day": {
+                        "name": "Dia",
+                        "state": {
+                            "today": "Hoje",
+                            "tomorrow": "Amanhã",
+                            "aftertomorrow": "Depois de amanhã"
+                        }
+                    },
+                    "valid_until": {
+                        "name": "Válido até"
+                    },
+                    "description": {
+                        "name": "Descrição"
+                    },
+                    "direction": {
+                        "name": "Direção"
                     }
                 }
             }

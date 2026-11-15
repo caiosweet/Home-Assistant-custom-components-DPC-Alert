@@ -46,7 +46,7 @@ async def test_diagnostics(
 
     (device,) = diagnostics["devices"]
     assert device["device"]["identifiers"] == REDACTED
-    assert len(device["entities"]) == 8
+    assert len(device["entities"]) == 19
 
 
 async def test_diagnostics_hide_where_the_place_is(
@@ -84,3 +84,15 @@ async def test_diagnostics_hide_where_the_place_is(
         "days"
     ][0]["phenomena"]
     assert phenomenon["latitude"] == phenomenon["longitude"] == REDACTED
+    assert phenomenon["distance_km"] == phenomenon["direction"] == REDACTED
+    (vigilance_sensor,) = (
+        entity["state"]
+        for entity in diagnostics["devices"][0]["entities"]
+        if entity["entry"]["translation_key"] == "vigilance"
+    )
+    (shown,) = vigilance_sensor["attributes"]["today"]["phenomena"]
+    assert shown["distance"] == shown["direction"] == shown["degrees"] == REDACTED
+    for entity in diagnostics["devices"][0]["entities"]:
+        if entity["entry"]["domain"] == "geo_location":
+            assert entity["state"]["state"] == REDACTED
+            assert entity["state"]["attributes"]["direction"] == REDACTED

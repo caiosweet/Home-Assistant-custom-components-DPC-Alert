@@ -11,7 +11,11 @@ through HACS. It turns the bulletins of the Italian Civil Protection Department
   today and tomorrow): `sensor.<place>_alert` and one binary sensor per risk
   and day;
 - the vigilance bulletin (precipitation and weather phenomena, three days):
-  `sensor.<place>_vigilance`.
+  `sensor.<place>_vigilance`;
+- for dashboards, translated without templates: a sensor of the alert or the
+  precipitation of each day, the maps of the bulletins (`image`), and the
+  phenomena within the radius (`geo_location`, source `dpc`);
+- the DPC Alert dashboard, a strategy listed under Community dashboards.
 
 Everything that talks to DPC or parses its files lives in
 [aiodpc](https://github.com/webysther/aiodpc) (PyPI `aiodpc`), maintained
@@ -43,12 +47,16 @@ custom_components/dpc/
                      place in an executor
   coordinator.py     DpcDataUpdateCoordinator, one per place (entry.runtime_data)
   entity.py          DpcEntity, device info, place_entity_id()
-  sensor.py, binary_sensor.py
+  sensor.py, binary_sensor.py, image.py, geo_location.py
+  dashboard.py       serves frontend/dpc-dashboard.js and has the frontend load it
+  frontend/          the dashboard strategy: plain JavaScript, no build, native
+                     cards only
   attributes.py      state attributes, unchanged from the integration's old client
   diagnostics.py     redacts everything that locates a place
   const.py, icons.json, strings.json, translations/, quality_scale.yaml
   manifest.json, version.py
 tests/               pytest-homeassistant-custom-component, DPC mocked with fixtures
+tests/frontend/      node:test tests of the dashboard strategy
 release.sh           releases, run by the maintainer
 ```
 
@@ -63,10 +71,11 @@ pip install -r requirements_test.txt ruff
 ruff format custom_components tests && ruff check custom_components tests
 mypy                                   # strict, configured in pyproject.toml
 pytest --cov --cov-report=term-missing
+node --test "tests/frontend/*.test.mjs"   # the dashboard strategy
 ```
 
-CI runs mypy and pytest (`tests.yaml`), hassfest and the HACS action
-(`validate.yaml`). Keep the coverage of `custom_components/dpc` at 100%.
+CI runs mypy, pytest and the tests of the dashboard strategy (`tests.yaml`),
+hassfest and the HACS action (`validate.yaml`). Keep the coverage of `custom_components/dpc` at 100%.
 
 ## Compatibility
 

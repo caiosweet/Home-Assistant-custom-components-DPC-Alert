@@ -8,6 +8,38 @@ that followed them.
 
 ## [Unreleased]
 
+### Added
+
+- **The DPC Alert dashboard**: in **Settings → Dashboards → Add dashboard**,
+  under Community dashboards. It has a tab for each place, with the alert of
+  each day, a banner for each risk at or above the warning level, the expected
+  precipitation, the phenomena on a map and the maps of the bulletins, all
+  with the cards of Home Assistant. Adding a place now ends with a pointer to
+  it.
+- Sensors of each day, translated by Home Assistant, which dashboards show
+  without templates: the alert of today and tomorrow
+  (`sensor.dpc_<place>_alert_today`: no alert, yellow, orange or red), with
+  the risks at that level in `risks`, and the expected precipitation of today,
+  tomorrow and the day after (`sensor.dpc_<place>_precipitation_today`: none
+  to very heavy).
+- The criticality and vigilance maps of today and tomorrow as images
+  (`image.dpc_<place>_criticality_map_today` and so on), for a picture card
+  instead of an iframe.
+- The weather phenomena within the radius as geolocation entities of the
+  source `dpc`: the map card shows them with `geo_location_sources: [dpc]`.
+- The options can turn off the maps and the phenomena, like the sensors.
+
+### Changed
+
+- The README shows the dashboard and the cards of Home Assistant, instead of
+  layouts that needed other cards (card-mod, auto-entities,
+  config-template-card, card-templater).
+
+### Fixed
+
+- The diagnostics leave out the distances and directions of the phenomena:
+  with their positions, public in the bulletins, they located the place.
+
 ## [2026.11.0] - 2026-11-15
 
 The DPC data now comes from the [aiodpc](https://pypi.org/project/aiodpc/)

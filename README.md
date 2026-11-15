@@ -21,6 +21,10 @@ How the alert system works: [_Civil Protection Department_](https://rischi.prote
 - **Six binary sensors**: hydraulic, hydrogeological and thunderstorm risk, for today and tomorrow. Each one is on when its risk reaches the alert level you choose (1 green to 4 red).
 - **Alert sensor**: the highest alert level of today and tomorrow, with the assessment of each risk in its attributes.
 - **Vigilance sensor**: the expected precipitation of the next three days, and the weather phenomena within the radius you choose: rain, snow, thunderstorms, wind, frost, fog, rough sea and temperature.
+- **Sensors of each day**: the alert of today and tomorrow (no alert, yellow, orange, red) with the risks at that level, and the expected precipitation of the next three days, translated, ready for the cards of Home Assistant.
+- **Maps** of the criticality and vigilance bulletins, today and tomorrow, as images.
+- **Weather phenomena on a map**: each phenomenon within the radius is a geolocation entity.
+- **A dashboard** of the alerts and the weather vigilance of every place, made of the cards of Home Assistant: see [Dashboard](#dashboard).
 - **Several places**, picked on a map or from a zone, each with its municipality. Each bulletin is downloaded once for all of them.
 - **Six languages**: English, Italian, French, German, Spanish and Brazilian Portuguese.
 - **Official data**: the criticality and weather vigilance bulletins that DPC publishes every day.
@@ -30,7 +34,8 @@ Requires Home Assistant 2025.2 or newer. See the [changelog](https://github.com/
 ## Use cases
 
 - Get a notification when DPC issues a yellow, orange or red alert for your place, today or tomorrow, with the risk and the link to the bulletin.
-- Show the alert levels of today and tomorrow, and the maps of the bulletin, on a dashboard.
+- See the alerts of today and tomorrow, the expected precipitation and the maps of the bulletins on the DPC Alert dashboard, or on your own with the cards of Home Assistant.
+- See the weather phenomena near your places on a map.
 - Announce the alerts of the day on a speaker in the morning.
 - Close the shutters or bring in the garden furniture when strong wind or thunderstorms are expected nearby, from the weather phenomena of the vigilance sensor.
 - Before a trip, add the place you are going to and follow its alerts.
@@ -64,18 +69,78 @@ A place is named after its alert zone, and its device and entity IDs after its m
 
 **Configure** on the integration changes:
 
-1. Binary sensors enabled
-2. Sensors enabled
-3. Municipality, among those of the alert zone of the place
-4. Update interval (minutes, default 30)
-5. Minimum level of warning (1 green to 4 red, default 2)
-6. Radius of the weather phenomena (km, default 50)
+1. Binary sensors, sensors, maps (image) and phenomena (geolocation) enabled
+2. Municipality, among those of the alert zone of the place
+3. Update interval (minutes, default 30)
+4. Minimum level of warning (1 green to 4 red, default 2): when the binary sensors turn on
+5. Radius of the weather phenomena (km, default 50)
 
 ### Removal
 
 1. Go to **Settings → Devices & services → Dipartimento Protezione Civile**.
 2. For each place, open its **⋮** menu and choose **Delete**.
 3. To uninstall the integration too, open **Settings → Marketplace**, find **DPC Alert (Protezione Civile)**, choose **Remove** in its **⋮** menu, and restart Home Assistant.
+
+## Dashboard
+
+The integration comes with a dashboard made of the cards of Home Assistant, in the language of each user:
+
+1. Go to **Settings → Dashboards → Add dashboard**.
+2. Under **Community dashboards**, choose **DPC Alert**. If it is not listed, reload the page.
+
+It has a tab for each place:
+
+- **Alerts**: the alert of today and tomorrow, in the color of its level and with the risks at that level; a banner for each risk at or above the warning level; the criticality maps.
+- **Weather vigilance**: the expected precipitation of the next three days; the weather phenomena within the radius on a map; the vigilance maps.
+
+The dashboard follows your places: it changes by itself when you add one, and when a bulletin brings other phenomena. The colored banners of the risks need Home Assistant 2026.9 or newer; before, the risks are shown as tiles.
+
+To show a place in another dashboard, add a view with the strategy of the dashboard and the ID of the device of the place, the end of the address of its device page:
+
+```yaml
+views:
+  - title: Portula
+    strategy:
+      type: custom:dpc-alert
+      device_id: 0123456789abcdef0123456789abcdef
+```
+
+The binary sensors of the risks are safety sensors: the **Security** dashboard of Home Assistant lists them too.
+
+### Cards for your own dashboards
+
+The entities fit the cards of Home Assistant without templates. For a place in Portula:
+
+```yaml
+# The alert of tomorrow and the risks at its level: "Orange alert · Hydrogeological risk"
+type: tile
+entity: sensor.dpc_portula_alert_tomorrow
+state_content:
+  - state
+  - risks
+```
+
+```yaml
+# A banner while the hydrogeological risk of tomorrow is at or above the warning
+# level (Home Assistant 2026.9 or newer)
+type: alert
+entity: binary_sensor.dpc_portula_idrogeologico_domani
+alert_color: orange
+```
+
+```yaml
+# The criticality map of today
+type: picture-entity
+entity: image.dpc_portula_criticality_map_today
+show_state: false
+```
+
+```yaml
+# The weather phenomena near all your places
+type: map
+geo_location_sources:
+  - dpc
+```
 
 ## How the data is updated
 
@@ -90,7 +155,7 @@ A place is named after its alert zone, and its device and entity IDs after its m
 - DPC covers Italy only. San Marino and Vatican City are in no DPC alert zone.
 - The criticality bulletin covers today and tomorrow; the vigilance bulletin, three days.
 - Each municipality can be added once: two places in it would get the same bulletins. Municipalities of the same name far apart, such as Peglio, in Lombardy and in the Marche, are different ones: the entity IDs of the second end in `_2`, e.g. `sensor.dpc_peglio_alert_2`.
-- The texts of the bulletins, such as `info`, `alert`, `precipitation` and the phenomena, are in Italian, as DPC writes them. The names of the entities and of their attributes are translated.
+- The values of the attributes of the alert, vigilance and binary sensors are in Italian, so that existing automations keep working: `info` and the `value` of the phenomena as DPC writes them, and `alert`, `precipitation`, `risk` and `event`. The states and attributes of the sensors of each day, the maps and the phenomena are translated, except the `description` of a phenomenon, in Italian as DPC writes it.
 - Municipalities are named as DPC writes them, in Italian; in South Tyrol, the German names work too.
 
 ## Troubleshooting
@@ -99,29 +164,11 @@ A place is named after its alert zone, and its device and entity IDs after its m
 - **"… is not inside any DPC alert zone"**: the place is outside Italy, or in San Marino or Vatican City. Delete it and add a place in Italy.
 - **After an update, texts in English or names such as `municipality_in_use` in the forms**: the browser keeps the texts of the previous version. Reload the page, clearing its cache (Ctrl+F5).
 - **Entity names in another language**: Home Assistant names entities in the language of the system, not of your profile: **Settings → System → General → Language**.
+- **DPC Alert is not among the community dashboards**: the browser loads it when it opens Home Assistant. Reload the page after installing or updating the integration.
 - **A place added before 2026.11 asks for its municipality** when you open its options: the municipality has become required. Choose it in the list of its alert zone.
 - **Reporting a problem**: on the integration, choose **Enable debug logging** in the **⋮** menu, reproduce the problem, then disable it to download the log. Add the diagnostics (**⋮ → Download diagnostics**: they leave out where the place is) to an [issue](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/issues).
 
-## Preview [From my Natural Events project.][guide]
-
-<p align="center">
-<img src="https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/assets/images/example-card-auto-entities.png" width="350px" />
-<br><br>
-Cards: card-mod, auto-entities
-<br><br>
-</p>
-
-<p align="center">
-<img src="https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/assets/images/example-card-markdown.png" width="350px" />
-<br><br>
-Cards: card-mod, markdown
-</p>
-
-<p align="center">
-<img src="https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/assets/images/example-map.png" width="350px" />
-<br><br>
-Cards: card-mod, auto-entities, config-template-card
-</p>
+## Entities
 
 ### Representation of the attributes present in the sensor
 
@@ -252,318 +299,48 @@ device_class: safety
 friendly_name: DPC Hydrogeological risk tomorrow
 ```
 
-## Here are some advanced examples of using the entities created with this component
+### Sensors of each day
+
+Their states and attributes are translated by Home Assistant; templates and automations see the values below.
+
+```yaml
+# sensor.dpc_portula_alert_today and sensor.dpc_portula_alert_tomorrow
+state: orange # green (no alert), yellow, orange or red
+risks: # the risks at that level, none when green
+  - hydrogeological # hydraulic, thunderstorms or hydrogeological
+valid_until: '2026-11-16T00:00:00+01:00'
+```
+
+```yaml
+# sensor.dpc_portula_precipitation_today, _tomorrow and _aftertomorrow
+state: light # none, light, moderate, heavy or very_heavy
+valid_until: '2026-11-15T00:00:00+01:00'
+```
+
+The alert of a day is the level of the bulletin, whatever the minimum level of warning of the options. After midnight, until DPC publishes the next bulletin, the alert of tomorrow is unknown.
+
+### Maps
+
+`image.dpc_portula_criticality_map_today`, `image.dpc_portula_criticality_map_tomorrow`, `image.dpc_portula_vigilance_map_today` and `image.dpc_portula_vigilance_map_tomorrow` show the national map of the bulletin, as DPC previews it. DPC publishes no vigilance map for the day after tomorrow.
+
+### Weather phenomena
+
+Each phenomenon within the radius is an entity such as `geo_location.dpc_portula_wind`, named after its kind: precipitation, wind, frost, fog, sea, waves or temperature. They come and go with the bulletins.
+
+```yaml
+state: 23.5 # the distance from the place, in km
+source: dpc
+latitude: 41.75
+longitude: 12.3
+day: tomorrow # today, tomorrow or aftertomorrow
+valid_until: '2026-11-16T00:00:00+01:00'
+description: molto mosso # as DPC writes it
+direction: SW # from the place
+```
+
+## Automation examples
 
 The examples use a place named DPC without municipality, as in `sensor.dpc_alert`: replace `dpc` with the start of your entity IDs, e.g. `dpc_portula`.
-
-### Lovelace markdown card example sensor
-
-```yaml
-type: markdown
-content: |-
-
-  ___
-
-  {% set entity = 'sensor.dpc_alert' %}
-
-  #### PROTEZIONE CIVILE - [CRITICITA](https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-criticita)
-
-  ##### ZONA {{state_attr(entity, 'zone_name')}}
-
-
-  {% set color = {0:'White', 1:'Green', 2:'Gold', 3:'Orange', 4:'Red'} %}
-  {% set days_map = {'today':'Oggi.', 'tomorrow':'Domani.', 'aftertomorrow': 'Dopodomani.'} %} 
-  {%- for day in ['today', 'tomorrow'] %}
-  {% set d = state_attr(entity, day) %}
-  {%- set events = state_attr(entity, 'events_'+day) %}
-  {%- if d %} 
-  {%- if  d['level'] >= 1 %}
-
-  |   |   |
-  |:--|:--|
-  | <font color="{{ color.get(d['level']) }}"/> <ha-icon icon="{{ 'mdi:numeric-' ~ d['level'] ~ '-box'}}"/></ha-icon> | {{ days_map[day] }} {{d['info']}} {{d['alert']}}</font> |
-  {% endif %}
-  {%- endif %}
-  {%- if events %} 
-  {%- for ev in events %}
-
-  |   |   |   |
-  |:--|:--|:--|
-  | <font color="{{ color.get(ev['level']) }}"/> <ha-icon icon="{{ 'mdi:numeric-' ~ ev['level'] }}"/> | <font color="{{ color.get(ev['level']) }}"/> <ha-icon icon="{{ ev['icon'] }}"/> | {{ ev['alert'] }} {{ ev['info'] }} criticità per rischio {{ ev['risk'] }} |
-
-  {%- endfor %} 
-  {%- endif %}
-  {%- endfor %}
-
-  ___
-
-  {% set entity = 'sensor.dpc_vigilance' %}
-
-  #### PROTEZIONE CIVILE - [VIGILANZA METEO](https://mappe.protezionecivile.it/it/mappe-rischi/bollettino-di-vigilanza)
-
-  ##### ZONA {{state_attr(entity, 'zone_name')}}
-
-  {% set color = {0:'White', 1:'Green', 2:'Gold', 3:'Orange', 4:'Red', 5: 'BlueViolet'} %}
-  {# set color_vigilance = {0:'#FFFFFF', 1:'#008000', 2:'#C3FFFE', 3:'#50FFFF', 4:'#508BFF', 5: '#A040FF'} #}
-  {% set color_v = {0:'White', 1:'Green', 2:'LightCyan', 3:'BabyBlue', 4:'CornflowerBlue', 5: 'BlueViolet'} %}
-  {% set day = {'today':'Oggi.', 'tomorrow':'Domani.', 'aftertomorrow': 'Dopodomani.'} %} 
-  {%- for status in ['today', 'tomorrow','aftertomorrow'] %}
-  {% set v = state_attr(entity, status) %}
-  {%- if v %} 
-  {%- if v['level'] >= 1 %}
-  <font color="{{ color_v.get(v['level']) }}"/> <ha-icon icon="{{ v['icon'] }}"/></ha-icon> {{ day[status] }} Quantitativi previsti {{ v['precipitation'] }} </font>
-  {%- endif %}
-  {%- if v.phenomena %} 
-  {% for d in v.phenomena %}
-
-  |   |   |
-  |:--|:--|
-  | <ha-icon icon="{{ d['icon'] }}"/> |{{ d['event'] }} {{ d['value'] }} [{{ d['distance'] }} Km {{ d['direction'] }}] |
-
-  {%- endfor %}
-  {%- endif %}
-  {%- endif %}
-  {%- endfor %}
-
-  [Sito Web Protezione Civile](https://www.protezionecivile.gov.it/it/) ~ [Radar](https://mappe.protezionecivile.it/it/mappe-rischi/piattaforma-radar)
-```
-
-### Lovelace markdown card example sensor (GUI)
-
-```yaml
-type: markdown
-content: >-
-
-  ___
-
-
-  {% set entity = 'sensor.dpc_alert' %}
-
-
-  #### PROTEZIONE CIVILE -
-  [CRITICITA](https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-criticita)
-
-
-  ##### ZONA {{state_attr(entity, 'zone_name')}}
-
-
-
-  {% set color = {0:'White', 1:'Green', 2:'Gold', 3:'Orange', 4:'Red'} %}
-
-  {% set days_map = {'today':'Oggi.', 'tomorrow':'Domani.', 'aftertomorrow':
-  'Dopodomani.'} %} 
-
-  {%- for day in ['today', 'tomorrow'] %}
-
-  {% set d = state_attr(entity, day) %}
-
-  {%- set events = state_attr(entity, 'events_'+day) %}
-
-  {%- if d %} 
-
-  {%- if  d['level'] >= 1 %}
-
-  <font color="{{ color.get(d['level']) }}"/> <ha-icon icon="{{ 'mdi:numeric-' ~
-  d['level'] ~ '-box'}}"/></ha-icon> {{ days_map[day] }} {{d['info']}}
-  {{d['alert']}}</font>
-
-  {% endif %}
-
-  {%- endif %}
-
-  {%- if events %} 
-
-  {%- for ev in events %}
-
-
-  |   |   |   |
-
-  |:--|:--|:--|
-
-  | <font color="{{ color.get(ev['level']) }}"/> <ha-icon icon="{{
-  'mdi:numeric-' ~ ev['level'] }}"/> | <font color="{{ color.get(ev['level'])
-  }}"/> <ha-icon icon="{{ ev['icon'] }}"/> | {{ ev['alert'] }} {{ ev['info'] }}
-  criticità per rischio {{ ev['risk'] }} |
-
-
-  {%- endfor %} 
-
-  {%- endif %}
-
-  {%- endfor %}
-
-
-  ___
-
-
-  {% set entity = 'sensor.dpc_vigilance' %}
-
-
-  #### PROTEZIONE CIVILE - [VIGILANZA
-  METEO](https://mappe.protezionecivile.it/it/mappe-rischi/bollettino-di-vigilanza)
-
-
-  ##### ZONA {{state_attr(entity, 'zone_name')}}
-
-
-  {% set color = {0:'White', 1:'Green', 2:'Gold', 3:'Orange', 4:'Red', 5:
-  'BlueViolet'} %}
-
-  {% set color_v = {0:'White', 1:'Green', 2:'#C3FFFE', 3:'#50FFFF', 4:'#508BFF',
-  5: '#A040FF'} %}
-
-  {% set day = {'today':'Oggi.', 'tomorrow':'Domani.', 'aftertomorrow':
-  'Dopodomani.'} %} 
-
-  {%- for status in ['today', 'tomorrow','aftertomorrow'] %}
-
-  {% set v = state_attr(entity, status) %}
-
-  {%- if v %} 
-
-  {%- if v['level'] >= 1 %}
-
-  <font color="{{ color_v.get(v['level']) }}"/> <ha-icon icon="{{ v['icon']
-  }}"/></ha-icon> {{ day[status] }} Quantitativi previsti {{ v['precipitation']
-  }} </font>
-
-  {% if "zone_name" in v %} {{v['zone_name']  if state_attr(entity, 'zone_name')
-  != v['zone_name']  else ''}}{%- endif %}
-
-  {%- endif %}
-
-  {%- if "phenomena" in v%} 
-
-  {% for d in v.phenomena %}
-
-
-  |   |   |
-
-  |:--|:--|
-
-  | <ha-icon icon="{{ d['icon'] }}"/> |{{ d['event'] }} {{ d['value'] }} [{{
-  d['distance'] }} Km {{ d['direction'] }}] |
-
-
-  {%- endfor %}
-
-  {%- endif %}
-
-  {%- endif %}
-
-  {%- endfor %}
-
-
-  [Sito Web Protezione Civile](https://www.protezionecivile.gov.it/it/) ~
-  [Radar](https://mappe.protezionecivile.it/it/mappe-rischi/piattaforma-radar)
-title: Markdown Alert and Vigilance
-
-```
-
-### Lovelace markdown card example Binary Sensor
-
-```yaml
-type: markdown
-card_mod:
-  style: |
-    ha-card {background: none; border-radius: 0px; box-shadow: none;}
-content: >
-  ___
-
-  #### PROTEZIONE CIVILE
-
-  {% set color = {0:'White', 1:'Green', 2:'Yellow', 3:'Orange', 4:'Red'} %} 
-  {% for state in states.binary_sensor %} 
-  {%- if is_state_attr(state.entity_id, 'integration', 'dpc') and state.state == 'on' %} 
-
-  <font color= {{color[state.attributes.level|int]}}> <ha-icon icon="{{ 'mdi:numeric-' ~ state.attributes.level|int ~ '-box'}}" style="width: 36px; height: 36px;"></ha-icon>  
-  {{state.name}} - {{state.attributes.alert}} {{state.attributes.info}}</font> 
-  {%- endif -%} {% endfor %}
-
-  [Protezione Civile](https://www.protezionecivile.gov.it/it/) ~ [Vigilanza Meteo](https://mappe.protezionecivile.it/it/mappe-rischi/bollettino-di-vigilanza)
-  ~ [Criticità Idro](https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-criticita) ~ [Radar](https://mappe.protezionecivile.it/it/mappe-rischi/piattaforma-radar)
-```
-
-### Lovelace custom [config-template-card](https://github.com/iantrich/config-template-card) example to display maps (autoupdate fase)
-
-```yaml
-type: custom:config-template-card
-entities:
-  - sensor.dpc_alert
-card:
-  type: iframe
-  card_mod:
-    style: |
-      ha-card {
-        border-radius: var(--ha-card-border-radius);
-        margin-top: 8px;
-      }
-  aspect_ratio: 100%
-  url: >-
-    ${const d = new Date(); 
-    const dpc_d = new Date(String(states['sensor.dpc_alert'].attributes.publication_date));
-    var fase = (dpc_d.getDate() === d.getDate()) ? 'today' : 'tomorrow';
-    'https://servizio-mappe.protezionecivile.it/#/view/dashboard?x=11.756&y=41.495&
-    zoom=5.8&basemap=BING_AERIAL&appname=BollettinodiCriticità&file=
-    https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Criticita-Idrogeologica-Idraulica/master/files/'
-    +states['sensor.dpc_alert'].attributes.id+'.json&hidden=info,minimap&fase=' + fase}
-```
-
-```yaml
-type: custom:config-template-card
-entities:
-  - sensor.dpc_vigilance
-card:
-  type: iframe
-  card_mod:
-    style: |
-      ha-card {
-        border-radius: var(--ha-card-border-radius);
-        margin-top: 8px;
-      }
-  aspect_ratio: 100%
-  url: >-
-    ${const d = new Date(); 
-    const dpc_d = new Date(String(states['sensor.dpc_vigilance'].attributes.publication_date));
-    var fase = (dpc_d.getDate() === d.getDate()) ? 'today' : 'tomorrow';
-    'https://servizio-mappe.protezionecivile.it/#/view/dashboard?x=11.756&y=41.495&
-    zoom=5.8&basemap=OPEN_STREET_MAP&appname=Bollettino di Vigilanza&file=
-    https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Vigilanza-Meteorologica/master/files/'
-    +states['sensor.dpc_vigilance'].attributes.id+'.json&hidden=minimap,info&fase=' + fase}
-  # #hidden=minimap,info,switch <<--- 
-```
-
-### Lovelace custom [lovelace-card-templater](https://github.com/gadgetchnnel/lovelace-card-templater) example to display maps (autoupdate fase)
-
-```yaml
-type: custom:card-templater
-card:
-  type: iframe
-  aspect_ratio: 100%
-  url_template: >-
-    {% set day = 'today' if now().day == state_attr('sensor.dpc_vigilance',
-    'publication_date').day else 'tomorrow' %}
-    {{'https://servizio-mappe.protezionecivile.it/#/view/dashboard?x=11.756&y=41.495&
-    zoom=5.8&basemap=OPEN_STREET_MAP&appname=Bollettino di Vigilanza&file=
-    https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Vigilanza-Meteorologica/master/files/'
-    + state_attr('sensor.dpc_vigilance', 'id') +
-    '.json&hidden=minimap,info,&fase=' + day}}
-```
-
-```yaml
-type: custom:card-templater
-card:
-  type: iframe
-  aspect_ratio: 100%
-  url_template: >-
-    {% set day = 'today' if now().day == state_attr('sensor.dpc_alert',
-    'publication_date').day else 'tomorrow' %}
-    {{'https://servizio-mappe.protezionecivile.it/#/view/dashboard?x=11.756&y=41.495&zoom=5.8&basemap=GOOGLE_SATELLITE&appname=Bollettino
-    di
-    Criticità&file=https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Criticita-Idrogeologica-Idraulica/master/files/'
-    + state_attr('sensor.dpc_alert', 'id') + '.json&hidden=info,minimap,&fase='
-    + day }}
-```
 
 ### Automation example using the sensors (Compatible with UI Automation Editor)
 
@@ -772,9 +549,6 @@ automation:
           target: "media_player.studio"
 ```
 
-## Other Lovelace Examples [HA Card weather conditions](https://github.com/r-renato/ha-card-weather-conditions#display-the-alert-layer) [@r-renato](https://github.com/r-renato)
-
-
 ## License
 
 _Information provided by [_Department of Civil Protection - Presidency of the Council of Ministers_](https://www.protezionecivile.gov.it/en/) Creative Commons Licenses [_CC-BY-SA 4.0._](https://creativecommons.org/licenses/by-sa/4.0/)_
@@ -791,7 +565,6 @@ All product names, trademarks and registered trademarks in the images in this re
 All images in this repository are used by the author for identification purposes only.
 The use of these names, trademarks and brands appearing in these image files, do not imply endorsement.
 
-[guide]: https://hassiohelp.eu/2019/10/06/home-assistant-package-eventi-naturali/
 [hacs]: https://github.com/hacs/integration
 [hacsbadge]: https://img.shields.io/badge/HACS-Default-orange.svg
 [github latest release]: https://img.shields.io/github/v/release/caiosweet/Home-Assistant-custom-components-DPC-Alert

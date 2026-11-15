@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
-from datetime import timedelta
 from typing import Any
 
-from aiodpc import CriticalityDay, VigilanceDay, rome_date
-from homeassistant.components.sensor import ENTITY_ID_FORMAT, SensorEntity
+from aiodpc import AlertLevel, CriticalityDay, Precipitation, Risk, VigilanceDay
+from homeassistant.components.sensor import (
+    ENTITY_ID_FORMAT,
+    SensorDeviceClass,
+    SensorEntity,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE, CONF_NAME
 from homeassistant.core import HomeAssistant
@@ -20,16 +23,20 @@ from .attributes import (
     vigilance_day_attributes,
 )
 from .const import (
+    ALERT_LEVEL_STATES,
     ATTR_AFTERTOMORROW,
     ATTR_EVENTS_TODAY,
     ATTR_EVENTS_TOMORROW,
     ATTR_MAX_LEVEL,
     ATTR_PHENOMENA,
+    ATTR_RISKS,
     ATTR_TODAY,
     ATTR_TOMORROW,
     ATTR_TOTAL_ALERTS,
     ATTR_TOTAL_PHENOMENA,
+    ATTR_VALID_UNTIL,
     ATTR_ZONE_NAME,
+    PRECIPITATION_STATES,
 )
 from .coordinator import DpcConfigEntry, DpcDataUpdateCoordinator
 from .entity import DpcEntity, place_entity_id
@@ -38,11 +45,6 @@ from .entity import DpcEntity, place_entity_id
 PARALLEL_UPDATES = 0
 
 EVENTS = {ATTR_TODAY: ATTR_EVENTS_TODAY, ATTR_TOMORROW: ATTR_EVENTS_TOMORROW}
-
-
-def _covered[DayT](days: dict[str, DayT | None]) -> dict[str, DayT]:
-    """Return the days covered by the bulletin, by attribute name."""
-    return {name: day for name, day in days.items() if day is not None}
 
 
 async def async_setup_entry(
@@ -54,6 +56,14 @@ async def async_setup_entry(
         [
             DpcSensorCriticality(coordinator, entry),
             DpcSensorVigilance(coordinator, entry),
+            *(
+                DpcAlertDaySensor(coordinator, entry, day)
+                for day in (ATTR_TODAY, ATTR_TOMORROW)
+            ),
+            *(
+                DpcPrecipitationDaySensor(coordinator, entry, day)
+                for day in (ATTR_TODAY, ATTR_TOMORROW, ATTR_AFTERTOMORROW)
+            ),
         ]
     )
 
@@ -82,11 +92,7 @@ class DpcSensorCriticality(DpcEntity, SensorEntity):
     @property
     def _days(self) -> dict[str, CriticalityDay]:
         """Return today and tomorrow, when the bulletin covers them."""
-        latest = self.coordinator.data.criticality
-        if latest is None:
-            return {}
-        bulletin = latest.bulletin
-        return _covered({ATTR_TODAY: bulletin.today, ATTR_TOMORROW: bulletin.tomorrow})
+        return self.coordinator.data.criticality_days
 
     @property
     def _max_level(self) -> int:
@@ -148,18 +154,7 @@ class DpcSensorVigilance(DpcEntity, SensorEntity):
     @property
     def _days(self) -> dict[str, VigilanceDay]:
         """Return today, tomorrow and the day after, when the bulletin covers them."""
-        latest = self.coordinator.data.vigilance
-        if latest is None:
-            return {}
-        bulletin = latest.bulletin
-        today = rome_date()
-        return _covered(
-            {
-                ATTR_TODAY: bulletin.on(today),
-                ATTR_TOMORROW: bulletin.on(today + timedelta(days=1)),
-                ATTR_AFTERTOMORROW: bulletin.on(today + timedelta(days=2)),
-            }
-        )
+        return self.coordinator.data.vigilance_days
 
     @property
     def _max_level(self) -> int:
@@ -192,4 +187,107 @@ class DpcSensorVigilance(DpcEntity, SensorEntity):
             attributes[ATTR_TOTAL_PHENOMENA] += len(attributes[name][ATTR_PHENOMENA])
         attributes[ATTR_MAX_LEVEL] = self._max_level
         attributes[ATTR_TOTAL_ALERTS] = self._total_alerts
+        return attributes
+
+
+class DpcDaySensor(DpcEntity, SensorEntity):
+    """The level of one day of a bulletin, as a state Home Assistant translates.
+
+    Dashboards show these states without templates, in the language of the user,
+    e.g. "Orange alert" for the alert of tomorrow.
+    """
+
+    _attr_device_class = SensorDeviceClass.ENUM
+
+    def __init__(
+        self,
+        coordinator: DpcDataUpdateCoordinator,
+        entry: ConfigEntry,
+        level: str,
+        day: str,
+    ) -> None:
+        """Initialize the sensor of a level ("alert") on a day ("today")."""
+        super().__init__(coordinator, entry)
+        key = f"{level}_{day}"
+        self._day = day
+        self._attr_translation_key = key
+        self._attr_unique_id = f"{entry.unique_id}-{key}"
+        self.entity_id = place_entity_id(ENTITY_ID_FORMAT, entry, key)
+
+
+class DpcAlertDaySensor(DpcDaySensor):
+    """Alert level of a day, green to red, and the risks at that level."""
+
+    _attr_options = ALERT_LEVEL_STATES
+
+    def __init__(
+        self, coordinator: DpcDataUpdateCoordinator, entry: ConfigEntry, day: str
+    ) -> None:
+        """Initialize the alert sensor of today or tomorrow."""
+        super().__init__(coordinator, entry, "alert", day)
+
+    @property
+    def available(self) -> bool:
+        """Return whether a criticality bulletin is available."""
+        return super().available and self.coordinator.data.criticality is not None
+
+    @property
+    def _risk(self) -> Risk | None:
+        """Return the risk of the day, if the bulletin covers it."""
+        day = self.coordinator.data.criticality_days.get(self._day)
+        return Risk.of(day) if day else None
+
+    @property
+    def native_value(self) -> str | None:
+        """Return the alert level of the day: green, yellow, orange or red."""
+        risk = self._risk
+        if risk is None or risk.level is AlertLevel.UNKNOWN:
+            return None
+        return str(risk.level)
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return the risks at the alert level, and when the day ends."""
+        attributes = super().extra_state_attributes
+        if (risk := self._risk) is not None:
+            attributes[ATTR_RISKS] = [str(risk_type) for risk_type in risk.types]
+            attributes[ATTR_VALID_UNTIL] = risk.valid_until
+        return attributes
+
+
+class DpcPrecipitationDaySensor(DpcDaySensor):
+    """Expected precipitation of a day, from none to very heavy."""
+
+    _attr_options = PRECIPITATION_STATES
+
+    def __init__(
+        self, coordinator: DpcDataUpdateCoordinator, entry: ConfigEntry, day: str
+    ) -> None:
+        """Initialize the precipitation sensor of today, tomorrow or the day after."""
+        super().__init__(coordinator, entry, "precipitation", day)
+
+    @property
+    def available(self) -> bool:
+        """Return whether a vigilance bulletin is available."""
+        return super().available and self.coordinator.data.vigilance is not None
+
+    @property
+    def _forecast(self) -> VigilanceDay | None:
+        """Return the forecast of the day, if the bulletin covers it."""
+        return self.coordinator.data.vigilance_days.get(self._day)
+
+    @property
+    def native_value(self) -> str | None:
+        """Return the expected precipitation of the day: none to very_heavy."""
+        forecast = self._forecast
+        if forecast is None or forecast.precipitation is Precipitation.UNKNOWN:
+            return None
+        return str(forecast.precipitation)
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return when the day ends."""
+        attributes = super().extra_state_attributes
+        if (forecast := self._forecast) is not None:
+            attributes[ATTR_VALID_UNTIL] = forecast.valid_until
         return attributes

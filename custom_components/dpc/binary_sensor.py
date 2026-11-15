@@ -34,6 +34,8 @@ RISK_KEYS = {
     RiskType.THUNDERSTORMS: "temporali",
     RiskType.HYDROGEOLOGICAL: "idrogeologico",
 }
+# The days of the criticality bulletin: Day also has the day after tomorrow,
+# which only the vigilance bulletin covers
 DAY_KEYS = {Day.TODAY: "oggi", Day.TOMORROW: "domani"}
 
 
@@ -53,7 +55,7 @@ RISK_DESCRIPTIONS = tuple(
         risk=risk,
         day=day,
     )
-    for day in Day
+    for day in DAY_KEYS
     for risk in RiskType
 )
 

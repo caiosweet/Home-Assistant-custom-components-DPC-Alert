@@ -34,6 +34,91 @@
                     "1": "mdi:shield-check",
                     "2": "mdi:hazard-lights"
                 }
+            },
+            "alert_today": {
+                "default": "mdi:shield-check",
+                "state": {
+                    "green": "mdi:shield-check",
+                    "yellow": "mdi:alert-outline",
+                    "orange": "mdi:alert",
+                    "red": "mdi:alert-octagon"
+                }
+            },
+            "alert_tomorrow": {
+                "default": "mdi:shield-check",
+                "state": {
+                    "green": "mdi:shield-check",
+                    "yellow": "mdi:alert-outline",
+                    "orange": "mdi:alert",
+                    "red": "mdi:alert-octagon"
+                }
+            },
+            "precipitation_today": {
+                "default": "mdi:weather-cloudy",
+                "state": {
+                    "none": "mdi:weather-cloudy",
+                    "light": "mdi:weather-partly-rainy",
+                    "moderate": "mdi:weather-rainy",
+                    "heavy": "mdi:weather-pouring",
+                    "very_heavy": "mdi:weather-lightning-rainy"
+                }
+            },
+            "precipitation_tomorrow": {
+                "default": "mdi:weather-cloudy",
+                "state": {
+                    "none": "mdi:weather-cloudy",
+                    "light": "mdi:weather-partly-rainy",
+                    "moderate": "mdi:weather-rainy",
+                    "heavy": "mdi:weather-pouring",
+                    "very_heavy": "mdi:weather-lightning-rainy"
+                }
+            },
+            "precipitation_aftertomorrow": {
+                "default": "mdi:weather-cloudy",
+                "state": {
+                    "none": "mdi:weather-cloudy",
+                    "light": "mdi:weather-partly-rainy",
+                    "moderate": "mdi:weather-rainy",
+                    "heavy": "mdi:weather-pouring",
+                    "very_heavy": "mdi:weather-lightning-rainy"
+                }
+            }
+        },
+        "image": {
+            "criticality_map_today": {
+                "default": "mdi:map-marker-alert"
+            },
+            "criticality_map_tomorrow": {
+                "default": "mdi:map-marker-alert"
+            },
+            "vigilance_map_today": {
+                "default": "mdi:map-legend"
+            },
+            "vigilance_map_tomorrow": {
+                "default": "mdi:map-legend"
+            }
+        },
+        "geo_location": {
+            "precipitation": {
+                "default": "mdi:weather-pouring"
+            },
+            "wind": {
+                "default": "mdi:weather-windy"
+            },
+            "frost": {
+                "default": "mdi:snowflake-thermometer"
+            },
+            "fog": {
+                "default": "mdi:weather-fog"
+            },
+            "sea": {
+                "default": "mdi:waves"
+            },
+            "wave_motion": {
+                "default": "mdi:wave"
+            },
+            "temperature": {
+                "default": "mdi:thermometer-alert"
             }
         }
     }

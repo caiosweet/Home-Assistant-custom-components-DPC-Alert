@@ -11,9 +11,11 @@ from functools import partial
 from aiodpc import (
     BulletinKind,
     CriticalityBulletin,
+    CriticalityDay,
     DpcError,
     DpcLocationError,
     VigilanceBulletin,
+    VigilanceDay,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_SCAN_INTERVAL
@@ -23,7 +25,15 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from homeassistant.util import dt as dt_util
 
 from .bulletins import DpcBulletins
-from .const import DEFAULT_SCAN_INTERVAL, DOMAIN, LOGGER, RETRY_INTERVAL
+from .const import (
+    ATTR_AFTERTOMORROW,
+    ATTR_TODAY,
+    ATTR_TOMORROW,
+    DEFAULT_SCAN_INTERVAL,
+    DOMAIN,
+    LOGGER,
+    RETRY_INTERVAL,
+)
 
 
 @dataclass(frozen=True)
@@ -40,6 +50,37 @@ class DpcData:
 
     criticality: LatestBulletin[CriticalityBulletin] | None = None
     vigilance: LatestBulletin[VigilanceBulletin] | None = None
+
+    @property
+    def criticality_days(self) -> dict[str, CriticalityDay]:
+        """Return today and tomorrow, by attribute name, when the bulletin covers them.
+
+        After midnight, until DPC publishes the next bulletin, the second day of
+        the bulletin is today and there is no tomorrow.
+        """
+        if self.criticality is None:
+            return {}
+        bulletin = self.criticality.bulletin
+        return _covered({ATTR_TODAY: bulletin.today, ATTR_TOMORROW: bulletin.tomorrow})
+
+    @property
+    def vigilance_days(self) -> dict[str, VigilanceDay]:
+        """Return today, tomorrow and the day after, by attribute name, when covered."""
+        if self.vigilance is None:
+            return {}
+        bulletin = self.vigilance.bulletin
+        return _covered(
+            {
+                ATTR_TODAY: bulletin.today,
+                ATTR_TOMORROW: bulletin.tomorrow,
+                ATTR_AFTERTOMORROW: bulletin.after_tomorrow,
+            }
+        )
+
+
+def _covered[DayT](days: dict[str, DayT | None]) -> dict[str, DayT]:
+    """Return the days covered by the bulletin, by attribute name."""
+    return {name: day for name, day in days.items() if day is not None}
 
 
 class DpcDataUpdateCoordinator(DataUpdateCoordinator[DpcData]):

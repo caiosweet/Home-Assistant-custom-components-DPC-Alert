@@ -14,7 +14,12 @@ VERSION: Final = __version__
 """Version of the integration: the release tag, written by the release workflow."""
 
 LOGGER = logging.getLogger(__package__)
-PLATFORMS: Final[list[str]] = [Platform.BINARY_SENSOR, Platform.SENSOR]
+PLATFORMS: Final[list[str]] = [
+    Platform.BINARY_SENSOR,
+    Platform.SENSOR,
+    Platform.IMAGE,
+    Platform.GEO_LOCATION,
+]
 
 # Base component constants
 ATTRIBUTION = "Data provided by Civil Protection Department"
@@ -165,3 +170,25 @@ ATTR_TOMORROW = "tomorrow"
 ATTR_TOTAL_ALERTS = "total_alerts"
 ATTR_TOTAL_PHENOMENA = "total_phenomena"
 ATTR_ZONE_NAME = "zone_name"
+
+# The states and attributes of the day sensors, map images and phenomena use
+# the values of aiodpc instead: English names that Home Assistant translates.
+
+ATTR_DAY = "day"
+ATTR_DESCRIPTION = "description"
+ATTR_DIRECTION = "direction"
+ATTR_RISKS = "risks"
+ATTR_VALID_UNTIL = "valid_until"
+
+ALERT_LEVEL_STATES: Final = [
+    str(level) for level in AlertLevel if level is not AlertLevel.UNKNOWN
+]
+"""States of the alert sensor of a day: green, yellow, orange, red."""
+
+PRECIPITATION_STATES: Final = [
+    str(amount) for amount in Precipitation if amount is not Precipitation.UNKNOWN
+]
+"""States of the precipitation sensor of a day: none, light, ... very_heavy."""
+
+DASHBOARD_MODULE_URL: Final = f"/{DOMAIN}/frontend/dpc-dashboard.js"
+"""URL of the DPC Alert dashboard strategy, loaded by the frontend of every user."""

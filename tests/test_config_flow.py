@@ -369,6 +369,9 @@ async def test_options_flow(
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert mock_config_entry.options == {
         **options,
+        # The platforms left unchanged are enabled
+        "image": True,
+        "geo_location": True,
         CONF_MUNICIPALITY: "Roma",
         CONF_RADIUS: 30.0,
     }
