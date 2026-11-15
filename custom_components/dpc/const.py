@@ -6,16 +6,15 @@ import logging
 from typing import Final
 
 from aiodpc import AlertLevel, PhenomenonCategory, Precipitation, RiskType
-from homeassistant.components.binary_sensor import DOMAIN as BINARY_SENSOR_DOMAIN
-from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
+from homeassistant.const import Platform
 
-try:
-    from .version import __version__ as VERSION
-except ImportError:
-    VERSION = "0.0.0"
+from .version import __version__
+
+VERSION: Final = __version__
+"""Version of the integration: the release tag, written by the release workflow."""
 
 LOGGER = logging.getLogger(__package__)
-PLATFORMS = [BINARY_SENSOR_DOMAIN, SENSOR_DOMAIN]
+PLATFORMS: Final[list[str]] = [Platform.BINARY_SENSOR, Platform.SENSOR]
 
 # Base component constants
 ATTRIBUTION = "Data provided by Civil Protection Department"

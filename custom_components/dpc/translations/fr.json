@@ -409,5 +409,13 @@
                 }
             }
         }
+    },
+    "exceptions": {
+        "update_failed": {
+            "message": "Aucun bulletin du DPC n'a pu être téléchargé : {error}"
+        },
+        "outside_alert_zones": {
+            "message": "{place} n'est dans aucune zone d'alerte du DPC."
+        }
     }
 }

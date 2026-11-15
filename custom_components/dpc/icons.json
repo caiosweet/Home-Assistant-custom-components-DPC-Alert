@@ -1,0 +1,40 @@
+{
+    "entity": {
+        "binary_sensor": {
+            "idraulico_oggi": {
+                "default": "mdi:home-flood"
+            },
+            "temporali_oggi": {
+                "default": "mdi:weather-lightning"
+            },
+            "idrogeologico_oggi": {
+                "default": "mdi:waves"
+            },
+            "idraulico_domani": {
+                "default": "mdi:home-flood"
+            },
+            "temporali_domani": {
+                "default": "mdi:weather-lightning"
+            },
+            "idrogeologico_domani": {
+                "default": "mdi:waves"
+            }
+        },
+        "sensor": {
+            "criticality": {
+                "default": "mdi:shield-check",
+                "range": {
+                    "1": "mdi:shield-check",
+                    "2": "mdi:hazard-lights"
+                }
+            },
+            "vigilance": {
+                "default": "mdi:shield-check",
+                "range": {
+                    "1": "mdi:shield-check",
+                    "2": "mdi:hazard-lights"
+                }
+            }
+        }
+    }
+}

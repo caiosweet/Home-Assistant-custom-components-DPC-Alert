@@ -27,6 +27,14 @@ How the alert system works: [_Civil Protection Department_](https://rischi.prote
 
 Requires Home Assistant 2025.2 or newer. See the [changelog](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/CHANGELOG.md) for what changed in each version.
 
+## Use cases
+
+- Get a notification when DPC issues a yellow, orange or red alert for your place, today or tomorrow, with the risk and the link to the bulletin.
+- Show the alert levels of today and tomorrow, and the maps of the bulletin, on a dashboard.
+- Announce the alerts of the day on a speaker in the morning.
+- Close the shutters or bring in the garden furniture when strong wind or thunderstorms are expected nearby, from the weather phenomena of the vigilance sensor.
+- Before a trip, add the place you are going to and follow its alerts.
+
 ## Installation
 
 ### Using [Home Assistant Community Store](https://hacs.xyz/) (recommended)
@@ -50,7 +58,7 @@ Requires Home Assistant 2025.2 or newer. See the [changelog](https://github.com/
 
 Add as many places as you want. Each needs its own name, and must be at least 1 km from the others: closer places would get the same bulletins. The places share the downloads: each bulletin is downloaded once for all of them.
 
-The device of a place and its entities are named after it, e.g. `sensor.casa_alert` and `binary_sensor.casa_idraulico_oggi` for a place named Casa.
+The device of a place is named after its municipality, or after the place when it has none. The entity IDs come from the name of the place, e.g. `sensor.casa_alert` and `binary_sensor.casa_idraulico_oggi` for a place named Casa.
 
 ### Options
 
@@ -68,6 +76,31 @@ The device of a place and its entities are named after it, e.g. `sensor.casa_ale
 1. Go to **Settings → Devices & services → Dipartimento Protezione Civile**.
 2. For each place, open its **⋮** menu and choose **Delete**.
 3. To uninstall the integration too, open **Settings → Marketplace**, find **DPC Alert (Protezione Civile)**, choose **Remove** in its **⋮** menu, and restart Home Assistant.
+
+## How the data is updated
+
+- DPC publishes the criticality bulletin every day by 16:00 (Italian time), sometimes updated later the same day, and the weather vigilance bulletin by 15:00.
+- Every 30 minutes (the **Update interval** option), each place checks whether DPC has published new bulletins. The places that update at the same time share the check.
+- A new bulletin is downloaded once for all the places, about 18 MB, and read at each place.
+- Today and tomorrow follow the Italian date: after midnight, the second day of the bulletin becomes today, until DPC publishes the next bulletin.
+- When DPC cannot be reached, the places keep their bulletins, whose days stay valid, and check again after 10 minutes.
+
+## Known limitations
+
+- DPC covers Italy only. San Marino and Vatican City are in no DPC alert zone.
+- The criticality bulletin covers today and tomorrow; the vigilance bulletin, three days.
+- Two places must be at least 1 km apart: closer places get the same bulletins.
+- The texts of the bulletins, such as `info`, `alert`, `precipitation` and the phenomena, are in Italian, as DPC writes them. The names of the entities and of their attributes are translated.
+- Municipalities are named as DPC writes them, in Italian; in South Tyrol, the German names work too.
+
+## Troubleshooting
+
+- **The integration shows "Retrying setup"**: DPC cannot be reached. Home Assistant retries on its own; check that it can reach `mappe.protezionecivile.gov.it` and `raw.githubusercontent.com`.
+- **"… is not inside any DPC alert zone"**: the place is outside Italy, or in San Marino or Vatican City. Delete it and add a place in Italy.
+- **After an update, texts in English or names such as `place_nearby` in the forms**: the browser keeps the texts of the previous version. Reload the page, clearing its cache (Ctrl+F5).
+- **Entity names in another language**: Home Assistant names entities in the language of the system, not of your profile: **Settings → System → General → Language**.
+- **The alert zone is not the one of your town**: large municipalities span several alert zones. Choose your municipality in the options to get the highest alert of all of them.
+- **Reporting a problem**: on the integration, choose **Enable debug logging** in the **⋮** menu, reproduce the problem, then disable it to download the log. Add the diagnostics (**⋮ → Download diagnostics**: they leave out where the place is) to an [issue](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/issues).
 
 ## Preview [From my Natural Events project.][guide]
 
@@ -92,44 +125,52 @@ Cards: card-mod, auto-entities, config-template-card
 
 ### Representation of the attributes present in the sensor
 
+For a place named DPC in Rome, with Home Assistant in English:
+
 ### DPC Alert attributes
 
 ```yaml
 attribution: Data provided by Civil Protection Department
 integration: dpc
-id: "20210805_1513"
-publication_date: "2021-08-05T15:13:00"
-last_update: "2021-08-05T19:48:05.000855"
+id: '20261114_1430'
+publication_date: '2026-11-14T14:30:00+01:00'
+last_update: '2026-11-14T15:00:00+01:00'
+link: https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-criticita/
 max_level: 3
-total_alerts: 2
+total_alerts: 3
 today:
-  info: Moderata per rischio temporali
+  info: Ordinaria per rischio temporali
+  alert: ALLERTA GIALLA
+  level: 2
+  image_url: https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Criticita-Idrogeologica-Idraulica/master/files/preview/20261114_1430_oggi.png
+  expires: '2026-11-15T00:00:00+01:00'
+  zone_name: Bacini di Roma
+zone_name: Bacini di Roma
+events_today:
+- risk: Temporali
+  info: Ordinaria
+  alert: ALLERTA GIALLA
+  level: 2
+  icon: mdi:weather-lightning
+- risk: Idrogeologico
+  info: Ordinaria
+  alert: ALLERTA GIALLA
+  level: 2
+  icon: mdi:waves
+tomorrow:
+  info: Moderata per rischio idrogeologico
   alert: ALLERTA ARANCIONE
   level: 3
-  image_url: >-
-    https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Criticita-Idrogeologica-Idraulica/master/files/preview/20210805_1513_oggi.png
-  expires: "2021-08-05T00:00:00"
-events_today:
-  - risk: Temporali
-    info: Moderata
-    alert: ALLERTA ARANCIONE
-    level: 3
-    icon: mdi:weather-lightning
-  - risk: Idrogeologico
-    info: Moderata
-    alert: ALLERTA ARANCIONE
-    level: 3
-    icon: mdi:waves
-tomorrow:
-  info: Assenza di fenomeni significativi prevedibili
-  alert: NESSUNA ALLERTA
-  level: 1
-  image_url: >-
-    https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Criticita-Idrogeologica-Idraulica/master/files/preview/20210805_1513_domani.png
-  expires: "2021-08-06T00:00:00"
-zone_name: Lario e Prealpi occidentali
+  image_url: https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Criticita-Idrogeologica-Idraulica/master/files/preview/20261114_1430_domani.png
+  expires: '2026-11-16T00:00:00+01:00'
+  zone_name: Bacini di Roma
+events_tomorrow:
+- risk: Idrogeologico
+  info: Moderata
+  alert: ALLERTA ARANCIONE
+  level: 3
+  icon: mdi:waves
 friendly_name: DPC Alert
-icon: mdi:hazard-lights
 ```
 
 ### DPC Vigilance attributes
@@ -137,45 +178,57 @@ icon: mdi:hazard-lights
 ```yaml
 attribution: Data provided by Civil Protection Department
 integration: dpc
+id: '20261114'
+publication_date: '2026-11-14T00:00:00+01:00'
+last_update: '2026-11-14T15:00:00+01:00'
+link: https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-vigilanza/
+total_phenomena: 2
+today:
+  icon: mdi:numeric-2-circle
+  image_url: https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Vigilanza-Meteorologica/master/files/preview/20261114_oggi.png
+  level: 2
+  precipitation: Deboli
+  zone_name: Lazio centrale
+  phenomena:
+  - id: 202611141
+    date: 2026-11-14Z
+    id_event: 5
+    event: Precipitazioni
+    value: rovesci o temporali a carattere isolato
+    latitude: 41.573134169859415
+    longitude: 12.674774846264892
+    distance: 39.1
+    direction: SSE
+    degrees: 158
+    icon: mdi:lightning-bolt
+zone_name: Lazio centrale
 tomorrow:
-  phenomena: []
-  icon: mdi:numeric-1-circle
-  image_url: >-
-    https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Vigilanza-Meteorologica/master/files/preview/20220201_domani.png
-  level: 1
-  precipitation: Assenti o non rilevanti
+  icon: mdi:numeric-3-circle
+  image_url: https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Vigilanza-Meteorologica/master/files/preview/20261114_domani.png
+  level: 3
+  precipitation: Moderati
+  zone_name: Lazio centrale
+  phenomena:
+  - id: 202611142
+    date: 2026-11-14Z
+    id_event: 40
+    event: Mari
+    value: molto mosso
+    latitude: 41.75
+    longitude: 12.3
+    distance: 23.5
+    direction: SW
+    degrees: 224
+    icon: mdi:waves
 aftertomorrow:
-  phenomena: []
   icon: mdi:numeric-1-circle
   image_url: null
   level: 1
   precipitation: Assenti o non rilevanti
-today:
-  phenomena:
-    - id: 202202011
-      date: 2022-01-31Z
-      id_event: 11
-      event: Venti
-      value: burrasca
-      latitude: 43.15908136602766
-      longitude: 12.860448349161915
-      distance: 46
-      direction: WSW
-      degrees: 256
-      icon: mdi:weather-windy
-  icon: mdi:numeric-2-circle
-  image_url: >-
-    https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Vigilanza-Meteorologica/master/files/preview/20220201_oggi.png
-  level: 2
-  precipitation: Deboli
-id: '20220201'
-publication_date: '2022-02-01T00:00:00'
-zone_name: Coste marchigiana meridionale e abruzzese centro-settentrionale
-last_update: '2022-02-01T17:27:04.002291'
-max_level: 2
-total_phenomena: 1
-total_alerts: 1
-icon: mdi:hazard-lights
+  zone_name: Lazio centrale
+  phenomena: []
+max_level: 3
+total_alerts: 2
 friendly_name: DPC Vigilance
 ```
 
@@ -184,24 +237,24 @@ friendly_name: DPC Vigilance
 ```yaml
 attribution: Data provided by Civil Protection Department
 integration: dpc
-id: '20220322_1401'
-publication_date: '2022-03-22T14:01:00'
-expires: '2022-03-23T00:00:00'
-last_update: '2022-03-22T20:30:16.170457'
-risk: Idrogeologico
-info: Assenza di fenomeni significativi prevedibili
-alert: NESSUNA ALLERTA
-level: 1
-zone_name: Bacini di Roma
-image_url: >-
-  https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Criticita-Idrogeologica-Idraulica/master/files/preview/20220322_1401_domani.png
+id: '20261114_1430'
+publication_date: '2026-11-14T14:30:00+01:00'
+last_update: '2026-11-14T15:00:00+01:00'
 link: https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-criticita/
+risk: Idrogeologico
+info: Moderata
+alert: ALLERTA ARANCIONE
+level: 3
+image_url: https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Criticita-Idrogeologica-Idraulica/master/files/preview/20261114_1430_domani.png
+expires: '2026-11-16T00:00:00+01:00'
+zone_name: Bacini di Roma
 device_class: safety
-icon: mdi:waves
-friendly_name: Rischio Idrogeologico Domani
+friendly_name: DPC Hydrogeological risk tomorrow
 ```
 
 ## Here are some advanced examples of using the entities created with this component
+
+The examples use a place named DPC, as in `sensor.dpc_alert`: replace `dpc` with the name of your place.
 
 ### Lovelace markdown card example sensor
 
@@ -692,18 +745,18 @@ automation:
           dpc_tts_msg: >-
             {% set attr = trigger.to_state.attributes if trigger.to_state is defined else ({}) %}
             Attenzione. {{ attr.get('friendly_name','Test DPC') }}.
-            Allerta {{ attr.get('allerta','Bianca') }} {{ attr.get('info','Nessuna info') }}.
+            Allerta {{ attr.get('alert','Bianca') }} {{ attr.get('info','Nessuna info') }}.
       - service: notify.pushover
         data:
           title: >-
             {% set attr = trigger.to_state.attributes if trigger.to_state is defined else ({}) %}
-            Protezione Civile - {{ attr.get(''rischio'') }}
+            Protezione Civile - {{ attr.get('risk') }}
           message: |
             {% set attr = trigger.to_state.attributes if trigger.to_state is defined else ({}) %}
             {% set alert = {'0': '⚪', '1':'🟢', '2':'🟡', '3':'🟠', '4': '🔴'} %}
             {% set risk = {none: '❌', 'Temporali':'⚡', 'Idraulico':'💧', 'Idrogeologico':'🌊'} %}
-            {{ risk[attr.get('rischio')] }} {{ attr.get('friendly_name','Test DPC') }}.
-            {{ alert[attr.get('level', 0)|string] }} Allerta {{ attr.get('allerta','Bianca') }}
+            {{ risk[attr.get('risk')] }} {{ attr.get('friendly_name','Test DPC') }}.
+            {{ alert[attr.get('level', 0)|string] }} {{ attr.get('alert','Bianca') }}
             {{ attr.get('info','No info') }}.
 
             Bollettino di criticità {{ attr.get('link', BULLETIN) }}
@@ -712,20 +765,15 @@ automation:
           message: "{{ dpc_tts_msg }}"
           entity_id: media_player.red
       - service: notify.alexa_media
+        data:
+          message: "{{ dpc_tts_msg }}"
           data:
-            message: "{{ dpc_tts_msg }}"
-            data:
-              type: tts
-            target: "media_player.studio"
+            type: tts
+          target: "media_player.studio"
 ```
 
 ## Other Lovelace Examples [HA Card weather conditions](https://github.com/r-renato/ha-card-weather-conditions#display-the-alert-layer) [@r-renato](https://github.com/r-renato)
 
-## Roadmap
-
-- **Home Assistant [integration quality scale](https://developers.home-assistant.io/docs/core/integration-quality-scale/)**: the integration follows its bronze and silver rules; next come the gold ones, such as translated icons and error messages.
-
-Ideas and problems are welcome in the [issues](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/issues).
 
 ## License
 

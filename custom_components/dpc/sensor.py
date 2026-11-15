@@ -37,8 +37,6 @@ from .entity import DpcEntity, language_independent_entity_id
 # The coordinator updates the entities: nothing to limit
 PARALLEL_UPDATES = 0
 
-ICON = {"safety": "mdi:shield-check", "danger": "mdi:hazard-lights"}  # shield-account
-
 EVENTS = {ATTR_TODAY: ATTR_EVENTS_TODAY, ATTR_TOMORROW: ATTR_EVENTS_TOMORROW}
 
 
@@ -104,12 +102,6 @@ class DpcSensorCriticality(DpcEntity, SensorEntity):
             for risk in day.risks
             if risk.level >= self.warning_level
         ]
-
-    @property
-    def icon(self) -> str:
-        """Return the icon of the sensor."""
-        has_events = any(self._events(day) for day in self._days.values())
-        return ICON["danger"] if has_events else ICON["safety"]
 
     @property
     def native_value(self) -> int | None:
@@ -184,11 +176,6 @@ class DpcSensorVigilance(DpcEntity, SensorEntity):
         return sum(
             day.precipitation >= self.warning_level for day in self._days.values()
         )
-
-    @property
-    def icon(self) -> str:
-        """Return the icon of the sensor."""
-        return ICON["danger"] if self._total_alerts else ICON["safety"]
 
     @property
     def native_value(self) -> int | None:

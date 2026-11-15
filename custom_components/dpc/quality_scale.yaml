@@ -1,0 +1,110 @@
+# Status of the rules of the Home Assistant integration quality scale:
+# https://developers.home-assistant.io/docs/core/integration-quality-scale/
+rules:
+  # Bronze
+  action-setup:
+    status: exempt
+    comment: The integration provides no actions.
+  appropriate-polling:
+    status: done
+    comment: >-
+      Every 30 minutes by default, only the IDs of the latest bulletins are
+      checked; a bulletin is downloaded when DPC publishes a new one.
+  brands: done
+  common-modules: done
+  config-flow-test-coverage: done
+  config-flow: done
+  dependency-transparency:
+    status: done
+    comment: aiodpc, MIT, built and published to PyPI by its GitHub workflow.
+  docs-actions:
+    status: exempt
+    comment: The integration provides no actions.
+  docs-conditions:
+    status: exempt
+    comment: The integration provides no device conditions.
+  docs-high-level-description: done
+  docs-installation-instructions: done
+  docs-removal-instructions: done
+  docs-triggers:
+    status: exempt
+    comment: The integration provides no device triggers.
+  entity-event-setup:
+    status: exempt
+    comment: The entities subscribe to no events.
+  entity-unique-id: done
+  has-entity-name: done
+  runtime-data: done
+  test-before-configure: done
+  test-before-setup: done
+  unique-config-entry: done
+
+  # Silver
+  action-exceptions:
+    status: exempt
+    comment: The integration provides no actions.
+  config-entry-unloading: done
+  docs-configuration-parameters: done
+  docs-installation-parameters: done
+  entity-unavailable: done
+  integration-owner: done
+  log-when-unavailable: done
+  parallel-updates: done
+  reauthentication-flow:
+    status: exempt
+    comment: The DPC bulletins are public, without authentication.
+  test-coverage: done
+
+  # Gold
+  devices: done
+  diagnostics: done
+  discovery-update-info:
+    status: exempt
+    comment: DPC is a cloud service, with nothing to discover.
+  discovery:
+    status: exempt
+    comment: DPC is a cloud service, with nothing to discover.
+  docs-data-update: done
+  docs-examples: done
+  docs-known-limitations: done
+  docs-supported-devices:
+    status: exempt
+    comment: The integration connects to no physical device.
+  docs-supported-functions: done
+  docs-troubleshooting: done
+  docs-use-cases: done
+  dynamic-devices:
+    status: exempt
+    comment: Each config entry has a single static device, the service of its place.
+  entity-category:
+    status: exempt
+    comment: All the entities are primary entities.
+  entity-device-class:
+    status: done
+    comment: >-
+      The binary sensors are safety sensors; the sensors are alert levels, which
+      no device class describes.
+  entity-disabled-by-default:
+    status: exempt
+    comment: No entity is noisy; they change a few times a day at most.
+  entity-translations: done
+  exception-translations: done
+  icon-translations: done
+  reconfiguration-flow:
+    status: exempt
+    comment: >-
+      A place is identified by its coordinates: changing them means adding
+      another place.
+  repair-issues:
+    status: exempt
+    comment: >-
+      Nothing the user can fix besides a place outside the DPC alert zones,
+      which fails to set up with a translated error.
+  stale-devices:
+    status: exempt
+    comment: Each config entry has a single static device, removed with it.
+
+  # Platinum
+  async-dependency: done
+  inject-websession: done
+  strict-typing: done

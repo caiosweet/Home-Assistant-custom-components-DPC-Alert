@@ -88,7 +88,8 @@ async def test_criticality_sensor(hass: HomeAssistant) -> None:
             "icon": "mdi:waves",
         },
     ]
-    assert attrs["icon"] == "mdi:hazard-lights"
+    # The icon comes from icons.json, not from the state
+    assert "icon" not in attrs
 
 
 @pytest.mark.usefixtures("init_integration")

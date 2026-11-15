@@ -114,6 +114,13 @@ async def test_setup_with_one_bulletin(
     assert mock_config_entry.state is ConfigEntryState.LOADED
     assert sensor_state(unavailable) == STATE_UNAVAILABLE
     assert sensor_state(available) == "3"
+    # Home Assistant reads an entity only while it is available, but the
+    # unavailable one would still answer without a bulletin
+    entity = hass.data[Platform.SENSOR].get_entity(
+        get_entity_id(hass, Platform.SENSOR, sensor_unique_id(unavailable))
+    )
+    assert entity.native_value is None
+    assert "id" not in entity.extra_state_attributes
 
 
 @pytest.mark.usefixtures("mock_dpc")
@@ -174,26 +181,34 @@ async def test_options_update_reloads_entry(
     assert state.attributes["total_alerts"] == 1
 
 
+@pytest.mark.parametrize(
+    ("municipality", "device_name"), [("", "Casa"), ("Roma", "Roma")]
+)
 async def test_device_and_entity_ids_of_a_place(
     hass: HomeAssistant,
     device_registry: dr.DeviceRegistry,
     entity_registry: er.EntityRegistry,
     mock_dpc: AiohttpClientMocker,
+    municipality: str,
+    device_name: str,
 ) -> None:
-    """Test that a new place names its device and entity IDs after itself."""
+    """Test that a place names its device after its municipality, or itself.
+
+    Its entity IDs always come from its name.
+    """
     entry = MockConfigEntry(
         domain=DOMAIN,
         version=2,
         title="Casa",
         unique_id=UNIQUE_ID,
         data={CONF_NAME: "Casa", CONF_LATITUDE: LATITUDE, CONF_LONGITUDE: LONGITUDE},
-        options={CONF_MUNICIPALITY: ""},
+        options={CONF_MUNICIPALITY: municipality},
     )
 
     await setup_integration(hass, entry)
 
     (device,) = dr.async_entries_for_config_entry(device_registry, entry.entry_id)
-    assert device.name == "Casa"
+    assert device.name == device_name
     entity_ids = {
         item.entity_id
         for item in er.async_entries_for_config_entry(entity_registry, entry.entry_id)

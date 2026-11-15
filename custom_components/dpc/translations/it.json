@@ -409,5 +409,13 @@
                 }
             }
         }
+    },
+    "exceptions": {
+        "update_failed": {
+            "message": "Nessun bollettino del DPC è stato scaricato: {error}"
+        },
+        "outside_alert_zones": {
+            "message": "{place} non è in nessuna zona di allerta del DPC."
+        }
     }
 }
