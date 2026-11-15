@@ -1,56 +1,57 @@
 """Sensor platform for Dpc."""
 
-from homeassistant.components.sensor import ENTITY_ID_FORMAT, SensorEntity
-from homeassistant.const import ATTR_ICON, CONF_LATITUDE, CONF_LONGITUDE, CONF_NAME
-from homeassistant.util import slugify
+from __future__ import annotations
 
-from . import DpcDataUpdateCoordinator
+from datetime import timedelta
+from typing import Any
+
+from aiodpc import CriticalityDay, VigilanceDay, rome_date
+from homeassistant.components.sensor import ENTITY_ID_FORMAT, SensorEntity
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE, CONF_NAME
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+
+from .attributes import (
+    criticality_attributes,
+    criticality_day_attributes,
+    risk_event_attributes,
+    vigilance_attributes,
+    vigilance_day_attributes,
+)
 from .const import (
     ATTR_AFTERTOMORROW,
-    ATTR_ALERT,
     ATTR_EVENTS_TODAY,
     ATTR_EVENTS_TOMORROW,
-    ATTR_ID,
-    ATTR_INFO,
-    ATTR_LAST_UPDATE,
-    ATTR_LEVEL,
-    ATTR_LINK,
     ATTR_MAX_LEVEL,
     ATTR_PHENOMENA,
-    ATTR_PUBLICATION_DATE,
-    ATTR_RISK,
     ATTR_TODAY,
     ATTR_TOMORROW,
     ATTR_TOTAL_ALERTS,
     ATTR_TOTAL_PHENOMENA,
     ATTR_ZONE_NAME,
-    CONF_WARNING_LEVEL,
-    DEFAULT_NAME,
-    DEFAULT_WARNING_LEVEL,
-    DOMAIN,
-    LOGGER,
-    WARNING_TYPES,
 )
-from .entity import DpcEntity
+from .coordinator import DpcConfigEntry, DpcDataUpdateCoordinator
+from .entity import DpcEntity, language_independent_entity_id
+
+# The coordinator updates the entities: nothing to limit
+PARALLEL_UPDATES = 0
 
 ICON = {"safety": "mdi:shield-check", "danger": "mdi:hazard-lights"}  # shield-account
 
-
-def _language_independent_entity_id(entry, suffix: str) -> str:
-    """Return sensor.<name>_<suffix>, the entity ID used before names were translated.
-
-    For languages such as Italian and Portuguese, Home Assistant derives new entity
-    IDs from the translated name (e.g. sensor.dpc_allerta). Suggesting the ID keeps
-    it the same in every language. Existing entities keep their registered ID anyway.
-    """
-    return ENTITY_ID_FORMAT.format(
-        slugify(f"{entry.data.get(CONF_NAME) or DEFAULT_NAME} {suffix}")
-    )
+EVENTS = {ATTR_TODAY: ATTR_EVENTS_TODAY, ATTR_TOMORROW: ATTR_EVENTS_TOMORROW}
 
 
-async def async_setup_entry(hass, entry, async_add_entities):  # async_add_devices
+def _covered[DayT](days: dict[str, DayT | None]) -> dict[str, DayT]:
+    """Return the days covered by the bulletin, by attribute name."""
+    return {name: day for name, day in days.items() if day is not None}
+
+
+async def async_setup_entry(
+    hass: HomeAssistant, entry: DpcConfigEntry, async_add_entities: AddEntitiesCallback
+) -> None:
     """Setup sensor platform."""
-    coordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator = entry.runtime_data
     async_add_entities(
         [
             DpcSensorCriticality(coordinator, entry),
@@ -60,218 +61,152 @@ async def async_setup_entry(hass, entry, async_add_entities):  # async_add_devic
 
 
 class DpcSensorCriticality(DpcEntity, SensorEntity):
-    """Dpc Criticality Sensor class."""
+    """Highest alert level of today and tomorrow (1 green to 4 red)."""
 
     _attr_translation_key = "criticality"
 
     def __init__(
-        self,
-        coordinator: DpcDataUpdateCoordinator,
-        entry: str,
-    ):
+        self, coordinator: DpcDataUpdateCoordinator, entry: ConfigEntry
+    ) -> None:
         """Initialize Entities."""
         super().__init__(coordinator, entry)
-        self.coordinator = coordinator
-        self.entry = entry
-        self.entity_id = _language_independent_entity_id(entry, "alert")
-        self._state = None
-        self._max_level = None
-        self._total_alerts = None
-        self._events_today = None
-        self._events_tomorrow = None
-        self._name = entry.data.get(CONF_NAME)
-        self._latitude = entry.data.get(CONF_LATITUDE)
-        self._longitude = entry.data.get(CONF_LONGITUDE)
-        self._level = entry.options.get(CONF_WARNING_LEVEL, DEFAULT_WARNING_LEVEL)
-
-    @property
-    def unique_id(self):
-        """Return a unique ID to use for this entity."""
-        return f"{self._name}_criticality_{self._latitude}_{self._longitude}"
-
-    @property
-    def icon(self):
-        """Return the icon of the sensor."""
-        total_alerts = self._total_alerts or 0
-        return ICON["danger"] if total_alerts != 0 else ICON["safety"]
+        self.entity_id = language_independent_entity_id(
+            ENTITY_ID_FORMAT, entry, "alert"
+        )
+        self._attr_unique_id = (
+            f"{entry.data.get(CONF_NAME)}_criticality_"
+            f"{entry.data.get(CONF_LATITUDE)}_{entry.data.get(CONF_LONGITUDE)}"
+        )
 
     @property
     def available(self) -> bool:
-        """Return True if entity is available."""
-        return self.coordinator.last_update_success and self.coordinator.data
-
-    def _update_state(self) -> None:
-        """Compute state and attributes from coordinator data."""
-        self._state = 0
-        self._total_alerts = 0
-
-        self._events_today = []
-        self._events_tomorrow = []
-        data = self.coordinator.data.get("criticality")
-        if data:
-            for warning in WARNING_TYPES:
-                if warning in data and ATTR_LEVEL in data[warning]:
-                    level = data[warning][ATTR_LEVEL]
-                    if level > self._state:
-                        self._state = level
-
-                    if data[warning][ATTR_LEVEL] >= self._level:
-                        self._total_alerts += 1
-
-                        event_day = {
-                            ATTR_RISK: data[warning][ATTR_RISK],
-                            ATTR_INFO: data[warning][ATTR_INFO],
-                            ATTR_ALERT: data[warning][ATTR_ALERT],
-                            ATTR_LEVEL: data[warning][ATTR_LEVEL],
-                            ATTR_ICON: data[warning][ATTR_ICON],
-                        }
-                        if "oggi" in warning:
-                            self._events_today.append(event_day)
-                        if "domani" in warning:
-                            self._events_tomorrow.append(event_day)
-
-    def _get_state(self):
-        """Return the state of the sensor."""
-        try:
-            self._update_state()
-            return self._state if self._state != 0 else None
-        except Exception as exception:
-            LOGGER.error("[Criticality Sensor] Error! - %s", exception)
-            return None
+        """Return whether a criticality bulletin is available."""
+        return super().available and self.coordinator.data.criticality is not None
 
     @property
-    def native_value(self):
-        return self._get_state()
+    def _days(self) -> dict[str, CriticalityDay]:
+        """Return today and tomorrow, when the bulletin covers them."""
+        latest = self.coordinator.data.criticality
+        if latest is None:
+            return {}
+        bulletin = latest.bulletin
+        return _covered({ATTR_TODAY: bulletin.today, ATTR_TOMORROW: bulletin.tomorrow})
 
     @property
-    def state(self):
-        return self._get_state()
+    def _max_level(self) -> int:
+        """Return the highest alert level of the days; 0 when unknown."""
+        return max((day.level.value for day in self._days.values()), default=0)
+
+    def _events(self, day: CriticalityDay) -> list[dict[str, Any]]:
+        """Return the risks of a day at or above the warning level."""
+        return [
+            risk_event_attributes(risk)
+            for risk in day.risks
+            if risk.level >= self.warning_level
+        ]
 
     @property
-    def extra_state_attributes(self):
+    def icon(self) -> str:
+        """Return the icon of the sensor."""
+        has_events = any(self._events(day) for day in self._days.values())
+        return ICON["danger"] if has_events else ICON["safety"]
+
+    @property
+    def native_value(self) -> int | None:
+        """Return the highest alert level of today and tomorrow."""
+        return self._max_level or None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
-        attrs = super().extra_state_attributes
-        data = self.coordinator.data.get("criticality")
-        if data:
-            attrs[ATTR_ID] = data[ATTR_ID]
-            attrs[ATTR_PUBLICATION_DATE] = data[ATTR_PUBLICATION_DATE]
-            attrs[ATTR_LAST_UPDATE] = data[ATTR_LAST_UPDATE]
-            attrs[ATTR_MAX_LEVEL] = self._state
-            attrs[ATTR_TOTAL_ALERTS] = self._total_alerts
-            if ATTR_TODAY in data:
-                attrs[ATTR_TODAY] = data[ATTR_TODAY]
-                if self._events_today:
-                    attrs[ATTR_EVENTS_TODAY] = self._events_today
-            if ATTR_TOMORROW in data:
-                attrs[ATTR_TOMORROW] = data[ATTR_TOMORROW]
-                if self._events_tomorrow:
-                    attrs[ATTR_EVENTS_TOMORROW] = self._events_tomorrow
-            attrs[ATTR_ZONE_NAME] = data[ATTR_ZONE_NAME]
-            attrs[ATTR_LINK] = data[ATTR_LINK]
-        return attrs
-
-    # async def async_update(self):
-    #     """Update Dpc Sensor Entity."""
-    #     await self.coordinator.async_request_refresh()
-
-    # async def async_added_to_hass(self):
-    #     """Subscribe to updates."""
-    #     self.async_on_remove(self.coordinator.async_add_listener(self.async_write_ha_state))
+        attributes = super().extra_state_attributes
+        if (latest := self.coordinator.data.criticality) is None:
+            return attributes
+        attributes |= criticality_attributes(latest)
+        attributes[ATTR_MAX_LEVEL] = self._max_level
+        attributes[ATTR_TOTAL_ALERTS] = 0
+        for name, day in self._days.items():
+            attributes[name] = criticality_day_attributes(day)
+            attributes[ATTR_ZONE_NAME] = day.zone
+            if events := self._events(day):
+                attributes[EVENTS[name]] = events
+                attributes[ATTR_TOTAL_ALERTS] += len(events)
+        return attributes
 
 
 class DpcSensorVigilance(DpcEntity, SensorEntity):
-    """Dpc Vigilance Sensor class."""
+    """Highest expected precipitation of the next days (1 none to 5 very heavy)."""
 
     _attr_translation_key = "vigilance"
 
     def __init__(
-        self,
-        coordinator: DpcDataUpdateCoordinator,
-        entry: str,
-    ):
+        self, coordinator: DpcDataUpdateCoordinator, entry: ConfigEntry
+    ) -> None:
         """Initialize Entities."""
         super().__init__(coordinator, entry)
-        self.coordinator = coordinator
-        self.entry = entry
-        self.entity_id = _language_independent_entity_id(entry, "vigilance")
-        self._state = None
-        self._max_level = None
-        self._total_alerts = None
-        self._total_phenomena = None
-        self._name = entry.data.get(CONF_NAME)
-        self._latitude = entry.data.get(CONF_LATITUDE)
-        self._longitude = entry.data.get(CONF_LONGITUDE)
-        self._level = entry.options.get(CONF_WARNING_LEVEL, DEFAULT_WARNING_LEVEL)
-
-    @property
-    def unique_id(self):
-        """Return a unique ID to use for this entity."""
-        return f"{self._name}_vigilance_{self._latitude}_{self._longitude}"
-
-    @property
-    def icon(self):
-        """Return the icon of the sensor."""
-        total_alerts = self._total_alerts or 0
-        return ICON["danger"] if total_alerts != 0 else ICON["safety"]
+        self.entity_id = language_independent_entity_id(
+            ENTITY_ID_FORMAT, entry, "vigilance"
+        )
+        self._attr_unique_id = (
+            f"{entry.data.get(CONF_NAME)}_vigilance_"
+            f"{entry.data.get(CONF_LATITUDE)}_{entry.data.get(CONF_LONGITUDE)}"
+        )
 
     @property
     def available(self) -> bool:
-        """Return True if entity is available."""
-        return self.coordinator.last_update_success and self.coordinator.data
-
-    def _update_state(self) -> None:
-        """Compute state and attributes from coordinator data."""
-        self._total_alerts = 0
-        self._state = 0
-        self._total_phenomena = 0
-        data = self.coordinator.data.get("vigilance")
-        if data:
-            for warning in [ATTR_TODAY, ATTR_TOMORROW, ATTR_AFTERTOMORROW]:
-                if warning in data and ATTR_LEVEL in data[warning]:
-                    level = data[warning][ATTR_LEVEL]
-
-                    if level > self._state:
-                        self._state = level
-
-                    if data[warning][ATTR_LEVEL] >= self._level:
-                        self._total_alerts += 1
-
-                    if ATTR_PHENOMENA in data[warning]:
-                        self._total_phenomena += len(data[warning][ATTR_PHENOMENA])
-
-    def _get_state(self):
-        """Return the state of the sensor."""
-        try:
-            self._update_state()
-            return self._state if self._state != 0 else None
-        except Exception as exception:
-            LOGGER.error("[Vigilance Sensor] Error! - %s", exception)
-            return None
+        """Return whether a vigilance bulletin is available."""
+        return super().available and self.coordinator.data.vigilance is not None
 
     @property
-    def native_value(self):
-        return self._get_state()
+    def _days(self) -> dict[str, VigilanceDay]:
+        """Return today, tomorrow and the day after, when the bulletin covers them."""
+        latest = self.coordinator.data.vigilance
+        if latest is None:
+            return {}
+        bulletin = latest.bulletin
+        today = rome_date()
+        return _covered(
+            {
+                ATTR_TODAY: bulletin.on(today),
+                ATTR_TOMORROW: bulletin.on(today + timedelta(days=1)),
+                ATTR_AFTERTOMORROW: bulletin.on(today + timedelta(days=2)),
+            }
+        )
 
     @property
-    def state(self):
-        return self._get_state()
+    def _max_level(self) -> int:
+        """Return the highest precipitation level of the days; 0 when unknown."""
+        return max((day.precipitation.value for day in self._days.values()), default=0)
 
     @property
-    def extra_state_attributes(self):
+    def _total_alerts(self) -> int:
+        """Return the number of days at or above the warning level."""
+        return sum(
+            day.precipitation >= self.warning_level for day in self._days.values()
+        )
+
+    @property
+    def icon(self) -> str:
+        """Return the icon of the sensor."""
+        return ICON["danger"] if self._total_alerts else ICON["safety"]
+
+    @property
+    def native_value(self) -> int | None:
+        """Return the highest expected precipitation of the next days."""
+        return self._max_level or None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
-        attrs = super().extra_state_attributes
-        data = self.coordinator.data.get("vigilance")
-        if data:
-            attrs.update(data)
-            attrs[ATTR_MAX_LEVEL] = self._state
-            attrs[ATTR_TOTAL_PHENOMENA] = self._total_phenomena
-            attrs[ATTR_TOTAL_ALERTS] = self._total_alerts
-        return attrs
-
-    # async def async_update(self):
-    #     """Update Dpc Sensor Entity."""
-    #     await self.coordinator.async_request_refresh()
-
-    # async def async_added_to_hass(self):
-    #     """Subscribe to updates."""
-    #     self.async_on_remove(self.coordinator.async_add_listener(self.async_write_ha_state))
+        attributes = super().extra_state_attributes
+        if (latest := self.coordinator.data.vigilance) is None:
+            return attributes
+        attributes |= vigilance_attributes(latest)
+        attributes[ATTR_TOTAL_PHENOMENA] = 0
+        for name, day in self._days.items():
+            attributes[name] = vigilance_day_attributes(day)
+            attributes[ATTR_ZONE_NAME] = day.zone
+            attributes[ATTR_TOTAL_PHENOMENA] += len(attributes[name][ATTR_PHENOMENA])
+        attributes[ATTR_MAX_LEVEL] = self._max_level
+        attributes[ATTR_TOTAL_ALERTS] = self._total_alerts
+        return attributes

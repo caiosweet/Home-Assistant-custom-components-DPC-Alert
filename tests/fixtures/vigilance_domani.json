@@ -1,0 +1,33 @@
+{
+  "type": "FeatureCollection",
+  "totalFeatures": 2,
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [[[[12.0, 41.5], [13.0, 41.5], [13.0, 42.3], [12.0, 42.3], [12.0, 41.5]]]]
+      },
+      "properties": {
+        "comuni": ["Fiumicino", "Roma", "Tivoli"],
+        "id_classificazione": 3,
+        "Nome_Zona": "Lazio centrale",
+        "Quantitativi_previsti": "Moderati"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [[[[8.5, 45.2], [9.6, 45.2], [9.6, 46.0], [8.5, 46.0], [8.5, 45.2]]]]
+      },
+      "properties": {
+        "comuni": ["Como", "Lecco"],
+        "id_classificazione": 5,
+        "Nome_Zona": "Lombardia centrale settore occidentale",
+        "Quantitativi_previsti": "Elevati"
+      }
+    }
+  ],
+  "crs": {"type": "name", "properties": {"name": "urn:ogc:def:crs:EPSG::4326"}}
+}

@@ -7,35 +7,16 @@ https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert
 
 from __future__ import annotations
 
-import asyncio
-from datetime import timedelta
+from functools import partial
 
 import homeassistant.helpers.config_validation as cv
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (
-    CONF_LATITUDE,
-    CONF_LONGITUDE,
-    CONF_NAME,
-    CONF_RADIUS,
-    CONF_SCAN_INTERVAL,
-)
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryNotReady
-from homeassistant.helpers import event
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.typing import ConfigType
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .api import DpcApiClient, DpcApiException
-from .const import (
-    CONF_MUNICIPALITY,
-    DEFAULT_RADIUS,
-    DEFAULT_SCAN_INTERVAL,
-    DOMAIN,
-    LOGGER,
-    PLATFORMS,
-    STARTUP_MESSAGE,
-)
+from .bulletins import Place, async_get_bulletins
+from .const import CONF_MUNICIPALITY, DOMAIN, LOGGER, PLATFORMS, STARTUP_MESSAGE
+from .coordinator import DpcConfigEntry, DpcDataUpdateCoordinator
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
@@ -43,125 +24,52 @@ CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up this integration using YAML is not supported."""
     del config
+    LOGGER.info(STARTUP_MESSAGE)
     return True
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up this integration using UI."""
-    if hass.data.get(DOMAIN) is None:
-        hass.data.setdefault(DOMAIN, {})
-        LOGGER.info(STARTUP_MESSAGE)
+async def async_setup_entry(hass: HomeAssistant, entry: DpcConfigEntry) -> bool:
+    """Set up a place.
 
-    location_name = entry.data.get(CONF_NAME)
-    latitude = entry.data.get(CONF_LATITUDE)
-    longitude = entry.data.get(CONF_LONGITUDE)
-    municipality = entry.options.get(CONF_MUNICIPALITY)
-    update_interval = timedelta(
-        minutes=entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
-    )
-    radius = entry.options.get(CONF_RADIUS, DEFAULT_RADIUS)
-    session = async_get_clientsession(hass)
-    client = DpcApiClient(
-        location_name,
-        latitude,
-        longitude,
-        municipality,
-        radius,
-        session,
-        update_interval,
-    )
+    Raises ConfigEntryNotReady while DPC cannot be reached, so that Home
+    Assistant retries soon, and ConfigEntryError when DPC does not cover the
+    place.
+    """
+    # The places share the downloads: a bulletin is the same file for all of them
+    bulletins = async_get_bulletins(hass)
+    bulletins.add_place(entry.entry_id, Place.of(entry))
+    entry.async_on_unload(partial(bulletins.remove_place, entry.entry_id))
 
-    coordinator = DpcDataUpdateCoordinator(
-        hass, client=client, update_interval=update_interval
-    )
-    await coordinator.async_refresh()
+    coordinator = DpcDataUpdateCoordinator(hass, entry, bulletins)
+    await coordinator.async_config_entry_first_refresh()
+    entry.runtime_data = coordinator
 
-    if not coordinator.last_update_success:
-        LOGGER.warning(
-            "Initial update failed for %s; entities will be unavailable until the next refresh",
-            entry.title,
-        )
-
-    hass.data[DOMAIN][entry.entry_id] = coordinator
-
-    for platform in PLATFORMS:
-        if entry.options.get(platform, True):
-            coordinator.platforms.append(platform)
-            await hass.config_entries.async_forward_entry_setups(entry, [platform])
-
-    if not entry.update_listeners:
-        entry.add_update_listener(async_reload_entry)
-
+    coordinator.platforms = [
+        platform for platform in PLATFORMS if entry.options.get(platform, True)
+    ]
+    await hass.config_entries.async_forward_entry_setups(entry, coordinator.platforms)
+    entry.async_on_unload(entry.add_update_listener(async_update_options))
     return True
 
 
-class DpcDataUpdateCoordinator(DataUpdateCoordinator):
-    """Class to manage fetching data from the API."""
-
-    def __init__(
-        self, hass: HomeAssistant, client: DpcApiClient, update_interval: timedelta
-    ) -> None:
-        """Initialize."""
-        self.api = client
-        self.platforms = []
-        super().__init__(hass, LOGGER, name=DOMAIN, update_interval=update_interval)
-
-    async def _async_update_data(self):
-        """Update data via library."""
-        try:
-            return await self.api.async_get_data()
-        except (DpcApiException, Exception) as exception:
-            raise UpdateFailed(exception) from exception
-        finally:
-            LOGGER.debug("[%s] COORDINATOR DATA: %s", self.api._name, self.api._data)
-
-            if self.api._pending_full_update:
-                LOGGER.warning("Pending full update, i will retry in 10 min")
-                event.async_call_later(
-                    self.hass,
-                    600,
-                    self._async_request_refresh_later,
-                )
-
-    async def _async_request_refresh_later(self, _now):
-        """Request async_request_refresh."""
-        await self.async_request_refresh()
+async def async_update_options(hass: HomeAssistant, entry: DpcConfigEntry) -> None:
+    """Reload a place when its options change."""
+    await hass.config_entries.async_reload(entry.entry_id)
 
 
-async def async_update_options(hass: HomeAssistant, config_entry: ConfigEntry) -> None:
-    """Update options."""
-    await hass.config_entries.async_reload(config_entry.entry_id)
-
-
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Handle removal of an entry."""
-    coordinator = hass.data[DOMAIN][entry.entry_id]
-    unloaded = all(
-        await asyncio.gather(
-            *[
-                hass.config_entries.async_forward_entry_unload(entry, platform)
-                for platform in PLATFORMS
-                if platform in coordinator.platforms
-            ]
-        )
+async def async_unload_entry(hass: HomeAssistant, entry: DpcConfigEntry) -> bool:
+    """Unload a place, with the platforms it was set up with."""
+    return await hass.config_entries.async_unload_platforms(
+        entry, entry.runtime_data.platforms
     )
-    if unloaded:
-        hass.data[DOMAIN].pop(entry.entry_id)
-
-    return unloaded
 
 
 async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Migrate an old config entry."""
     LOGGER.info("Migrating DPC entry from Version %s", entry.version)
     if entry.version == 1:
-        entry.options = dict(entry.options)
-        entry.options[CONF_MUNICIPALITY] = ""
-        entry.version = 2
+        hass.config_entries.async_update_entry(
+            entry, options={**entry.options, CONF_MUNICIPALITY: ""}, version=2
+        )
 
     return True
-
-
-async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Reload config entry."""
-    await async_unload_entry(hass, entry)
-    await async_setup_entry(hass, entry)

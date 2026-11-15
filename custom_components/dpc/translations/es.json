@@ -1,0 +1,413 @@
+{
+    "config": {
+        "flow_title": "{name}",
+        "step": {
+            "user": {
+                "title": "Departamento de Protección Civil",
+                "description": "¿Cómo quieres elegir el lugar que vigilar? Los boletines del DPC cubren Italia.",
+                "menu_options": {
+                    "map": "Elegirlo en el mapa",
+                    "zone": "Usar una zona, como Casa"
+                }
+            },
+            "map": {
+                "title": "Lugar en el mapa",
+                "description": "Mueve el marcador al lugar que vigilar.",
+                "data": {
+                    "name": "Nombre",
+                    "location": "Lugar"
+                },
+                "data_description": {
+                    "name": "Aparece delante de los nombres de sus entidades.",
+                    "location": "El lugar debe estar en Italia: los boletines del DPC solo cubren Italia."
+                }
+            },
+            "zone": {
+                "title": "Lugar de una zona",
+                "description": "Elige una de tus zonas de Home Assistant.",
+                "data": {
+                    "zone": "Zona",
+                    "name": "Nombre"
+                },
+                "data_description": {
+                    "zone": "Se copia la posición de la zona: mover la zona después no mueve el lugar.",
+                    "name": "Opcional. Si está vacío, se usa el nombre de la zona."
+                }
+            },
+            "municipality": {
+                "title": "Municipio",
+                "description": "El lugar está en la zona de alerta del DPC **{zone}**.",
+                "data": {
+                    "municipality": "Municipio"
+                },
+                "data_description": {
+                    "municipality": "Opcional. Un municipio que abarca varias zonas de alerta recibe la alerta más alta de todas ellas. Déjalo vacío para usar solo la zona de alerta del lugar."
+                }
+            }
+        },
+        "error": {
+            "coordinates_outside": "Las coordenadas están fuera de las zonas de alerta del DPC.",
+            "cannot_connect": "No se pudieron validar las coordenadas. Comprueba tu conexión.",
+            "zone_not_found": "No se encontró la zona.",
+            "place_nearby": "{place} está a menos de 1 km: sus boletines serían los mismos.",
+            "name_exists": "Otro lugar ya tiene este nombre."
+        },
+        "abort": {
+            "single_instance_allowed": "Se admiten varias instancias. Cada ubicación solo se puede añadir una vez.",
+            "already_configured": "Ya hay una entrada configurada para esta ubicación."
+        }
+    },
+    "options": {
+        "step": {
+            "user": {
+                "title": "Opciones de DPC",
+                "description": "Nivel mínimo de alerta: 1 verde, 2 amarillo, 3 naranja, 4 rojo. El sensor se activa a partir del nivel seleccionado.",
+                "data": {
+                    "binary_sensor": "Sensor binario habilitado",
+                    "sensor": "Sensor habilitado",
+                    "municipality": "Municipio",
+                    "scan_interval": "Intervalo de actualización (minutos, 30 por defecto)",
+                    "warning_level": "Nivel mínimo de alerta",
+                    "radius": "Radio (km, 50 por defecto)"
+                },
+                "data_description": {
+                    "municipality": "Opcional. Un municipio que abarca varias zonas de alerta recibe la alerta más alta de todas ellas. Déjalo vacío para usar solo la zona de alerta del lugar."
+                }
+            }
+        }
+    },
+    "entity": {
+        "binary_sensor": {
+            "idraulico_oggi": {
+                "name": "Riesgo hidráulico hoy",
+                "state_attributes": {
+                    "integration": {
+                        "name": "Integración"
+                    },
+                    "id": {
+                        "name": "ID del boletín"
+                    },
+                    "publication_date": {
+                        "name": "Fecha de publicación"
+                    },
+                    "expires": {
+                        "name": "Fin de validez"
+                    },
+                    "last_update": {
+                        "name": "Última actualización"
+                    },
+                    "risk": {
+                        "name": "Riesgo"
+                    },
+                    "info": {
+                        "name": "Criticidad"
+                    },
+                    "alert": {
+                        "name": "Alerta"
+                    },
+                    "level": {
+                        "name": "Nivel de alerta"
+                    },
+                    "zone_name": {
+                        "name": "Zona de alerta"
+                    },
+                    "image_url": {
+                        "name": "URL de la imagen"
+                    },
+                    "link": {
+                        "name": "Enlace al boletín"
+                    }
+                }
+            },
+            "temporali_oggi": {
+                "name": "Riesgo de tormentas hoy",
+                "state_attributes": {
+                    "integration": {
+                        "name": "Integración"
+                    },
+                    "id": {
+                        "name": "ID del boletín"
+                    },
+                    "publication_date": {
+                        "name": "Fecha de publicación"
+                    },
+                    "expires": {
+                        "name": "Fin de validez"
+                    },
+                    "last_update": {
+                        "name": "Última actualización"
+                    },
+                    "risk": {
+                        "name": "Riesgo"
+                    },
+                    "info": {
+                        "name": "Criticidad"
+                    },
+                    "alert": {
+                        "name": "Alerta"
+                    },
+                    "level": {
+                        "name": "Nivel de alerta"
+                    },
+                    "zone_name": {
+                        "name": "Zona de alerta"
+                    },
+                    "image_url": {
+                        "name": "URL de la imagen"
+                    },
+                    "link": {
+                        "name": "Enlace al boletín"
+                    }
+                }
+            },
+            "idrogeologico_oggi": {
+                "name": "Riesgo hidrogeológico hoy",
+                "state_attributes": {
+                    "integration": {
+                        "name": "Integración"
+                    },
+                    "id": {
+                        "name": "ID del boletín"
+                    },
+                    "publication_date": {
+                        "name": "Fecha de publicación"
+                    },
+                    "expires": {
+                        "name": "Fin de validez"
+                    },
+                    "last_update": {
+                        "name": "Última actualización"
+                    },
+                    "risk": {
+                        "name": "Riesgo"
+                    },
+                    "info": {
+                        "name": "Criticidad"
+                    },
+                    "alert": {
+                        "name": "Alerta"
+                    },
+                    "level": {
+                        "name": "Nivel de alerta"
+                    },
+                    "zone_name": {
+                        "name": "Zona de alerta"
+                    },
+                    "image_url": {
+                        "name": "URL de la imagen"
+                    },
+                    "link": {
+                        "name": "Enlace al boletín"
+                    }
+                }
+            },
+            "idraulico_domani": {
+                "name": "Riesgo hidráulico mañana",
+                "state_attributes": {
+                    "integration": {
+                        "name": "Integración"
+                    },
+                    "id": {
+                        "name": "ID del boletín"
+                    },
+                    "publication_date": {
+                        "name": "Fecha de publicación"
+                    },
+                    "expires": {
+                        "name": "Fin de validez"
+                    },
+                    "last_update": {
+                        "name": "Última actualización"
+                    },
+                    "risk": {
+                        "name": "Riesgo"
+                    },
+                    "info": {
+                        "name": "Criticidad"
+                    },
+                    "alert": {
+                        "name": "Alerta"
+                    },
+                    "level": {
+                        "name": "Nivel de alerta"
+                    },
+                    "zone_name": {
+                        "name": "Zona de alerta"
+                    },
+                    "image_url": {
+                        "name": "URL de la imagen"
+                    },
+                    "link": {
+                        "name": "Enlace al boletín"
+                    }
+                }
+            },
+            "temporali_domani": {
+                "name": "Riesgo de tormentas mañana",
+                "state_attributes": {
+                    "integration": {
+                        "name": "Integración"
+                    },
+                    "id": {
+                        "name": "ID del boletín"
+                    },
+                    "publication_date": {
+                        "name": "Fecha de publicación"
+                    },
+                    "expires": {
+                        "name": "Fin de validez"
+                    },
+                    "last_update": {
+                        "name": "Última actualización"
+                    },
+                    "risk": {
+                        "name": "Riesgo"
+                    },
+                    "info": {
+                        "name": "Criticidad"
+                    },
+                    "alert": {
+                        "name": "Alerta"
+                    },
+                    "level": {
+                        "name": "Nivel de alerta"
+                    },
+                    "zone_name": {
+                        "name": "Zona de alerta"
+                    },
+                    "image_url": {
+                        "name": "URL de la imagen"
+                    },
+                    "link": {
+                        "name": "Enlace al boletín"
+                    }
+                }
+            },
+            "idrogeologico_domani": {
+                "name": "Riesgo hidrogeológico mañana",
+                "state_attributes": {
+                    "integration": {
+                        "name": "Integración"
+                    },
+                    "id": {
+                        "name": "ID del boletín"
+                    },
+                    "publication_date": {
+                        "name": "Fecha de publicación"
+                    },
+                    "expires": {
+                        "name": "Fin de validez"
+                    },
+                    "last_update": {
+                        "name": "Última actualización"
+                    },
+                    "risk": {
+                        "name": "Riesgo"
+                    },
+                    "info": {
+                        "name": "Criticidad"
+                    },
+                    "alert": {
+                        "name": "Alerta"
+                    },
+                    "level": {
+                        "name": "Nivel de alerta"
+                    },
+                    "zone_name": {
+                        "name": "Zona de alerta"
+                    },
+                    "image_url": {
+                        "name": "URL de la imagen"
+                    },
+                    "link": {
+                        "name": "Enlace al boletín"
+                    }
+                }
+            }
+        },
+        "sensor": {
+            "criticality": {
+                "name": "Alerta",
+                "state_attributes": {
+                    "integration": {
+                        "name": "Integración"
+                    },
+                    "id": {
+                        "name": "ID del boletín"
+                    },
+                    "publication_date": {
+                        "name": "Fecha de publicación"
+                    },
+                    "last_update": {
+                        "name": "Última actualización"
+                    },
+                    "max_level": {
+                        "name": "Nivel máximo"
+                    },
+                    "total_alerts": {
+                        "name": "Número de alertas"
+                    },
+                    "today": {
+                        "name": "Hoy"
+                    },
+                    "events_today": {
+                        "name": "Alertas para hoy"
+                    },
+                    "tomorrow": {
+                        "name": "Mañana"
+                    },
+                    "events_tomorrow": {
+                        "name": "Alertas para mañana"
+                    },
+                    "zone_name": {
+                        "name": "Zona de alerta"
+                    },
+                    "link": {
+                        "name": "Enlace al boletín"
+                    }
+                }
+            },
+            "vigilance": {
+                "name": "Vigilancia meteorológica",
+                "state_attributes": {
+                    "integration": {
+                        "name": "Integración"
+                    },
+                    "id": {
+                        "name": "ID del boletín"
+                    },
+                    "link": {
+                        "name": "Enlace al boletín"
+                    },
+                    "publication_date": {
+                        "name": "Fecha de publicación"
+                    },
+                    "zone_name": {
+                        "name": "Zona de vigilancia"
+                    },
+                    "today": {
+                        "name": "Hoy"
+                    },
+                    "tomorrow": {
+                        "name": "Mañana"
+                    },
+                    "aftertomorrow": {
+                        "name": "Pasado mañana"
+                    },
+                    "last_update": {
+                        "name": "Última actualización"
+                    },
+                    "max_level": {
+                        "name": "Nivel máximo"
+                    },
+                    "total_phenomena": {
+                        "name": "Número de fenómenos"
+                    },
+                    "total_alerts": {
+                        "name": "Número de alertas"
+                    }
+                }
+            }
+        }
+    }
+}

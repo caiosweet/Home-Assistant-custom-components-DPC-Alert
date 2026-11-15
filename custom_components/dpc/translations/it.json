@@ -4,18 +4,53 @@
         "step": {
             "user": {
                 "title": "Dipartimento Protezione Civile",
-                "description": "L'aiuto alla configurazione è disponibile nel link Documentazione.",
+                "description": "Come vuoi scegliere il luogo da monitorare? I bollettini del DPC coprono l'Italia.",
+                "menu_options": {
+                    "map": "Sceglilo sulla mappa",
+                    "zone": "Usa una zona, come Casa"
+                }
+            },
+            "map": {
+                "title": "Luogo sulla mappa",
+                "description": "Sposta il segnaposto sul luogo da monitorare.",
                 "data": {
                     "name": "Nome",
-                    "latitude": "Latitudine",
-                    "longitude": "Longitudine"
+                    "location": "Luogo"
+                },
+                "data_description": {
+                    "name": "Mostrato davanti ai nomi delle sue entità.",
+                    "location": "Il luogo deve essere in Italia: i bollettini del DPC coprono solo l'Italia."
+                }
+            },
+            "zone": {
+                "title": "Luogo di una zona",
+                "description": "Scegli una delle tue zone di Home Assistant.",
+                "data": {
+                    "zone": "Zona",
+                    "name": "Nome"
+                },
+                "data_description": {
+                    "zone": "La posizione della zona viene copiata: spostare la zona in seguito non sposta il luogo.",
+                    "name": "Facoltativo. Se vuoto, si usa il nome della zona."
+                }
+            },
+            "municipality": {
+                "title": "Comune",
+                "description": "Il luogo è nella zona di allerta DPC **{zone}**.",
+                "data": {
+                    "municipality": "Comune"
+                },
+                "data_description": {
+                    "municipality": "Facoltativo. Un comune che si estende su più zone di allerta riceve l'allerta più alta tra tutte. Lascia vuoto per usare solo la zona di allerta del luogo."
                 }
             }
         },
         "error": {
-            "coordinates": "Latitudine/Longitudine è errata.",
             "coordinates_outside": "Le coordinate sono fuori dalle aree di allerta DPC.",
-            "cannot_connect": "Impossibile verificare le coordinate. Controlla la connessione."
+            "cannot_connect": "Impossibile verificare le coordinate. Controlla la connessione.",
+            "zone_not_found": "Zona non trovata.",
+            "place_nearby": "{place} è a meno di 1 km: i suoi bollettini sarebbero gli stessi.",
+            "name_exists": "Un altro luogo ha già questo nome."
         },
         "abort": {
             "single_instance_allowed": "Sono supportate più istanze. Ogni posizione può essere aggiunta una sola volta.",
@@ -36,7 +71,7 @@
                     "radius": "Raggio (Km, default 50)"
                 },
                 "data_description": {
-                    "municipality": "Opzionale. Se impostato, la ricerca è per nome comune; lascia vuoto per usare le coordinate."
+                    "municipality": "Facoltativo. Un comune che si estende su più zone di allerta riceve l'allerta più alta tra tutte. Lascia vuoto per usare solo la zona di allerta del luogo."
                 }
             }
         }

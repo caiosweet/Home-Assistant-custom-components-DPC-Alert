@@ -1,0 +1,19 @@
+{
+  "type": "FeatureCollection",
+  "totalFeatures": 1,
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {"type": "Point", "coordinates": [12.3, 41.75]},
+      "properties": {
+        "id": null,
+        "id_bollettino": 202611142,
+        "data_bollettino": "2026-11-14Z",
+        "id_fenomeno": 40,
+        "lat": 41.75,
+        "lon": 12.3
+      }
+    }
+  ],
+  "crs": {"type": "name", "properties": {"name": "urn:ogc:def:crs:EPSG::4326"}}
+}

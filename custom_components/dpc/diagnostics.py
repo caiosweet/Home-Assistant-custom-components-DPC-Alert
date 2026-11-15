@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 from typing import Any
 
 from attr import asdict
@@ -11,8 +12,9 @@ from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
+from homeassistant.util import slugify
 
-from .const import CONF_MUNICIPALITY, DOMAIN
+from .const import CONF_MUNICIPALITY
 
 TO_REDACT = {
     CONF_LATITUDE,
@@ -23,12 +25,29 @@ TO_REDACT = {
 }
 
 
+def _without_coordinates(data: Any, coordinates: str) -> Any:
+    """Return data with lists for tuples, and the coordinates text redacted.
+
+    The binary sensors of the places added with 2026.2.0 have entity IDs made
+    of the coordinates, e.g. binary_sensor.41_900000_12_500000_idraulico_oggi.
+    """
+    if isinstance(data, str):
+        return data.replace(coordinates, "**REDACTED**")
+    if isinstance(data, dict):
+        return {
+            key: _without_coordinates(value, coordinates) for key, value in data.items()
+        }
+    if isinstance(data, list | tuple):
+        return [_without_coordinates(value, coordinates) for value in data]
+    return data
+
+
 async def async_get_config_entry_diagnostics(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
 ) -> dict[str, Any]:
     """Return diagnostics for a config entry."""
-    coordinator = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator = config_entry.runtime_data
     device_registry = dr.async_get(hass)
     entity_registry = er.async_get(hass)
 
@@ -57,11 +76,18 @@ async def async_get_config_entry_diagnostics(
 
         devices.append({"device": asdict(device), "entities": entities})
 
-    return {
-        "entry": async_redact_data(config_entry.as_dict(), TO_REDACT),
+    diagnostics = {
+        "entry": config_entry.as_dict(),
         "coordinator_data": {
             "coordinator last update success": coordinator.last_update_success,
-            "data": coordinator.data,
+            # Redacted below: the positions of the phenomena, with their distance
+            # and direction from the place, would reveal where the place is
+            "data": dataclasses.asdict(coordinator.data),
         },
-        "devices": async_redact_data(devices, TO_REDACT),
+        "devices": devices,
     }
+    coordinates = slugify(
+        f"{config_entry.data[CONF_LATITUDE]:.6f}_{config_entry.data[CONF_LONGITUDE]:.6f}"
+    )
+    # async_redact_data only goes through dicts and lists
+    return async_redact_data(_without_coordinates(diagnostics, coordinates), TO_REDACT)

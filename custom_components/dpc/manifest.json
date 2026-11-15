@@ -1,11 +1,15 @@
 {
 	"domain": "dpc",
 	"name": "Dipartimento Protezione Civile",
-	"codeowners": ["@caiosweet"],
+	"categories": ["weather_alerts.public_warnings"],
+	"codeowners": ["@caiosweet", "@webysther"],
 	"config_flow": true,
+	"connectivity": ["cloud"],
 	"documentation": "https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert",
+	"integration_type": "service",
 	"iot_class": "cloud_polling",
 	"issue_tracker": "https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/issues",
-	"requirements": [],
+	"loggers": ["aiodpc"],
+	"requirements": ["aiodpc==0.4.0"],
 	"version": "0.0.0"
 }

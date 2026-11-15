@@ -1,8 +1,10 @@
-# Home Assistant - Custom Components DPC Alert
+# DPC Alert (Protezione Civile)
 
 <img src="https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/assets/brand/icon.png" width="150px">
 
-ITALY METEO-HYDRO ALERT - To get more detailed information about parameters of warnings visit [_Civil Protection Department_](https://rischi.protezionecivile.gov.it/en/meteo-hydro/alert). [_Dipartimento Protezione Civile_](https://rischi.protezionecivile.gov.it/it/meteo-idro/allertamento)
+The alerts of the Italian Civil Protection Department (Dipartimento della Protezione Civile, DPC) in Home Assistant, for any place in Italy: the hydraulic, hydrogeological and thunderstorm risk of today and tomorrow, and the weather vigilance of the next three days with the phenomena near you.
+
+How the alert system works: [_Civil Protection Department_](https://rischi.protezionecivile.gov.it/en/meteo-hydro/alert) · [_Dipartimento Protezione Civile_](https://rischi.protezionecivile.gov.it/it/meteo-idro/allertamento)
 
 [![hacs][hacsbadge]][hacs] [![Validate](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/actions/workflows/validate.yaml/badge.svg)](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/actions/workflows/validate.yaml)
 
@@ -14,13 +16,16 @@ ITALY METEO-HYDRO ALERT - To get more detailed information about parameters of w
 
 ---
 
-## Information
+## Features
 
-> The state of the sensor will be the highest alert level.
+- **Six binary sensors**: hydraulic, hydrogeological and thunderstorm risk, for today and tomorrow. Each one is on when its risk reaches the alert level you choose (1 green to 4 red).
+- **Alert sensor**: the highest alert level of today and tomorrow, with the assessment of each risk in its attributes.
+- **Vigilance sensor**: the expected precipitation of the next three days, and the weather phenomena within the radius you choose: rain, snow, thunderstorms, wind, frost, fog, rough sea and temperature.
+- **Several places**, picked on a map or from a zone, optionally with their municipality. Each bulletin is downloaded once for all of them.
+- **Six languages**: English, Italian, French, German, Spanish and Brazilian Portuguese.
+- **Official data**: the criticality and weather vigilance bulletins that DPC publishes every day.
 
-The Vigilance sensor will also report in attributes the values of all other meteo alerts and/or forecasts from next 12-48 hours, if there are any.
-
-The Criticality sensor (DPC Alert) will also report in attributes the values of all other warning and/or forecasts from next 12-24 hours, if there are any.
+Requires Home Assistant 2025.2 or newer. See the [changelog](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/CHANGELOG.md) for what changed in each version.
 
 ## Installation
 
@@ -35,39 +40,34 @@ The Criticality sensor (DPC Alert) will also report in attributes the values of 
 
 ## Configuration
 
-### Config flow
-
-To configure this integration go to: `Configurations` -> `Integrations` -> `ADD INTEGRATIONS` button, search for `Dpc` and configure the component.
-
-Configuration help is available via the Documentation link in Home Assistant.
-
-You can also use following [My Home Assistant](http://my.home-assistant.io/) link
-
 [![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=dpc)
 
-### Setup
+1. In Home Assistant, go to **Settings → Devices & services → Add integration** and search for `Dpc`, or use the button above.
+2. Choose how to give the place to monitor:
+   - **Pick it on a map**: the map starts at your home, named after it; move the pin and give the place a name.
+   - **Use a zone**, such as Home: the place is named after the zone, unless you give it a name.
+3. The integration checks the place with DPC and shows its alert zone. Choose your **municipality** among those of the zone, or leave it empty: a municipality that spans several alert zones gets the highest alert of all of them.
 
-Now the integration is added to HACS and available in the normal HA integration installation
+Add as many places as you want. Each needs its own name, and must be at least 1 km from the others: closer places would get the same bulletins. The places share the downloads: each bulletin is downloaded once for all of them.
 
-1. In the HomeAssistant left menu, click `Configuration`
-2. Click `Integrations`
-3. Click `ADD INTEGRATION`
-4. Type `Dpc` and select it
-5. Enter the details:
-   1. **Name**: Your location name or name of sensor
-   2. **Latitude**: Latitude of monitored point
-   3. **Longitude**: Longitude of monitored point
-6. Optional:
-   1. Binary sensor enable/disable
-   2. Sensor enabled/disable
-   3. Municipality (optional, advanced)
-   4. Update interval (minutes, default 30)
-   5. Minimum level of warning. (int, default 2)
-   6. Radius (km, default 50)
+The device of a place and its entities are named after it, e.g. `sensor.casa_alert` and `binary_sensor.casa_idraulico_oggi` for a place named Casa.
 
-   N.B. If "municipality" is set, data is selected by municipality name (highest alert in that municipality). This is useful when a municipality spans multiple alert areas. Make sure it matches the configured coordinates; otherwise results can look inconsistent. Leave it empty to use coordinates only.
+### Options
 
-> :warning: **Multiple instances are possible, but each location can be added once. Updates are independent, so it is advisable not to exceed two or three locations.**
+**Configure** on the integration changes:
+
+1. Binary sensors enabled
+2. Sensors enabled
+3. Municipality: one of the alert zone of the place, or any other name
+4. Update interval (minutes, default 30)
+5. Minimum level of warning (1 green to 4 red, default 2)
+6. Radius of the weather phenomena (km, default 50)
+
+### Removal
+
+1. Go to **Settings → Devices & services → Dipartimento Protezione Civile**.
+2. For each place, open its **⋮** menu and choose **Delete**.
+3. To uninstall the integration too, open **Settings → Marketplace**, find **DPC Alert (Protezione Civile)**, choose **Remove** in its **⋮** menu, and restart Home Assistant.
 
 ## Preview [From my Natural Events project.][guide]
 
@@ -720,6 +720,12 @@ automation:
 ```
 
 ## Other Lovelace Examples [HA Card weather conditions](https://github.com/r-renato/ha-card-weather-conditions#display-the-alert-layer) [@r-renato](https://github.com/r-renato)
+
+## Roadmap
+
+- **Home Assistant [integration quality scale](https://developers.home-assistant.io/docs/core/integration-quality-scale/)**: the integration follows its bronze and silver rules; next come the gold ones, such as translated icons and error messages.
+
+Ideas and problems are welcome in the [issues](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/issues).
 
 ## License
 
