@@ -81,6 +81,9 @@ Entity IDs, states and the other attributes do not change.
 - The integration imported `async_timeout`, which recent Home Assistant
   versions do not install ([#90]).
 - Deprecation warning of the `CONNECTION_CLASS` constant ([#85]).
+- The diagnostics revealed where a place is: the positions of the weather
+  phenomena near it, with their distance and direction, and the entity IDs
+  made of its coordinates are now redacted ([#90]).
 
 ## [2026.2.0] - 2026-02-01
 
