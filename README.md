@@ -174,7 +174,8 @@ geo_location_sources:
 
 For a place named DPC in Rome, with Home Assistant in English:
 
-### DPC Alert attributes
+<details>
+<summary>DPC Alert attributes</summary>
 
 ```yaml
 attribution: Data provided by Civil Protection Department
@@ -220,7 +221,10 @@ events_tomorrow:
 friendly_name: DPC Alert
 ```
 
-### DPC Vigilance attributes
+</details>
+
+<details>
+<summary>DPC Vigilance attributes</summary>
 
 ```yaml
 attribution: Data provided by Civil Protection Department
@@ -279,7 +283,10 @@ total_alerts: 2
 friendly_name: DPC Vigilance
 ```
 
-### Representation of the attributes present in the binary sensor
+</details>
+
+<details open>
+<summary>Representation of the attributes present in the binary sensor</summary>
 
 ```yaml
 attribution: Data provided by Civil Protection Department
@@ -298,6 +305,8 @@ zone_name: Bacini di Roma
 device_class: safety
 friendly_name: DPC Hydrogeological risk tomorrow
 ```
+
+</details>
 
 ### Sensors of each day
 
