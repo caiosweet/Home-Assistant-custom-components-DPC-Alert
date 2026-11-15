@@ -15,6 +15,8 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from pytest_homeassistant_custom_component.typing import ClientSessionGenerator
 import respx
 
+from custom_components.dpc.image import PLACEHOLDER_IMAGE
+
 from . import CRIT_ID, UNIQUE_ID, VIGI_ID, get_entity_id
 
 PNG = b"\x89PNG\r\n\x1a\n map"
@@ -49,6 +51,17 @@ async def test_maps_of_the_days(hass: HomeAssistant) -> None:
     assert today is not None
     # The state is when the map shown last changed: at the setup
     assert today.state == "2026-11-14T14:00:00+00:00"
+
+
+@respx.mock
+async def test_missing_map_uses_placeholder_image(
+    hass: HomeAssistant,
+    init_integration: MockConfigEntry,
+) -> None:
+    """Test that an absent map is served by a generic placeholder image."""
+    map_entity_ = map_entity(hass, "criticality_map_tomorrow")
+    assert map_entity_.image_url is None
+    assert await map_entity_.async_image() == PLACEHOLDER_IMAGE
 
 
 @respx.mock
