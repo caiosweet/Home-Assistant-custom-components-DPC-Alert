@@ -1,4 +1,5 @@
 {
+    "title": "Dipartimento Protezione Civile",
     "config": {
         "flow_title": "{name}",
         "step": {

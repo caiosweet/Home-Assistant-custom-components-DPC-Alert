@@ -36,6 +36,8 @@ Entity IDs, states and the other attributes do not change.
 - Translations of the configuration, the options, and the names of the
   entities and of their attributes: English, Italian and Brazilian Portuguese
   ([#87]), French, German and Spanish ([#90]).
+- The integration is named in the language of Home Assistant, such as Civil
+  Protection Department in English ([#90]).
 - Automated tests with a CI workflow ([#90]).
 - The place is picked on a map, which starts at home, or taken from a zone
   such as Home ([#90]).
