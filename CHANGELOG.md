@@ -88,6 +88,9 @@ Entity IDs, states and the other attributes do not change.
 - The municipality option finds the municipalities of South Tyrol by their
   Italian or German name ("Bolzano" or "Bozen"); before, it used the
   coordinates instead ([#90]).
+- A municipality with the name of another one far away got the highest alert
+  of both: Peglio, in Lombardy, showed the alerts of the Peglio of the Marche.
+  Only the alert zones near the place count now ([#90]).
 - The integration imported `async_timeout`, which recent Home Assistant
   versions do not install ([#90]).
 - Deprecation warning of the `CONNECTION_CLASS` constant ([#85]).
