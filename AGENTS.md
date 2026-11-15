@@ -1,0 +1,167 @@
+# AGENTS.md: DPC Alert
+
+Guidance for AI coding agents and contributors working on this repository.
+`CLAUDE.md` imports this file.
+
+DPC Alert is a Home Assistant custom integration (domain `dpc`), installed
+through HACS. It turns the bulletins of the Italian Civil Protection Department
+(DPC) into entities for places in Italy:
+
+- the criticality bulletin (hydraulic, hydrogeological and thunderstorm risk,
+  today and tomorrow): `sensor.<place>_alert` and one binary sensor per risk
+  and day;
+- the vigilance bulletin (precipitation and weather phenomena, three days):
+  `sensor.<place>_vigilance`.
+
+Everything that talks to DPC or parses its files lives in
+[aiodpc](https://github.com/webysther/aiodpc) (PyPI `aiodpc`), maintained
+alongside this repository. This repository holds the Home Assistant side only.
+
+## Ground rules
+
+- **Do not commit, amend, push, tag, release or move branches** (`reset`,
+  `branch -f`, `rebase`). Leave every change uncommitted in the working tree;
+  the maintainer reviews and commits it. Read-only git commands are fine. When
+  work has to be split across branches or PRs, stop and ask.
+- Ask before anything that leaves the machine: releases, opening or editing
+  PRs and issues, comments.
+- Reply in the language the person writes in. Code, comments, docstrings,
+  docs, the changelog and commit messages are in English.
+- Check instead of guessing. For Home Assistant behaviour, read its source in
+  the test environment (`site-packages/homeassistant`). For DPC data
+  questions, measure the live data with a throwaway script outside the
+  repository.
+- DPC parsing and HTTP fixes belong in aiodpc. Here, only Home Assistant code.
+
+## Layout
+
+```text
+custom_components/dpc/
+  __init__.py        setup, unload, migration of config entries (version 1 to 2)
+  config_flow.py     menu (map or zone), DPC alert zone, municipality; options flow
+  bulletins.py       one download of each bulletin for all places, read at each
+                     place in an executor
+  coordinator.py     DpcDataUpdateCoordinator, one per place (entry.runtime_data)
+  entity.py          DpcEntity, device info, place_entity_id()
+  sensor.py, binary_sensor.py
+  attributes.py      state attributes, unchanged from the integration's old client
+  diagnostics.py     redacts everything that locates a place
+  const.py, icons.json, strings.json, translations/, quality_scale.yaml
+  manifest.json, version.py
+tests/               pytest-homeassistant-custom-component, DPC mocked with fixtures
+release.sh           releases, run by the maintainer
+```
+
+## Checks
+
+Python 3.14, as required by the pinned `pytest-homeassistant-custom-component`
+(which also pins the Home Assistant version of the tests):
+
+```bash
+python3.14 -m venv .venv && . .venv/bin/activate
+pip install -r requirements_test.txt ruff
+ruff format custom_components tests && ruff check custom_components tests
+mypy                                   # strict, configured in pyproject.toml
+pytest --cov --cov-report=term-missing
+```
+
+CI runs mypy and pytest (`tests.yaml`), hassfest and the HACS action
+(`validate.yaml`). Keep the coverage of `custom_components/dpc` at 100%.
+
+## Compatibility
+
+Users' automations and dashboards depend on what the integration exposes.
+
+- Never change unique IDs: entries are `"{lat:.6f}_{lon:.6f}"`, sensors
+  `"{name}_criticality_{lat}_{lon}"` and the vigilance equivalent, binary
+  sensors `"{entry.unique_id}-{key}"`.
+- Never rename attributes or change their values. A change that users must
+  act on goes under "Breaking changes" in the changelog, with what to do.
+- Entity IDs are generated only for new entities: `<platform>.dpc_<municipality>_<key>`,
+  e.g. `sensor.dpc_portula_alert`. Home Assistant keeps the IDs of existing
+  entities in its registry and adds `_2` to a repeated ID.
+- Changing the shape of config entry data or options needs a new
+  `ConfigFlow.VERSION` and a step in `async_migrate_entry`.
+- Supported Home Assistant: from the `homeassistant` version in `hacs.json`
+  (2025.2.0) to the latest. Use APIs available in that whole range, or import
+  both ways with a comment, like the validation library:
+  `try: import probatio as vol` / `except ImportError: import voluptuous as vol`
+  (Home Assistant 2026.9 and newer validate with probatio).
+
+## How a place works
+
+- A place is identified by its coordinates (the entry unique ID). The setup
+  shows its DPC alert zone, which names the entry, and asks for its
+  municipality among those of the zone, as DPC lists them. The municipality
+  is required and names the device.
+- Each municipality can be added once, whatever name is typed ("Bozen" is
+  "Bolzano/Bozen"). Places with the same municipality name more than
+  `SAME_MUNICIPALITY_KM` apart are homonyms (Peglio in Lombardy and in the
+  Marche) and are both allowed.
+- Every scan interval (30 minutes by default) only the IDs of the latest
+  bulletins are checked; a new bulletin (about 18 MB) is downloaded once for
+  all places. Never block the event loop: reading a bulletin at each place
+  runs in an executor.
+
+## Home Assistant conventions
+
+- `strings.json` is the source of the texts and `translations/en.json` is
+  identical to it. Every key exists in the six languages: en, it, pt-BR, fr,
+  de, es. The top-level `title` is the translated name of the integration.
+- Entity names follow the language of Home Assistant. Texts written by DPC
+  (`info`, `alert`, phenomena) stay in Italian.
+- Errors shown to users use translation keys: `config.error`,
+  `options.error`, `exceptions`.
+- Every entity has an icon in `icons.json`; the alert icons use `range`.
+  `tests/test_icons.py` checks it.
+- Diagnostics must not reveal where a place is: coordinates, positions,
+  distances and directions of phenomena, and entity IDs made of coordinates
+  are redacted. `async_redact_data` does not walk tuples: turn them into lists
+  first.
+- `quality_scale.yaml` states each rule of the integration quality scale (up
+  to platinum). Keep it true when a change affects a rule.
+- `hacs.json` accepts only the keys HACS knows. The README is the HACS store
+  page and holds the sections the quality scale asks for (installation,
+  configuration, options, removal, data update, known limitations,
+  troubleshooting, use cases, examples): keep them current.
+
+## Tests
+
+- Never reach the network: serve the fixtures with `aioclient_mock` (the
+  first matching route wins, so register a failing route first) or patch
+  `DpcClient` methods.
+- Never depend on the clock: freeze it (`freezer`). Bulletin days end at
+  midnight in Europe/Rome.
+
+## aiodpc
+
+The version is pinned exactly in `custom_components/dpc/manifest.json`
+(`requirements`) and in `requirements_test.txt`. Bump both together, and only
+once the release is on PyPI: check `https://pypi.org/simple/aiodpc/`, as the
+JSON API stays cached for a while.
+
+## Changelog and releases
+
+- `CHANGELOG.md` follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+  Add entries under `## [Unreleased]` (Breaking changes, Added, Changed,
+  Fixed), written for the users of the integration, with the PR reference,
+  e.g. `([#90])`, and its link at the end of the file. PR descriptions link to
+  the changelog instead of listing the changes.
+- Versions are CalVer, `YEAR.MONTH.PATCH`. A beta `YEAR.MONTH.PATCHbN` is a
+  GitHub pre-release, which HACS offers to those who turn on betas.
+- The maintainer releases with `./release.sh VERSION [--dry-run]`. The version
+  lives in the git tag only: leave `"version": "0.0.0"` in `manifest.json` and
+  `"develop"` in `version.py`; the release workflow writes them and attaches
+  `dpc.zip`, the file HACS installs.
+- `origin` is the maintainer's fork; pull requests go from its branches to
+  `main` of `caiosweet/Home-Assistant-custom-components-DPC-Alert`.
+
+## Code style
+
+- Readable, descriptive code over clever code: descriptive names, typed models
+  and enums instead of raw dicts, small focused helpers, docstrings that say
+  what and why.
+- No magic numbers: a `Final` constant whose docstring says where its value
+  comes from (see `SAME_MUNICIPALITY_KM`).
+- mypy strict. A `# type: ignore[code]` needs a comment saying why.
+- Comments explain why, not what.
