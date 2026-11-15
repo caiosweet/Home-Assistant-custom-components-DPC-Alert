@@ -101,9 +101,9 @@ const TEXTS = {
     criticality: "Alertas",
     vigilance: "Vigilância meteorológica",
     description:
-      "Alertas e vigilância meteorológica do Departamento de Proteção Civil para os seus lugares na Itália.",
+      "Alertas e vigilância meteorológica da Defesa Civil para os seus lugares na Itália.",
     no_places:
-      "Adicione um lugar da integração Departamento de Proteção Civil para ver os alertas dele aqui.",
+      "Adicione um lugar da integração Defesa Civil para ver os alertas dele aqui.",
   },
   fr: {
     criticality: "Alertes",
