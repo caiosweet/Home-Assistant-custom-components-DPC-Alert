@@ -78,10 +78,13 @@ export const RISK_LEVEL_COLORS = { 1: "green", 2: "yellow", 3: "orange", 4: "red
 /** The first versions of Home Assistant with the features the dashboard uses. */
 const ALERT_CARD_VERSION = [2026, 9];
 const ENTITY_NAME_VERSION = [2025, 11];
+const NO_DATA_STATES = ["unknown", "unavailable"];
 
 /** The texts of the dashboard, in the languages of the integration. */
+// Keep each integration_name in sync with the top-level title in translations/*.json.
 const TEXTS = {
   en: {
+    integration_name: "Civil Protection Department",
     criticality: "Alerts",
     vigilance: "Weather vigilance",
     description:
@@ -90,6 +93,7 @@ const TEXTS = {
       "Add a place of the Civil Protection Department integration to see its alerts here.",
   },
   it: {
+    integration_name: "Dipartimento Protezione Civile",
     criticality: "Allerte",
     vigilance: "Vigilanza meteo",
     description:
@@ -98,6 +102,7 @@ const TEXTS = {
       "Aggiungi un luogo dell'integrazione Dipartimento Protezione Civile per vederne qui le allerte.",
   },
   "pt-BR": {
+    integration_name: "Defesa Civil",
     criticality: "Alertas",
     vigilance: "Vigilância meteorológica",
     description:
@@ -106,6 +111,7 @@ const TEXTS = {
       "Adicione um lugar da integração Defesa Civil para ver os alertas dele aqui.",
   },
   fr: {
+    integration_name: "Département de la Protection civile",
     criticality: "Alertes",
     vigilance: "Vigilance météo",
     description:
@@ -114,6 +120,7 @@ const TEXTS = {
       "Ajoutez un lieu de l'intégration Département de la Protection civile pour voir ses alertes ici.",
   },
   de: {
+    integration_name: "Zivilschutzabteilung",
     criticality: "Warnungen",
     vigilance: "Wetterlage",
     description:
@@ -122,6 +129,7 @@ const TEXTS = {
       "Fügen Sie einen Ort der Integration Zivilschutzabteilung hinzu, um hier seine Warnungen zu sehen.",
   },
   es: {
+    integration_name: "Departamento de Protección Civil",
     criticality: "Alertas",
     vigilance: "Vigilancia meteorológica",
     description:
@@ -144,6 +152,15 @@ export function textsIn(language) {
     Object.keys(TEXTS).find((known) => known.split("-")[0] === base) ??
     "en";
   return TEXTS[/** @type {keyof typeof TEXTS} */ (match)];
+}
+
+/**
+ * Return the localized dashboard creation suggestion.
+ *
+ * @param {string | undefined} language
+ */
+export function dashboardSuggestion(language) {
+  return { title: textsIn(language).integration_name, icon: ICON };
 }
 
 /**
@@ -262,7 +279,9 @@ export function colorByState(card, entity, colors, colorOption = "color") {
     })),
     {
       ...card,
-      visibility: [{ condition: "state", entity, state_not: states }],
+      visibility: [
+        { condition: "state", entity, state_not: [...states, ...NO_DATA_STATES] },
+      ],
     },
   ];
 }
@@ -327,6 +346,7 @@ function mapPicture(entity) {
     entity,
     show_state: false,
     grid_options: { columns: 6 },
+    visibility: [{ condition: "state", entity, state_not: NO_DATA_STATES }],
   };
 }
 
@@ -494,7 +514,7 @@ if (globalThis.customElements && globalThis.HTMLElement) {
     }
 
     static getCreateSuggestions() {
-      return { title: "DPC Alert", icon: ICON };
+      return dashboardSuggestion(document.documentElement.lang || navigator.language);
     }
   }
 

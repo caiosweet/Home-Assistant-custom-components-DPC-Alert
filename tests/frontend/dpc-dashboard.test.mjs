@@ -4,6 +4,7 @@ import { describe, it } from "node:test";
 
 import {
   colorByState,
+  dashboardSuggestion,
   findPlaces,
   generateDashboard,
   generateView,
@@ -142,7 +143,7 @@ describe("view of a place", () => {
             {
               condition: "state",
               entity: "sensor.dpc_roma_alert_today",
-              state_not: ["green", "yellow", "orange", "red"],
+              state_not: ["green", "yellow", "orange", "red", "unknown", "unavailable"],
             },
           ],
         ],
@@ -216,6 +217,13 @@ describe("view of a place", () => {
       vigilance.cards.filter((card) => card.type === "picture-entity").map((card) => card.entity),
       ["image.dpc_roma_vigilance_map_today", "image.dpc_roma_vigilance_map_tomorrow"],
     );
+    assert.deepEqual(
+      vigilance.cards.filter((card) => card.type === "picture-entity").map((card) => card.visibility),
+      [
+        [{ condition: "state", entity: "image.dpc_roma_vigilance_map_today", state_not: ["unknown", "unavailable"] }],
+        [{ condition: "state", entity: "image.dpc_roma_vigilance_map_tomorrow", state_not: ["unknown", "unavailable"] }],
+      ],
+    );
   });
 
   it("has no map without phenomena near the place", () => {
@@ -269,9 +277,24 @@ describe("helpers", () => {
     assert.equal(textsIn(undefined).criticality, "Alerts");
   });
 
+  it("localizes the dashboard creation suggestion", () => {
+    assert.deepEqual(dashboardSuggestion("pt-BR"), {
+      title: "Defesa Civil",
+      icon: "mdi:shield-alert",
+    });
+    assert.deepEqual(dashboardSuggestion("it"), {
+      title: "Dipartimento Protezione Civile",
+      icon: "mdi:shield-alert",
+    });
+    assert.deepEqual(dashboardSuggestion("fr").title, "Département de la Protection civile");
+    assert.deepEqual(dashboardSuggestion("de").title, "Zivilschutzabteilung");
+    assert.deepEqual(dashboardSuggestion("es").title, "Departamento de Protección Civil");
+    assert.deepEqual(dashboardSuggestion("en").title, "Civil Protection Department");
+  });
+
   it("makes URL paths of names", () => {
     assert.equal(slugify("Città di Castello"), "citta-di-castello");
-    assert.equal(slugify("Bolzano/Bozen"), "bolzano-bozen");
+            state_not: ["green", "yellow", "orange", "red", "unknown", "unavailable"],
     assert.equal(slugify("—"), "dpc");
   });
 
@@ -286,7 +309,13 @@ describe("helpers", () => {
       },
       {
         type: "alert",
-        visibility: [{ condition: "state", entity: "binary_sensor.x", state_not: ["on"] }],
+        visibility: [
+          {
+            condition: "state",
+            entity: "binary_sensor.x",
+            state_not: ["on", "unknown", "unavailable"],
+          },
+        ],
       },
     ]);
   });
