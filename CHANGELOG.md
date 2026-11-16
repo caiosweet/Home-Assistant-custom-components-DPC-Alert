@@ -59,8 +59,8 @@ that followed them.
   under Community dashboards. It has a tab for each place: its highest alert
   and precipitation; a section for each day, with a banner for each risk at
   or above the warning level, the alert, the criticality, the level of each
-  risk, the precipitation, the phenomena on a map and the maps of the
-  bulletins; and its zones and bulletins. Levels and precipitation have the
+  risk, the precipitation, the phenomena on a map, each with the icon of its
+  kind, and the maps of the bulletins; and its zones and bulletins. Levels and precipitation have the
   colors of the DPC maps. All with the cards of Home Assistant; what has no
   data, such as the maps of tomorrow after midnight, is hidden. Adding a place
   now ends with a pointer to it.

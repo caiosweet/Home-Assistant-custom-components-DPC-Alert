@@ -514,7 +514,8 @@ export function daySection(hass, place, day) {
         ? [
             {
               type: "map",
-              entities: phenomena.map((phenomenon) => ({ entity: phenomenon })),
+              // The icon of the kind of phenomenon, rather than the initials of its name
+              entities: phenomena.map((phenomenon) => ({ entity: phenomenon, label_mode: "icon" })),
               grid_options: { columns: 12 },
             },
           ]
@@ -596,10 +597,10 @@ export function generateDashboard(hass) {
         path = `${slugify(place.name)}-${number}`;
       }
       paths.add(path);
+      // No icon: a tab with an icon shows only the icon, and every place has the same
       return {
         title: place.name,
         path,
-        icon: ICON,
         strategy: { type: `custom:${STRATEGY}`, device_id: place.device.id },
       };
     }),

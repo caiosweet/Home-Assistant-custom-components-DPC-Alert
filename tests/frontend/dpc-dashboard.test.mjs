@@ -115,18 +115,16 @@ function colorsOf(view, entity) {
 }
 
 describe("dashboard", () => {
-  it("has a view per place, sorted by name, built by the view strategy", () => {
+  it("has a view per place, sorted by name, its tab named after it", () => {
     assert.deepEqual(generateDashboard(homeAssistant()).views, [
       {
         title: "Milano",
         path: "milano",
-        icon: "mdi:shield-alert",
         strategy: { type: "custom:dpc-alert", device_id: "milano" },
       },
       {
         title: "Roma",
         path: "roma",
-        icon: "mdi:shield-alert",
         strategy: { type: "custom:dpc-alert", device_id: "roma" },
       },
     ]);
@@ -354,10 +352,10 @@ describe("view of a place", () => {
     );
     // The phenomena of each day on the map of the day
     assert.deepEqual(today.cards.find((card) => card.type === "map").entities, [
-      { entity: "geo_location.dpc_roma_today_isolated_thunderstorms_sse" },
+      { entity: "geo_location.dpc_roma_today_isolated_thunderstorms_sse", label_mode: "icon" },
     ]);
     assert.deepEqual(tomorrow.cards.find((card) => card.type === "map").entities, [
-      { entity: "geo_location.dpc_roma_tomorrow_moderate_sea_sw" },
+      { entity: "geo_location.dpc_roma_tomorrow_moderate_sea_sw", label_mode: "icon" },
     ]);
     assert.equal(afterTomorrow.cards.find((card) => card.type === "map"), undefined);
     assert.deepEqual(
