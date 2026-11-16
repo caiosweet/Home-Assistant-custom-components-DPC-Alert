@@ -48,7 +48,7 @@ async def test_diagnostics(
     devices = diagnostics["devices"]
     assert len(devices) == 4
     assert all(device["device"]["identifiers"] == REDACTED for device in devices)
-    assert sum(len(device["entities"]) for device in devices) == 19
+    assert sum(len(device["entities"]) for device in devices) == 36
 
 
 async def test_diagnostics_hide_where_the_place_is(

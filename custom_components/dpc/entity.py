@@ -8,7 +8,6 @@ the entities of the whole bulletin.
 from __future__ import annotations
 
 from collections.abc import Iterable
-from typing import Any
 
 from aiodpc import ATTRIBUTION, CRITICALITY_PAGE_URL, VIGILANCE_PAGE_URL
 from homeassistant.config_entries import ConfigEntry
@@ -198,8 +197,3 @@ class DpcEntity(CoordinatorEntity[DpcDataUpdateCoordinator]):
         return day_device_info(
             self.config_entry, self.day, self.coordinator.place_device
         )
-
-    @property
-    def extra_state_attributes(self) -> dict[str, Any]:
-        """Return the state attributes."""
-        return {"integration": DOMAIN}

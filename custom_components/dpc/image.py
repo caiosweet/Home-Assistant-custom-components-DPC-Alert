@@ -12,7 +12,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import dt as dt_util
 
-from .const import PlaceDay
+from .const import ATTR_IMAGE_URL, PlaceDay
 from .coordinator import DpcConfigEntry, DpcData, DpcDataUpdateCoordinator
 from .entity import DpcEntity
 
@@ -130,5 +130,7 @@ class DpcMapImage(DpcEntity, ImageEntity):
         if url == self._attr_image_url:
             return
         self._attr_image_url = url
+        # The address of the map at DPC, for cards that link to it
+        self._attr_extra_state_attributes = {ATTR_IMAGE_URL: url} if url else {}
         self._attr_image_last_updated = dt_util.utcnow() if url else None
         self._cached_image = None

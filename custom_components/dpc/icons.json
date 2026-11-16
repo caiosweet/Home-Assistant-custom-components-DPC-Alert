@@ -12,19 +12,42 @@
             }
         },
         "sensor": {
-            "criticality": {
+            "highest_alert": {
                 "default": "mdi:shield-check",
-                "range": {
+                "state": {
                     "1": "mdi:shield-check",
-                    "2": "mdi:hazard-lights"
+                    "2": "mdi:alert-outline",
+                    "3": "mdi:alert",
+                    "4": "mdi:alert-octagon"
                 }
             },
-            "vigilance": {
-                "default": "mdi:shield-check",
-                "range": {
-                    "1": "mdi:shield-check",
-                    "2": "mdi:hazard-lights"
+            "highest_precipitation": {
+                "default": "mdi:weather-cloudy",
+                "state": {
+                    "1": "mdi:weather-cloudy",
+                    "2": "mdi:weather-partly-rainy",
+                    "3": "mdi:weather-rainy",
+                    "4": "mdi:weather-pouring",
+                    "5": "mdi:weather-lightning-rainy"
                 }
+            },
+            "alert_zone": {
+                "default": "mdi:map-marker-radius"
+            },
+            "vigilance_zone": {
+                "default": "mdi:map-marker-radius-outline"
+            },
+            "criticality_bulletin": {
+                "default": "mdi:file-document-alert"
+            },
+            "vigilance_bulletin": {
+                "default": "mdi:file-document-outline"
+            },
+            "criticality_valid_until": {
+                "default": "mdi:calendar-clock"
+            },
+            "vigilance_valid_until": {
+                "default": "mdi:calendar-clock"
             },
             "alert": {
                 "default": "mdi:shield-check",
@@ -35,6 +58,30 @@
                     "red": "mdi:alert-octagon"
                 }
             },
+            "criticality": {
+                "default": "mdi:shield-check",
+                "state": {
+                    "absent": "mdi:shield-check",
+                    "ordinary_hydraulic": "mdi:alert-outline",
+                    "ordinary_thunderstorms": "mdi:alert-outline",
+                    "ordinary_hydrogeological": "mdi:alert-outline",
+                    "moderate_hydraulic": "mdi:alert",
+                    "moderate_thunderstorms": "mdi:alert",
+                    "moderate_hydrogeological": "mdi:alert",
+                    "high_hydraulic": "mdi:alert-octagon",
+                    "high_thunderstorms": "mdi:alert-octagon",
+                    "high_hydrogeological": "mdi:alert-octagon"
+                }
+            },
+            "hydraulic_risk_level": {
+                "default": "mdi:home-flood"
+            },
+            "thunderstorm_risk_level": {
+                "default": "mdi:weather-lightning"
+            },
+            "hydrogeological_risk_level": {
+                "default": "mdi:waves"
+            },
             "precipitation": {
                 "default": "mdi:weather-cloudy",
                 "state": {
@@ -44,6 +91,9 @@
                     "heavy": "mdi:weather-pouring",
                     "very_heavy": "mdi:weather-lightning-rainy"
                 }
+            },
+            "nearby_phenomena": {
+                "default": "mdi:map-marker-multiple"
             }
         },
         "image": {

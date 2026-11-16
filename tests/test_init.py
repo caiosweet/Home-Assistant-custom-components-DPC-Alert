@@ -48,8 +48,8 @@ async def test_setup_and_unload(
 ) -> None:
     """Test that the entry sets up its entities, then unloads.
 
-    6 binary sensors, the alert and vigilance sensors with the 5 sensors of
-    their days, 4 maps, and the 2 phenomena near Rome in the bulletin.
+    With the three days: 6 binary sensors, 2 phenomena near Rome in the
+    bulletin, 4 maps, and 24 sensors: 8 of the place and 16 of the days.
     """
     entry = init_integration
     assert entry.state is ConfigEntryState.LOADED
@@ -60,7 +60,7 @@ async def test_setup_and_unload(
         [Platform.BINARY_SENSOR] * 6
         + [Platform.GEO_LOCATION] * 2
         + [Platform.IMAGE] * 4
-        + [Platform.SENSOR] * 7
+        + [Platform.SENSOR] * 24
     )
 
     assert await hass.config_entries.async_unload(entry.entry_id)
@@ -295,16 +295,16 @@ async def test_device_and_entity_ids_of_a_place(
     devices = dr.async_entries_for_config_entry(device_registry, entry.entry_id)
     assert sorted(device.name for device in devices) == [
         device_name,
-        f"{device_name} Today",
-        f"{device_name} Tomorrow",
+        f"{device_name} · Today",
+        f"{device_name} · Tomorrow",
     ]
     entity_ids = {
         item.entity_id
         for item in er.async_entries_for_config_entry(entity_registry, entry.entry_id)
     }
     assert {
-        f"sensor.{place}_criticality",
-        f"sensor.{place}_vigilance",
+        f"sensor.{place}_highest_alert",
+        f"sensor.{place}_highest_precipitation",
         f"sensor.{place}_today_alert",
         f"sensor.{place}_tomorrow_alert",
         f"binary_sensor.{place}_today_hydraulic_risk",
@@ -329,14 +329,18 @@ async def test_devices_of_the_days(
         device.name: device for device in devices if device.via_device_id == place.id
     }
     assert place.name == "DPC"
-    assert days.keys() == {"DPC Today", "DPC Tomorrow", "DPC Day after tomorrow"}
+    assert days.keys() == {
+        "DPC · Today",
+        "DPC · Tomorrow",
+        "DPC · Day after tomorrow",
+    }
 
-    today = days["DPC Today"]
+    today = days["DPC · Today"]
     assert today.identifiers == {(DOMAIN, f"{UNIQUE_ID}-today")}
     assert today.entry_type is dr.DeviceEntryType.SERVICE
     assert today.configuration_url == CRITICALITY_PAGE_URL
     # Only the vigilance bulletin covers the day after tomorrow
-    after_tomorrow = days["DPC Day after tomorrow"]
+    after_tomorrow = days["DPC · Day after tomorrow"]
     assert after_tomorrow.configuration_url == VIGILANCE_PAGE_URL
 
     def entity_ids(device: dr.DeviceEntry) -> set[str]:
@@ -345,18 +349,36 @@ async def test_devices_of_the_days(
             for item in er.async_entries_for_device(entity_registry, device.id)
         }
 
-    assert entity_ids(place) == {"sensor.dpc_criticality", "sensor.dpc_vigilance"}
+    assert entity_ids(place) == {
+        "sensor.dpc_highest_alert",
+        "sensor.dpc_highest_precipitation",
+        "sensor.dpc_alert_zone",
+        "sensor.dpc_vigilance_zone",
+        "sensor.dpc_criticality_bulletin",
+        "sensor.dpc_vigilance_bulletin",
+        "sensor.dpc_criticality_valid_until",
+        "sensor.dpc_vigilance_valid_until",
+    }
     assert entity_ids(today) == {
         "binary_sensor.dpc_today_hydraulic_risk",
         "binary_sensor.dpc_today_thunderstorm_risk",
         "binary_sensor.dpc_today_hydrogeological_risk",
         "sensor.dpc_today_alert",
+        "sensor.dpc_today_criticality",
+        "sensor.dpc_today_hydraulic_risk_level",
+        "sensor.dpc_today_thunderstorm_risk_level",
+        "sensor.dpc_today_hydrogeological_risk_level",
         "sensor.dpc_today_precipitation",
+        "sensor.dpc_today_nearby_phenomena",
         "image.dpc_today_criticality_map",
         "image.dpc_today_vigilance_map",
         "geo_location.dpc_today_isolated_thunderstorms_sse",
     }
-    assert entity_ids(after_tomorrow) == {"sensor.dpc_after_tomorrow_precipitation"}
+    # Only the vigilance bulletin covers the day after tomorrow
+    assert entity_ids(after_tomorrow) == {
+        "sensor.dpc_after_tomorrow_precipitation",
+        "sensor.dpc_after_tomorrow_nearby_phenomena",
+    }
 
 
 async def test_days_no_longer_shown_are_removed(
@@ -379,7 +401,7 @@ async def test_days_no_longer_shown_are_removed(
     assert sorted(
         device.name
         for device in dr.async_entries_for_config_entry(device_registry, entry.entry_id)
-    ) == ["DPC", "DPC Today"]
+    ) == ["DPC", "DPC · Today"]
     assert entity_registry.async_get(tomorrow.entity_id) is None
     assert hass.states.get(tomorrow.entity_id) is None
     assert hass.states.get("sensor.dpc_today_alert") is not None
@@ -402,9 +424,9 @@ async def test_days_follow_the_name_of_the_place(
     await hass.config_entries.async_reload(entry.entry_id)
     await hass.async_block_till_done()
 
-    today = device_registry.async_get(devices["DPC Today"].id)
+    today = device_registry.async_get(devices["DPC · Today"].id)
     assert today is not None
-    assert today.name == "Casa Today"
+    assert today.name == "Casa · Today"
     # The entities keep their IDs; Recreate entity IDs proposes the new ones
     registered = entity_registry.async_get("binary_sensor.dpc_today_hydraulic_risk")
     assert registered is not None
@@ -473,6 +495,6 @@ async def test_places_with_the_same_name(
     ]
     # Today and tomorrow, the days of the places of 2026.11.0. Milan has no
     # phenomenon within 50 km in the bulletin, Rome has 2
-    assert [len(ids) for ids in entity_ids] == [18, 16]
+    assert [len(ids) for ids in entity_ids] == [34, 32]
     assert not entity_ids[0] & entity_ids[1]
     assert "sensor.dpc_today_alert_2" in entity_ids[1]

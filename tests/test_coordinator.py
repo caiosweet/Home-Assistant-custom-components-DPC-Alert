@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import timedelta
-from typing import Any
+from datetime import datetime, timedelta
 from unittest.mock import patch
 
 from aiodpc import CRITICALITY_PAGE_URL, VIGILANCE_PAGE_URL, CriticalityMap
@@ -45,7 +44,6 @@ from . import (
     get_entity_id,
     mock_dpc_responses,
     rome,
-    sensor_unique_id,
     setup_integration,
 )
 
@@ -80,10 +78,20 @@ def criticality_state(hass: HomeAssistant, entry: MockConfigEntry) -> str:
     return hass.states.get(get_entity_id(hass, Platform.SENSOR, unique_id)).state
 
 
-def criticality_attributes(hass: HomeAssistant) -> dict[str, Any]:
-    """Return the attributes of the criticality sensor."""
-    entity_id = get_entity_id(hass, Platform.SENSOR, sensor_unique_id("criticality"))
-    return hass.states.get(entity_id).attributes
+def place_sensor(hass: HomeAssistant, key: str) -> State:
+    """Return the state of a sensor of the bulletins of the place."""
+    entity_id = get_entity_id(hass, Platform.SENSOR, f"{UNIQUE_ID}-{key}")
+    return hass.states.get(entity_id)
+
+
+def bulletin_id(hass: HomeAssistant) -> str:
+    """Return the ID of the criticality bulletin of the place."""
+    return place_sensor(hass, "criticality_bulletin").attributes["id"]
+
+
+def valid_until(hass: HomeAssistant) -> datetime:
+    """Return the end of the last day the criticality bulletin covers."""
+    return datetime.fromisoformat(place_sensor(hass, "criticality_valid_until").state)
 
 
 def alert_of(hass: HomeAssistant, day: str) -> State:
@@ -113,9 +121,10 @@ async def update(hass: HomeAssistant, entry: MockConfigEntry) -> None:
 
 @pytest.mark.usefixtures("init_integration")
 async def test_expires_on_publication_day(hass: HomeAssistant) -> None:
-    """Test the expiration of the bulletin issued on 2026-11-14 on that day."""
-    assert alert_of(hass, "today").attributes["valid_until"] == rome(2026, 11, 15)
-    assert alert_of(hass, "tomorrow").attributes["valid_until"] == rome(2026, 11, 16)
+    """Test that the bulletin issued on 2026-11-14 covers the end of tomorrow."""
+    assert alert_of(hass, "today").state == "yellow"
+    assert alert_of(hass, "tomorrow").state == "orange"
+    assert valid_until(hass) == rome(2026, 11, 16)
 
 
 async def test_tomorrow_becomes_today_at_midnight(
@@ -133,7 +142,7 @@ async def test_tomorrow_becomes_today_at_midnight(
 
     today = alert_of(hass, "today")
     assert today.state == tomorrow.state
-    assert today.attributes["valid_until"] == rome(2026, 11, 16)
+    assert valid_until(hass) == rome(2026, 11, 16)
     assert alert_of(hass, "tomorrow").state == STATE_UNKNOWN
     assert risk_state(hass, "idrogeologico_oggi") == STATE_ON
     assert risk_state(hass, "idrogeologico_domani") == STATE_UNKNOWN
@@ -155,8 +164,9 @@ async def test_start_before_the_new_bulletin(
 
     # Yesterday's assessment is over, so it is not downloaded
     assert criticality_geojson_url(CRIT_ID, 0) not in geojson_requests(aioclient_mock)
-    assert alert_of(hass, "today").attributes["valid_until"] == rome(2026, 11, 16)
+    assert alert_of(hass, "today").state == "orange"
     assert alert_of(hass, "tomorrow").state == STATE_UNKNOWN
+    assert valid_until(hass) == rome(2026, 11, 16)
 
 
 async def test_next_bulletin_replaces_the_previous_one(
@@ -172,9 +182,9 @@ async def test_next_bulletin_replaces_the_previous_one(
 
     await update(hass, init_integration)
 
-    assert criticality_attributes(hass)["id"] == "20261115_1500"
-    assert alert_of(hass, "today").attributes["valid_until"] == rome(2026, 11, 16)
-    assert alert_of(hass, "tomorrow").attributes["valid_until"] == rome(2026, 11, 17)
+    assert bulletin_id(hass) == "20261115_1500"
+    assert alert_of(hass, "tomorrow").state == "orange"
+    assert valid_until(hass) == rome(2026, 11, 17)
 
 
 async def test_bulletins_are_kept_when_dpc_is_unreachable(
@@ -194,7 +204,7 @@ async def test_bulletins_are_kept_when_dpc_is_unreachable(
 
     assert coordinator.last_update_success
     assert coordinator.update_interval == RETRY_INTERVAL
-    assert criticality_attributes(hass)["id"] == CRIT_ID
+    assert bulletin_id(hass) == CRIT_ID
     assert risk_state(hass, "idrogeologico_domani") == STATE_ON
 
     aioclient_mock.clear_requests()
@@ -280,7 +290,7 @@ async def test_place_removed(
     ) as at:
         await update(hass, init_integration)
 
-    assert criticality_attributes(hass)["id"] == "20261115_1500"
+    assert bulletin_id(hass) == "20261115_1500"
     assert [call.args[1].coordinates for call in at.call_args_list] == [
         (LATITUDE, LONGITUDE)
     ]

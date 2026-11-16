@@ -41,23 +41,26 @@ alongside this repository. This repository holds the Home Assistant side only.
 
 ```text
 custom_components/dpc/
-  __init__.py        setup, unload, migration of config entries (version 1 to 2)
+  __init__.py        setup, unload, migration of config entries (to version 2.2)
   config_flow.py     menu (map or zone), DPC alert zone, municipality; options flow
   bulletins.py       one download of each bulletin for all places, read at each
                      place in an executor
   coordinator.py     DpcDataUpdateCoordinator, one per place (entry.runtime_data)
-  entity.py          DpcEntity, device info, place_entity_id()
-  sensor.py, binary_sensor.py, image.py, geo_location.py
+  entity.py          DpcEntity, the devices of the place and of its days,
+                     place_entity_id()
+  sensor.py          the place (highest alert and precipitation, zones,
+                     bulletins) and each day (alert, criticality, risk levels,
+                     precipitation, nearby phenomena)
+  binary_sensor.py, image.py, geo_location.py
   dashboard.py       serves frontend/dpc-dashboard.js and has the frontend load it
   frontend/          the dashboard strategy: plain JavaScript, no build, native
                      cards only
-  attributes.py      the Italian attributes of the binary, alert and vigilance
-                     sensors, kept for existing automations
   diagnostics.py     redacts everything that locates a place
   const.py, icons.json, strings.json, translations/, quality_scale.yaml
   manifest.json, version.py
 tests/               pytest-homeassistant-custom-component, DPC mocked with fixtures
 tests/frontend/      node:test tests of the dashboard strategy
+scripts/translations.py  writes the texts of aiodpc into the translations
 release.sh           releases, run by the maintainer
 ```
 
@@ -69,7 +72,8 @@ Python 3.14, as required by the pinned `pytest-homeassistant-custom-component`
 ```bash
 python3.14 -m venv .venv && . .venv/bin/activate
 pip install -r requirements_test.txt ruff
-ruff format custom_components tests && ruff check custom_components tests
+ruff format custom_components tests scripts
+ruff check custom_components tests scripts
 mypy                                   # strict, configured in pyproject.toml
 pytest --cov --cov-report=term-missing
 node --test "tests/frontend/*.test.mjs"   # the dashboard strategy
@@ -82,9 +86,12 @@ hassfest and the HACS action (`validate.yaml`). Keep the coverage of `custom_com
 
 Users' automations and dashboards depend on what the integration exposes.
 
-- Never change unique IDs: entries are `"{lat:.6f}_{lon:.6f}"`, sensors
-  `"{name}_criticality_{lat}_{lon}"` and the vigilance equivalent, binary
-  sensors `"{entry.unique_id}-{key}"`.
+- Never change unique IDs: entries are `"{lat:.6f}_{lon:.6f}"`; the highest
+  alert and precipitation keep `"{name}_criticality_{lat}_{lon}"` and the
+  vigilance equivalent; binary sensors `"{entry.unique_id}-{key}"` with their
+  Italian keys (`idraulico_oggi`). New entities of the place are
+  `"{entry.unique_id}-{key}"`, of a day `"{entry.unique_id}-{key}_{day}"`,
+  and phenomena `"{entry.unique_id}-{day}-{phenomenon.key}"`.
 - Never rename attributes or change their values. A change that users must
   act on goes under "Breaking changes" in the changelog, with what to do.
 - Entities suggest their ID with `DpcEntity.suggest_entity_id()`:
@@ -125,18 +132,28 @@ Users' automations and dashboards depend on what the integration exposes.
 - `strings.json` is the source of the texts and `translations/en.json` is
   identical to it. Every key exists in the six languages: en, it, pt-BR, fr,
   de, es. The top-level `title` is the translated name of the integration.
-- Entity names follow the language of Home Assistant. What DPC gives as a
-  fixed list (levels, risks, phenomena) is a state or attribute value that
-  Home Assistant translates: the English names of the aiodpc enums, with a
-  `state` translation in `strings.json`. The text DPC writes stays next to it,
-  in Italian, in `description`. The binary, alert and vigilance sensors keep
-  their Italian attributes (`info`, `alert`, `risk`) for existing automations.
+- Data is an entity, not an attribute: a level, a zone, a bulletin is an
+  entity of the place or of its day. Attributes are left for what is not an
+  entity of its own (`risks`, `total_alerts`, `image_url`, the `id` of a
+  bulletin).
+- What DPC gives as a fixed list (levels, risks, criticalities, phenomena,
+  directions) is an `enum` state or an attribute value that Home Assistant
+  translates: the keys of the aiodpc enums.
+- The texts of those values, and the names of what DPC defines (risks, days,
+  bulletins, precipitation, phenomena), come only from the data dictionary of
+  aiodpc (`aiodpc.i18n`): `scripts/translations.py` writes them and
+  `tests/test_translations.py` checks them. Never write them by hand; to
+  change a word, change aiodpc. The names only Home Assistant has (Highest
+  alert, Alert zone...) are written in `strings.json`, as short as possible.
+- Entity names follow the language of Home Assistant; a phenomenon is named
+  with the template of aiodpc and its texts in that language.
 - Errors shown to users use translation keys: `config.error`,
   `options.error`, `exceptions`.
-- Every entity has an icon in `icons.json`; the alert icons use `range`.
+- Every entity has an icon in `icons.json`; the levels have `state` icons.
   `tests/test_icons.py` checks it.
 - Diagnostics must not reveal where a place is: coordinates, positions,
-  distances and directions of phenomena, and entity IDs made of coordinates
+  distances and directions of phenomena, the entity IDs and names of the
+  phenomena (they carry the direction), and entity IDs made of coordinates
   are redacted. `async_redact_data` does not walk tuples: turn them into lists
   first.
 - `quality_scale.yaml` states each rule of the integration quality scale (up
@@ -159,7 +176,8 @@ Users' automations and dashboards depend on what the integration exposes.
 The version is pinned exactly in `custom_components/dpc/manifest.json`
 (`requirements`) and in `requirements_test.txt`. Bump both together, and only
 once the release is on PyPI: check `https://pypi.org/simple/aiodpc/`, as the
-JSON API stays cached for a while.
+JSON API stays cached for a while. Then write its texts into the translations:
+`python -m scripts.translations`.
 
 ## Changelog and releases
 

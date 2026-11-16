@@ -4,19 +4,18 @@ Each phenomenon of the vigilance bulletin within the radius of the place is an
 entity of the source ``dpc``, so the map card shows them with
 ``geo_location_sources: [dpc]``. The entities come and go with the bulletins.
 
-An entity is named after the category of its phenomenon ("Nearby wind"), and
-its type ("Gale") is translated by Home Assistant; the DPC legend stays, in
-Italian, in its description. It belongs to the device of its day.
+An entity belongs to the device of its day, and is named after its phenomenon,
+distance and direction, in the language of Home Assistant, with the texts of
+aiodpc: "Chuvas esparsas ou intermitentes, 42,0 km NE".
 """
 
 from __future__ import annotations
 
 from collections.abc import Iterable
 from dataclasses import dataclass
-from datetime import datetime
-from typing import Any
 
 from aiodpc import Phenomenon, PhenomenonCategory, PhenomenonType
+from aiodpc.i18n import TRANSLATIONS, Language, Translation
 from homeassistant.components.geo_location import GeolocationEvent
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform, UnitOfLength
@@ -24,15 +23,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import (
-    ATTR_DAY,
-    ATTR_DESCRIPTION,
-    ATTR_DIRECTION,
-    ATTR_PHENOMENON,
-    ATTR_VALID_UNTIL,
-    DOMAIN,
-    PlaceDay,
-)
+from .const import ATTR_DIRECTION, ATTR_PHENOMENON, DOMAIN, PlaceDay
 from .coordinator import DpcConfigEntry, DpcData, DpcDataUpdateCoordinator
 from .entity import DpcEntity
 
@@ -45,9 +36,6 @@ class NearbyPhenomenon:
     """A weather phenomenon of a known category near the place, on a day."""
 
     day: PlaceDay
-    """The day, as named in the attributes: today, tomorrow or aftertomorrow."""
-    valid_until: datetime
-    """End of the day: the midnight (Europe/Rome) that ends it."""
     category: PhenomenonCategory
     type: PhenomenonType
     phenomenon: Phenomenon
@@ -75,7 +63,6 @@ def nearby_phenomena(
             unique_id = f"{entry.unique_id}-{name}-{phenomenon.key}"
             phenomena[unique_id] = NearbyPhenomenon(
                 day=name,
-                valid_until=day.valid_until,
                 category=phenomenon.category,
                 type=phenomenon.type,
                 phenomenon=phenomenon,
@@ -89,6 +76,8 @@ async def async_setup_entry(
     """Setup geolocation platform."""
     coordinator = entry.runtime_data
     added: set[str] = set()
+    # Entity names are in the language of Home Assistant, as when it translates them
+    texts = TRANSLATIONS[Language.of(hass.config.language) or Language.ENGLISH]
 
     @callback
     def show_the_phenomena_near_the_place() -> None:
@@ -112,7 +101,7 @@ async def async_setup_entry(
         new = sorted(nearby.keys() - added)
         added.update(new)
         async_add_entities(
-            DpcPhenomenonEvent(coordinator, entry, unique_id, nearby[unique_id])
+            DpcPhenomenonEvent(coordinator, entry, unique_id, nearby[unique_id], texts)
             for unique_id in new
         )
 
@@ -120,6 +109,22 @@ async def async_setup_entry(
     entry.async_on_unload(
         coordinator.async_add_listener(show_the_phenomena_near_the_place)
     )
+
+
+def name_placeholders(nearby: NearbyPhenomenon, texts: Translation) -> dict[str, str]:
+    """Return the parts of the name of a phenomenon in a language.
+
+    The name is the template of aiodpc, "{phenomenon}, {distance} km
+    {direction}", which Home Assistant fills with them.
+    """
+    phenomenon = nearby.phenomenon
+    return {
+        "phenomenon": texts.phenomenon_types[nearby.type],
+        "distance": f"{phenomenon.distance_km:.1f}".replace(
+            ".", texts.decimal_separator
+        ),
+        "direction": texts.compass_points[phenomenon.direction],
+    }
 
 
 class DpcPhenomenonEvent(DpcEntity, GeolocationEvent):
@@ -135,11 +140,14 @@ class DpcPhenomenonEvent(DpcEntity, GeolocationEvent):
         entry: ConfigEntry,
         unique_id: str,
         nearby: NearbyPhenomenon,
+        texts: Translation,
     ) -> None:
-        """Initialize the entity of a phenomenon near the place."""
+        """Initialize the entity of a phenomenon, named with the texts of a language."""
         super().__init__(coordinator, entry, nearby.day)
         self._attr_unique_id = unique_id
+        # The category gives the icon
         self._attr_translation_key = str(nearby.category)
+        self._attr_translation_placeholders = name_placeholders(nearby, texts)
         # e.g. geo_location.dpc_portula_today_scattered_rain_wnw
         direction = nearby.phenomenon.direction.lower()
         self.suggest_entity_id(Platform.GEO_LOCATION, f"{nearby.type}_{direction}")
@@ -168,17 +176,8 @@ class DpcPhenomenonEvent(DpcEntity, GeolocationEvent):
         self._attr_distance = nearby.phenomenon.distance_km
         self._attr_latitude = nearby.phenomenon.latitude
         self._attr_longitude = nearby.phenomenon.longitude
-
-    @property
-    def extra_state_attributes(self) -> dict[str, Any]:
-        """Return the phenomenon, its day and direction, and the DPC legend."""
-        attributes = super().extra_state_attributes
-        if (nearby := self._nearby) is not None:
-            attributes |= {
-                ATTR_PHENOMENON: str(nearby.type),
-                ATTR_DAY: nearby.day,
-                ATTR_VALID_UNTIL: nearby.valid_until,
-                ATTR_DIRECTION: nearby.phenomenon.direction,
-                ATTR_DESCRIPTION: nearby.phenomenon.description,
-            }
-        return attributes
+        # The type of the phenomenon and its direction, which Home Assistant translates
+        self._attr_extra_state_attributes = {
+            ATTR_PHENOMENON: str(nearby.type),
+            ATTR_DIRECTION: nearby.phenomenon.direction.lower(),
+        }

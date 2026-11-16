@@ -2,15 +2,14 @@
 
 from __future__ import annotations
 
-from aiodpc import CRITICALITY_PAGE_URL
-from aiodpc.urls import criticality_preview_url
+from aiodpc import ATTRIBUTION
 from homeassistant.const import STATE_OFF, STATE_ON, Platform
 from homeassistant.core import HomeAssistant
 import pytest
 
 from custom_components.dpc.const import CONF_WARNING_LEVEL
 
-from . import CRIT_ID, RISK_KINDS, binary_sensor_unique_id, get_entity_id, rome
+from . import RISK_KINDS, binary_sensor_unique_id, get_entity_id
 
 
 def risk_states(hass: HomeAssistant) -> dict[str, str]:
@@ -37,50 +36,23 @@ async def test_binary_sensor_states(hass: HomeAssistant) -> None:
 
 
 @pytest.mark.usefixtures("init_integration")
-@pytest.mark.parametrize(
-    ("kind", "expected"),
-    [
-        (
-            "temporali_oggi",
-            {
-                "risk": "Temporali",
-                "info": "Ordinaria",
-                "alert": "ALLERTA GIALLA",
-                "level": 2,
-                "image_url": criticality_preview_url(CRIT_ID, 0),
-                # Today's assessment is valid until 24:00 of the issue day
-                "expires": rome(2026, 11, 15),
-            },
-        ),
-        (
-            "idrogeologico_domani",
-            {
-                "risk": "Idrogeologico",
-                "info": "Moderata",
-                "alert": "ALLERTA ARANCIONE",
-                "level": 3,
-                "image_url": criticality_preview_url(CRIT_ID, 1),
-                # Tomorrow's assessment covers the 24 hours of the following day
-                "expires": rome(2026, 11, 16),
-            },
-        ),
-    ],
-)
-async def test_binary_sensor_attributes(
-    hass: HomeAssistant, kind: str, expected: dict
-) -> None:
-    """Test the attributes of a binary sensor."""
+async def test_binary_sensor_attributes(hass: HomeAssistant) -> None:
+    """Test that a binary sensor has no attribute of the bulletin.
+
+    Its level, criticality, zone and bulletin are entities of their own.
+    """
     state = hass.states.get(
-        get_entity_id(hass, Platform.BINARY_SENSOR, binary_sensor_unique_id(kind))
+        get_entity_id(
+            hass, Platform.BINARY_SENSOR, binary_sensor_unique_id("temporali_oggi")
+        )
     )
 
-    attrs = state.attributes
-    assert {key: attrs[key] for key in expected} == expected
-    assert attrs["id"] == CRIT_ID
-    assert attrs["publication_date"] == rome(2026, 11, 14, 14, 30)
-    assert attrs["zone_name"] == "Bacini di Roma"
-    assert attrs["link"] == CRITICALITY_PAGE_URL
-    assert attrs["device_class"] == "safety"
+    assert state.entity_id == "binary_sensor.dpc_today_thunderstorm_risk"
+    assert dict(state.attributes) == {
+        "device_class": "safety",
+        "attribution": ATTRIBUTION,
+        "friendly_name": "DPC · Today Thunderstorm risk",
+    }
 
 
 @pytest.mark.usefixtures("init_integration")

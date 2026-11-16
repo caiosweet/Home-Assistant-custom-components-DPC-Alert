@@ -6,7 +6,7 @@ from enum import StrEnum
 import logging
 from typing import Final
 
-from aiodpc import AlertLevel, Day, Precipitation, RiskType
+from aiodpc import AlertLevel, Criticality, Day, Precipitation, RiskType
 from homeassistant.const import Platform
 
 from .version import __version__
@@ -111,57 +111,63 @@ If you have any issues with this you need to open an issue here:
 -------------------------------------------------------------------
 """
 
-# The values below are attributes of the binary sensors as they have always been,
-# in Italian as DPC writes them, so automations and templates keep working.
+# The attributes left: what is not an entity of its own. States and values are
+# the English keys of aiodpc, which Home Assistant translates.
 
-ALERT_TEXTS: Final[Mapping[AlertLevel, str]] = {
-    AlertLevel.UNKNOWN: "",
-    AlertLevel.GREEN: "NESSUNA ALLERTA",
-    AlertLevel.YELLOW: "ALLERTA GIALLA",
-    AlertLevel.ORANGE: "ALLERTA ARANCIONE",
-    AlertLevel.RED: "ALLERTA ROSSA",
-}
-
-RISK_NAMES: Final[Mapping[RiskType, str]] = {
-    RiskType.HYDRAULIC: "Idraulico",
-    RiskType.THUNDERSTORMS: "Temporali",
-    RiskType.HYDROGEOLOGICAL: "Idrogeologico",
-}
-
-ATTR_ALERT = "alert"
-ATTR_ID = "id"
-ATTR_EXPIRES = "expires"
-ATTR_IMAGE_URL = "image_url"
-ATTR_INFO = "info"
-ATTR_LAST_UPDATE = "last_update"
-ATTR_LEVEL = "level"
-ATTR_LINK = "link"
-ATTR_MAX_LEVEL = "max_level"
-ATTR_PUBLICATION_DATE = "publication_date"
-ATTR_RISK = "risk"
-ATTR_TOTAL_ALERTS = "total_alerts"
-ATTR_TOTAL_PHENOMENA = "total_phenomena"
-ATTR_ZONE_NAME = "zone_name"
-
-# The states and attributes of the day sensors, map images and phenomena use
-# the values of aiodpc instead: English names that Home Assistant translates.
-
-ATTR_DAY = "day"
-ATTR_DESCRIPTION = "description"
 ATTR_DIRECTION = "direction"
+ATTR_ID = "id"
+ATTR_IMAGE_URL = "image_url"
+ATTR_LAST_CHECK = "last_check"
+ATTR_LINK = "link"
 ATTR_PHENOMENON = "phenomenon"
 ATTR_RISKS = "risks"
-ATTR_VALID_UNTIL = "valid_until"
+ATTR_TOTAL_ALERTS = "total_alerts"
+
+RISK_TRANSLATION_KEYS: Final[Mapping[RiskType, str]] = {
+    RiskType.HYDRAULIC: "hydraulic_risk",
+    RiskType.THUNDERSTORMS: "thunderstorm_risk",
+    RiskType.HYDROGEOLOGICAL: "hydrogeological_risk",
+}
+"""Translation key of the binary sensor of each risk; its level adds ``_level``."""
 
 ALERT_LEVEL_STATES: Final = [
     str(level) for level in AlertLevel if level is not AlertLevel.UNKNOWN
 ]
-"""States of the alert sensor of a day: green, yellow, orange, red."""
+"""States of the alert levels of a day: green, yellow, orange, red."""
 
 PRECIPITATION_STATES: Final = [
     str(amount) for amount in Precipitation if amount is not Precipitation.UNKNOWN
 ]
-"""States of the precipitation sensor of a day: none, light, ... very_heavy."""
+"""States of the precipitation of a day: none, light, ... very_heavy."""
+
+HIGHEST_ALERT_STATES: Final = [
+    str(level.code) for level in AlertLevel if level is not AlertLevel.UNKNOWN
+]
+"""States of the highest alert of a place: its numbers, 1 green to 4 red.
+
+Numbers, as the sensor has always had, so that automations comparing them
+keep working; Home Assistant shows the texts of the levels.
+"""
+
+HIGHEST_PRECIPITATION_STATES: Final = [
+    str(amount.code) for amount in Precipitation if amount is not Precipitation.UNKNOWN
+]
+"""States of the highest precipitation of a place: 1 none to 5 very heavy."""
+
+CRITICALITY_STATES: Final = [
+    str(Criticality.ABSENT),
+    *(
+        f"{criticality}_{risk}"
+        for criticality in (
+            Criticality.ORDINARY,
+            Criticality.MODERATE,
+            Criticality.HIGH,
+        )
+        for risk in RiskType
+    ),
+]
+"""States of the criticality of a day: absent, or a criticality and the risk the
+DPC map shows, e.g. moderate_hydrogeological."""
 
 DASHBOARD_MODULE_URL: Final = f"/{DOMAIN}/frontend/dpc-dashboard.js"
 """URL of the DPC Alert dashboard strategy, loaded by the frontend of every user."""

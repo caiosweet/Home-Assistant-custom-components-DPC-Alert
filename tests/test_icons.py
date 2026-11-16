@@ -11,6 +11,7 @@ from homeassistant.helpers.icon import async_get_icons
 from custom_components.dpc.const import DOMAIN
 
 STRINGS = Path(__file__).parents[1] / "custom_components" / DOMAIN / "strings.json"
+RISKS = ("hydraulic", "thunderstorms", "hydrogeological")
 
 
 async def test_every_entity_has_an_icon(hass: HomeAssistant) -> None:
@@ -23,11 +24,18 @@ async def test_every_entity_has_an_icon(hass: HomeAssistant) -> None:
 
 
 async def test_sensor_icons_follow_the_alert_level(hass: HomeAssistant) -> None:
-    """Test that the sensors show a warning from yellow (2) up."""
+    """Test that the alerts show a warning from yellow up, whatever their states."""
     icons = (await async_get_icons(hass, "entity", integrations={DOMAIN}))[DOMAIN]
+    sensor = icons["sensor"]
+    by_level = list(sensor["alert"]["state"].values())
 
-    for translation_key in ("criticality", "vigilance"):
-        assert icons["sensor"][translation_key] == {
-            "default": "mdi:shield-check",
-            "range": {"1": "mdi:shield-check", "2": "mdi:hazard-lights"},
-        }
+    assert list(sensor["alert"]["state"]) == ["green", "yellow", "orange", "red"]
+    assert list(sensor["highest_alert"]["state"].values()) == by_level
+    criticality = sensor["criticality"]["state"]
+    assert criticality["absent"] == by_level[0]
+    assert {criticality[f"ordinary_{risk}"] for risk in RISKS} == {by_level[1]}
+    assert {criticality[f"moderate_{risk}"] for risk in RISKS} == {by_level[2]}
+    assert {criticality[f"high_{risk}"] for risk in RISKS} == {by_level[3]}
+    assert list(sensor["highest_precipitation"]["state"].values()) == list(
+        sensor["precipitation"]["state"].values()
+    )

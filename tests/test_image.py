@@ -51,6 +51,8 @@ async def test_maps_of_the_days(hass: HomeAssistant) -> None:
     assert today is not None
     # The state is when the map shown last changed: at the setup
     assert today.state == "2026-11-14T14:00:00+00:00"
+    # The map at DPC, for cards that link to it
+    assert today.attributes["image_url"] == criticality_preview_url(CRIT_ID, 0)
 
 
 @respx.mock
@@ -106,6 +108,7 @@ async def test_map_changes_at_midnight(
     assert tomorrow is not None
     assert tomorrow.state == STATE_UNAVAILABLE
     assert "access_token" not in tomorrow.attributes
+    assert "image_url" not in tomorrow.attributes
 
 
 @respx.mock

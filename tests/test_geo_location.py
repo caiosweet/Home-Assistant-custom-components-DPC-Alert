@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 
-from aiodpc import Phenomenon
+from aiodpc import ATTRIBUTION, CompassPoint, Phenomenon
 from freezegun.api import FrozenDateTimeFactory
 from homeassistant.const import STATE_UNAVAILABLE, Platform, UnitOfLength
 from homeassistant.core import HomeAssistant, State
@@ -17,7 +17,7 @@ from pytest_homeassistant_custom_component.test_util.aiohttp import (
 
 from custom_components.dpc.const import CONF_DAYS, DOMAIN
 
-from . import UNIQUE_ID, mock_dpc_responses, rome, setup_integration
+from . import UNIQUE_ID, mock_dpc_responses, setup_integration
 
 # The phenomena of the bulletin of 2026-11-14 within 50 km of Rome: the place,
 # the day, and the key of the phenomenon (its code and position)
@@ -55,27 +55,25 @@ async def test_phenomena_near_the_place(
     assert showers is not None
     # The type and the direction of the phenomenon, on the device of its day
     assert showers.entity_id == "geo_location.dpc_today_isolated_thunderstorms_sse"
-    assert showers.attributes["friendly_name"] == "DPC Today Nearby precipitation"
-    assert float(showers.state) < 50
-    assert showers.attributes["unit_of_measurement"] == UnitOfLength.KILOMETERS
-    assert showers.attributes["source"] == DOMAIN
-    assert showers.attributes["latitude"] == 41.57313
-    assert showers.attributes["longitude"] == 12.67477
-    # Translated by Home Assistant: "Isolated showers or thunderstorms"
-    assert showers.attributes["phenomenon"] == "isolated_thunderstorms"
-    assert showers.attributes["day"] == "today"
-    assert showers.attributes["valid_until"] == rome(2026, 11, 15)
-    assert (
-        # The legend as DPC writes it
-        showers.attributes["description"] == "rovesci o temporali a carattere isolato"
-    )
-    assert showers.attributes["direction"] == "SSE"
+    assert dict(showers.attributes) == {
+        "source": DOMAIN,
+        "latitude": 41.57313,
+        "longitude": 12.67477,
+        "unit_of_measurement": UnitOfLength.KILOMETERS,
+        "attribution": ATTRIBUTION,
+        # Both translated by Home Assistant
+        "phenomenon": "isolated_thunderstorms",
+        "direction": "sse",
+        # The texts of aiodpc, in the language of Home Assistant
+        "friendly_name": "DPC · Today Isolated showers or thunderstorms, 39.1 km SSE",
+    }
+    assert showers.state == "39.1"
 
     rough_sea = nearby[ROUGH_SEA_TOMORROW]
     assert rough_sea is not None
     assert rough_sea.entity_id == "geo_location.dpc_tomorrow_moderate_sea_sw"
     assert rough_sea.attributes["phenomenon"] == "moderate_sea"
-    assert rough_sea.attributes["day"] == "tomorrow"
+    assert rough_sea.attributes["direction"] == "sw"
 
 
 async def test_phenomena_follow_the_days(
@@ -97,7 +95,6 @@ async def test_phenomena_follow_the_days(
     still_rough = nearby[rough_sea_today]
     assert still_rough is not None
     assert still_rough.entity_id == "geo_location.dpc_today_moderate_sea_sw"
-    assert still_rough.attributes["day"] == "today"
     registry_entry = er.async_get(hass).async_get(still_rough.entity_id)
     assert registry_entry is not None
     device = device_registry.async_get(registry_entry.device_id or "")
@@ -131,7 +128,6 @@ async def test_phenomena_of_the_next_bulletin(
         if state is not None
     } == entity_ids
     assert nearby[SHOWERS_TODAY] is not None
-    assert nearby[SHOWERS_TODAY].attributes["valid_until"] == rome(2026, 11, 16)
     assert len(hass.states.async_all(Platform.GEO_LOCATION)) == 2
 
 
@@ -199,7 +195,7 @@ async def test_phenomena_of_unknown_codes_are_left_out(
         latitude=41.8,
         longitude=12.4,
         distance_km=12.3,
-        direction="SW",
+        direction=CompassPoint.SW,
         degrees=225,
         bulletin_id=None,
         bulletin_date=None,
@@ -228,3 +224,32 @@ async def test_phenomena_of_the_days_of_the_place(
 ) -> None:
     """Test that only the phenomena of the days the place shows have entities."""
     assert phenomena(hass, init_integration).keys() == {ROUGH_SEA_TOMORROW}
+
+
+@pytest.mark.parametrize(
+    ("language", "name"),
+    [
+        (
+            "pt-BR",
+            "DPC · Hoje Pancadas de chuva ou tempestades isoladas, 39,1 km SSE",
+        ),
+        # A language aiodpc does not speak: the English texts
+        ("nl", "DPC · Today Isolated showers or thunderstorms, 39.1 km SSE"),
+    ],
+)
+async def test_phenomena_in_the_language_of_home_assistant(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_dpc: AiohttpClientMocker,
+    language: str,
+    name: str,
+) -> None:
+    """Test that a phenomenon is named in the language of Home Assistant."""
+    hass.config.language = language
+    await setup_integration(hass, mock_config_entry)
+
+    showers = phenomena(hass, mock_config_entry)[SHOWERS_TODAY]
+    assert showers is not None
+    assert showers.attributes["friendly_name"] == name
+    # The entity ID is in English, whatever the language
+    assert showers.entity_id == "geo_location.dpc_today_isolated_thunderstorms_sse"

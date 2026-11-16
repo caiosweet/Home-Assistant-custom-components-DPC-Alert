@@ -78,8 +78,8 @@ export const PRECIPITATION_COLORS = {
   very_heavy: "deep-purple",
 };
 
-/** Color of each alert level of a risk, its `level` attribute: 1 green to 4 red. */
-export const RISK_LEVEL_COLORS = { 1: "green", 2: "yellow", 3: "orange", 4: "red" };
+/** Color of each alert level of a risk, the state of its level sensor. */
+export const RISK_LEVEL_COLORS = { green: "green", yellow: "yellow", orange: "orange", red: "red" };
 
 /** The first versions of Home Assistant with the features the dashboard uses. */
 const ALERT_CARD_VERSION = [2026, 9];
@@ -317,33 +317,26 @@ export function colorByState(card, entity, colors, colorOption = "color") {
 /**
  * Return the banners of a risk, shown while it is on, in the color of its level.
  *
- * Before the alert card, a tile shown while it is on.
+ * Before the alert card, or without the level of the risk, a tile shown while
+ * it is on.
  *
  * @param {Hass} hass
  * @param {string} entity A binary sensor of a risk.
+ * @param {string} [level] The sensor of the level of the same risk and day.
  * @returns {Card[]}
  */
-export function riskBanners(hass, entity) {
+export function riskBanners(hass, entity, level) {
   const isOn = { condition: "state", entity, state: "on" };
-  if (!isAtLeast(hass, ALERT_CARD_VERSION)) {
+  if (!level || !isAtLeast(hass, ALERT_CARD_VERSION)) {
     return [{ ...tile(hass, entity), visibility: [isOn] }];
   }
-  return Object.entries(RISK_LEVEL_COLORS).map(([level, color]) => ({
+  return Object.entries(RISK_LEVEL_COLORS).map(([state, color]) => ({
     type: "alert",
     entity,
     name: { type: "entity" },
     alert_color: color,
     hide_state: true,
-    visibility: [
-      isOn,
-      {
-        condition: "numeric_state",
-        entity,
-        attribute: "level",
-        above: Number(level) - 1,
-        below: Number(level) + 1,
-      },
-    ],
+    visibility: [isOn, { condition: "state", entity: level, state }],
   }));
 }
 
@@ -392,8 +385,11 @@ export function criticalitySection(hass, place) {
     (entity) => entity !== undefined,
   );
   const risks = CRITICALITY_DAYS.flatMap((day) =>
-    RISK_SENSORS.map((key) => place.entity("binary_sensor", key, day)),
-  ).filter((entity) => entity !== undefined);
+    RISK_SENSORS.map((key) => ({
+      entity: place.entity("binary_sensor", key, day),
+      level: place.entity("sensor", `${key}_level`, day),
+    })),
+  ).filter(({ entity }) => entity !== undefined);
   const maps = CRITICALITY_DAYS.map((day) => place.entity("image", "criticality_map", day)).filter(
     (entity) => entity !== undefined,
   );
@@ -408,7 +404,9 @@ export function criticalitySection(hass, place) {
           ALERT_COLORS,
         ),
       ),
-      ...risks.flatMap((entity) => riskBanners(hass, entity)),
+      ...risks.flatMap(({ entity, level }) =>
+        riskBanners(hass, /** @type {string} */ (entity), level),
+      ),
       ...maps.map(mapPicture),
     ],
   };

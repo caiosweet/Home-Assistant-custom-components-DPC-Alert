@@ -45,9 +45,10 @@ function placeEntities(device, prefix, phenomena = []) {
     entity("sensor", "vigilance"),
     ...["today", "tomorrow"].flatMap((day) => [
       entity("sensor", "alert", day),
-      ...["hydraulic_risk", "thunderstorm_risk", "hydrogeological_risk"].map((key) =>
+      ...["hydraulic_risk", "thunderstorm_risk", "hydrogeological_risk"].flatMap((key) => [
         entity("binary_sensor", key, day),
-      ),
+        entity("sensor", `${key}_level`, day),
+      ]),
       entity("image", "criticality_map", day),
       entity("image", "vigilance_map", day),
     ]),
@@ -185,17 +186,16 @@ describe("view of a place", () => {
       (card) => card.entity === "binary_sensor.dpc_roma_tomorrow_hydrogeological_risk",
     );
 
+    // Visible in the state of the level of the same risk and day
     assert.deepEqual(
       banners.map((card) => [card.type, card.alert_color, card.visibility[1]]),
-      [1, 2, 3, 4].map((level, index) => [
+      ["green", "yellow", "orange", "red"].map((level) => [
         "alert",
-        ["green", "yellow", "orange", "red"][index],
+        level,
         {
-          condition: "numeric_state",
-          entity: "binary_sensor.dpc_roma_tomorrow_hydrogeological_risk",
-          attribute: "level",
-          above: level - 1,
-          below: level + 1,
+          condition: "state",
+          entity: "sensor.dpc_roma_tomorrow_hydrogeological_risk_level",
+          state: level,
         },
       ]),
     );
@@ -207,6 +207,26 @@ describe("view of a place", () => {
       });
       assert.equal(banner.hide_state, true);
     }
+  });
+
+  it("shows a tile of a risk on whose level is disabled", () => {
+    const hass = homeAssistant();
+    delete hass.entities["sensor.dpc_roma_today_hydraulic_risk_level"];
+    const view = generateView({ device_id: "roma" }, hass);
+
+    const cards = cardsOf(view).filter(
+      (card) => card.entity === "binary_sensor.dpc_roma_today_hydraulic_risk",
+    );
+
+    assert.deepEqual(
+      cards.map((card) => [card.type, card.visibility]),
+      [
+        [
+          "tile",
+          [{ condition: "state", entity: "binary_sensor.dpc_roma_today_hydraulic_risk", state: "on" }],
+        ],
+      ],
+    );
   });
 
   it("shows tiles of the risks on before Home Assistant has the alert card", () => {

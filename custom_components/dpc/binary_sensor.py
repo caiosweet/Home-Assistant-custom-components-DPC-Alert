@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
 
 from aiodpc import CriticalityDay, RiskType
 from homeassistant.components.binary_sensor import (
@@ -20,8 +19,7 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .attributes import criticality_attributes, risk_day_attributes
-from .const import PlaceDay
+from .const import RISK_TRANSLATION_KEYS, PlaceDay
 from .coordinator import DpcConfigEntry, DpcDataUpdateCoordinator
 from .entity import DpcEntity
 
@@ -37,12 +35,6 @@ RISK_KEYS = {
 # The days of the criticality bulletin: only the vigilance bulletin covers the
 # day after tomorrow
 DAY_KEYS = {PlaceDay.TODAY: "oggi", PlaceDay.TOMORROW: "domani"}
-# The names, on the device of their day
-TRANSLATION_KEYS = {
-    RiskType.HYDRAULIC: "hydraulic_risk",
-    RiskType.THUNDERSTORMS: "thunderstorm_risk",
-    RiskType.HYDROGEOLOGICAL: "hydrogeological_risk",
-}
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -57,7 +49,7 @@ class DpcRiskEntityDescription(BinarySensorEntityDescription):
 RISK_DESCRIPTIONS = tuple(
     DpcRiskEntityDescription(
         key=f"{RISK_KEYS[risk]}_{DAY_KEYS[day]}",
-        translation_key=TRANSLATION_KEYS[risk],
+        translation_key=RISK_TRANSLATION_KEYS[risk],
         device_class=BinarySensorDeviceClass.SAFETY,
         risk=risk,
         day=day,
@@ -113,14 +105,3 @@ class DpcRiskBinarySensor(DpcEntity, BinarySensorEntity):
         if (day := self._day) is None:
             return None
         return day.assessment(self.entity_description.risk).level >= self.warning_level
-
-    @property
-    def extra_state_attributes(self) -> dict[str, Any]:
-        """Return the state attributes."""
-        attributes = super().extra_state_attributes
-        latest = self.coordinator.data.criticality
-        if latest and (day := self._day):
-            risk = day.assessment(self.entity_description.risk)
-            attributes |= criticality_attributes(latest)
-            attributes |= risk_day_attributes(day, risk)
-        return attributes
