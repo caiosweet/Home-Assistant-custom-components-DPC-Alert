@@ -56,10 +56,12 @@ that followed them.
   distance and direction in the language of Home Assistant ("Gale, 12.4 km
   NW"), and its `phenomenon` and `direction` are translated.
 - **The DPC Alert dashboard**: in **Settings → Dashboards → Add dashboard**,
-  under Community dashboards. It has a tab for each place, with the alert of
-  each day, a banner for each risk at or above the warning level in the color
-  of its level, the expected precipitation, the phenomena on a map and the
-  maps of the bulletins, all with the cards of Home Assistant. What has no
+  under Community dashboards. It has a tab for each place: its highest alert
+  and precipitation; a section for each day, with a banner for each risk at
+  or above the warning level, the alert, the criticality, the level of each
+  risk, the precipitation, the phenomena on a map and the maps of the
+  bulletins; and its zones and bulletins. Levels and precipitation have the
+  colors of the DPC maps. All with the cards of Home Assistant; what has no
   data, such as the maps of tomorrow after midnight, is hidden. Adding a place
   now ends with a pointer to it.
 - The options can turn off the maps and the phenomena, like the sensors.

@@ -55,31 +55,59 @@ const ICON = "mdi:shield-alert";
 /** The days of the bulletins, as the identifiers of the devices of the days end. */
 export const DAYS = ["today", "tomorrow", "aftertomorrow"];
 
-/** The days of the criticality bulletin: the vigilance bulletin has a third. */
-const CRITICALITY_DAYS = ["today", "tomorrow"];
-
 /** The binary sensors of the risks of a day, by translation key. */
 export const RISK_SENSORS = ["hydraulic_risk", "thunderstorm_risk", "hydrogeological_risk"];
 
-/** Color of each state of the alert sensors of a day. */
-export const ALERT_COLORS = {
-  green: "green",
-  yellow: "yellow",
-  orange: "orange",
-  red: "red",
-};
+/** The criticalities of a day with an alert, and the risks its map shows. */
+const CRITICALITIES = ["ordinary", "moderate", "high"];
+const RISKS = ["hydraulic", "thunderstorms", "hydrogeological"];
 
-/** Color of each state of the precipitation sensors, as on the DPC vigilance map. */
-export const PRECIPITATION_COLORS = {
-  none: "green",
-  light: "light-blue",
-  moderate: "blue",
-  heavy: "indigo",
-  very_heavy: "deep-purple",
-};
+/** The colors of the alert levels on the DPC criticality map: none, yellow, orange, red. */
+const DPC_ALERT_COLORS = ["#90c985", "#f8f865", "#f0bf01", "#fd6767"];
 
-/** Color of each alert level of a risk, the state of its level sensor. */
-export const RISK_LEVEL_COLORS = { green: "green", yellow: "yellow", orange: "orange", red: "red" };
+/** The colors of the precipitation on the DPC vigilance map: none to very heavy. */
+const DPC_PRECIPITATION_COLORS = ["#FFFFFF", "#C3FFFE", "#50FFFF", "#508BFF", "#A040FF"];
+
+/** Color of each state of the alert of a day, and of the level of each risk. */
+export const ALERT_COLORS = Object.fromEntries(
+  ["green", "yellow", "orange", "red"].map((level, index) => [level, DPC_ALERT_COLORS[index]]),
+);
+
+/** Color of each state of the highest alert of a place: 1 to 4. */
+export const HIGHEST_ALERT_COLORS = Object.fromEntries(
+  DPC_ALERT_COLORS.map((color, index) => [String(index + 1), color]),
+);
+
+/** Color of each state of the criticality of a day: the color of its level. */
+export const CRITICALITY_COLORS = Object.fromEntries([
+  ["absent", DPC_ALERT_COLORS[0]],
+  ...CRITICALITIES.flatMap((criticality, index) =>
+    RISKS.map((risk) => [`${criticality}_${risk}`, DPC_ALERT_COLORS[index + 1]]),
+  ),
+]);
+
+/** Color of each state of the precipitation of a day. */
+export const PRECIPITATION_COLORS = Object.fromEntries(
+  ["none", "light", "moderate", "heavy", "very_heavy"].map((amount, index) => [
+    amount,
+    DPC_PRECIPITATION_COLORS[index],
+  ]),
+);
+
+/** Color of each state of the highest precipitation of a place: 1 to 5. */
+export const HIGHEST_PRECIPITATION_COLORS = Object.fromEntries(
+  DPC_PRECIPITATION_COLORS.map((color, index) => [String(index + 1), color]),
+);
+
+/** The diagnostic sensors of a place, by translation key. */
+const BULLETIN_SENSORS = [
+  "alert_zone",
+  "vigilance_zone",
+  "criticality_bulletin",
+  "vigilance_bulletin",
+  "criticality_valid_until",
+  "vigilance_valid_until",
+];
 
 /** The first versions of Home Assistant with the features the dashboard uses. */
 const ALERT_CARD_VERSION = [2026, 9];
@@ -92,8 +120,7 @@ const NO_DATA_STATES = ["unknown", "unavailable"];
 const TEXTS = {
   en: {
     integration_name: "Civil Protection Department",
-    criticality: "Alerts",
-    vigilance: "Weather vigilance",
+    bulletins: "Bulletins",
     description:
       "Alerts and weather vigilance of the Civil Protection Department for your places in Italy.",
     no_places:
@@ -101,8 +128,7 @@ const TEXTS = {
   },
   it: {
     integration_name: "Dipartimento Protezione Civile",
-    criticality: "Allerte",
-    vigilance: "Vigilanza meteo",
+    bulletins: "Bollettini",
     description:
       "Allerte e vigilanza meteo del Dipartimento della Protezione Civile per i tuoi luoghi in Italia.",
     no_places:
@@ -110,8 +136,7 @@ const TEXTS = {
   },
   "pt-BR": {
     integration_name: "Defesa Civil",
-    criticality: "Alertas",
-    vigilance: "Vigilância meteorológica",
+    bulletins: "Boletins",
     description:
       "Alertas e vigilância meteorológica da Defesa Civil para os seus lugares na Itália.",
     no_places:
@@ -119,8 +144,7 @@ const TEXTS = {
   },
   fr: {
     integration_name: "Département de la Protection civile",
-    criticality: "Alertes",
-    vigilance: "Vigilance météo",
+    bulletins: "Bulletins",
     description:
       "Alertes et vigilance météo du Département de la Protection civile pour vos lieux en Italie.",
     no_places:
@@ -128,8 +152,7 @@ const TEXTS = {
   },
   de: {
     integration_name: "Zivilschutzabteilung",
-    criticality: "Warnungen",
-    vigilance: "Wetterlage",
+    bulletins: "Bulletins",
     description:
       "Warnungen und Wetterlage des Zivilschutzes für Ihre Orte in Italien.",
     no_places:
@@ -137,8 +160,7 @@ const TEXTS = {
   },
   es: {
     integration_name: "Departamento de Protección Civil",
-    criticality: "Alertas",
-    vigilance: "Vigilancia meteorológica",
+    bulletins: "Boletines",
     description:
       "Alertas y vigilancia meteorológica del Departamento de Protección Civil para tus lugares en Italia.",
     no_places:
@@ -186,10 +208,12 @@ export class Place {
   /**
    * @param {DeviceEntry} device
    * @param {PlaceEntity[]} entities
+   * @param {Map<string, DeviceEntry>} [days] The device of each day, by day.
    */
-  constructor(device, entities) {
+  constructor(device, entities, days = new Map()) {
     this.device = device;
     this.entries = entities;
+    this.days = days;
   }
 
   /** The name of the place, as the user sees its device. */
@@ -214,15 +238,32 @@ export class Place {
   }
 
   /**
-   * Return the entity IDs of all the entities of a domain, e.g. the phenomena.
+   * Return the entity IDs of all the entities of a domain on a day, e.g. the phenomena.
    *
    * @param {string} domain
+   * @param {string} day
    */
-  entitiesOf(domain) {
+  entitiesOf(domain, day) {
     return this.entries
-      .filter(({ entry }) => entry.entity_id.startsWith(`${domain}.`))
+      .filter(
+        ({ entry, day: dayOfEntry }) =>
+          entry.entity_id.startsWith(`${domain}.`) && dayOfEntry === day,
+      )
       .map(({ entry }) => entry.entity_id)
       .sort();
+  }
+
+  /**
+   * Return the name of a day of the place, as its device says it: "Hoje" for
+   * "Portula · Hoje", or the name the user gave the device.
+   *
+   * @param {string} day
+   */
+  dayName(day) {
+    const device = this.days.get(day);
+    const name = device?.name_by_user || device?.name || day;
+    const prefix = `${this.name} · `;
+    return name.startsWith(prefix) ? name.slice(prefix.length) : name;
   }
 }
 
@@ -250,6 +291,8 @@ export function dayOf(device) {
 export function findPlaces(hass) {
   /** @type {Map<string, PlaceEntity[]>} */
   const entitiesByPlace = new Map();
+  /** @type {Map<string, Map<string, DeviceEntry>>} */
+  const daysByPlace = new Map();
   for (const entry of Object.values(hass.entities)) {
     const device = entry.device_id ? hass.devices[entry.device_id] : undefined;
     if (entry.platform !== PLATFORM || !device || entry.hidden) {
@@ -261,10 +304,18 @@ export function findPlaces(hass) {
     const entities = entitiesByPlace.get(placeId) ?? [];
     entities.push({ entry, day });
     entitiesByPlace.set(placeId, entities);
+    if (day) {
+      const days = daysByPlace.get(placeId) ?? new Map();
+      days.set(day, device);
+      daysByPlace.set(placeId, days);
+    }
   }
   return [...entitiesByPlace]
     .filter(([placeId]) => hass.devices[placeId])
-    .map(([placeId, entities]) => new Place(hass.devices[placeId], entities))
+    .map(
+      ([placeId, entities]) =>
+        new Place(hass.devices[placeId], entities, daysByPlace.get(placeId)),
+    )
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
@@ -330,7 +381,7 @@ export function riskBanners(hass, entity, level) {
   if (!level || !isAtLeast(hass, ALERT_CARD_VERSION)) {
     return [{ ...tile(hass, entity), visibility: [isOn] }];
   }
-  return Object.entries(RISK_LEVEL_COLORS).map(([state, color]) => ({
+  return Object.entries(ALERT_COLORS).map(([state, color]) => ({
     type: "alert",
     entity,
     name: { type: "entity" },
@@ -372,85 +423,130 @@ function mapPicture(entity) {
 }
 
 /**
- * Return the section of the criticality bulletin: the alert of each day, the
- * risks on, and the maps.
+ * Return the tile of an entity in the color of its state; none without the entity.
+ *
+ * @param {Hass} hass
+ * @param {string | undefined} entity
+ * @param {Record<string, string>} colors
+ * @param {Card} [options]
+ * @returns {Card[]}
+ */
+function coloredTile(hass, entity, colors, options = {}) {
+  return entity ? colorByState(tile(hass, entity, options), entity, colors) : [];
+}
+
+/**
+ * Return the tiles of entities, those that are enabled.
+ *
+ * @param {Hass} hass
+ * @param {Array<string | undefined>} entities
+ * @param {Card} [options]
+ * @returns {Card[]}
+ */
+function tiles(hass, entities, options = {}) {
+  return entities.flatMap((entity) => (entity ? [tile(hass, entity, options)] : []));
+}
+
+/**
+ * Return the section of the whole place: its highest alert and precipitation,
+ * in the colors of DPC.
  *
  * @param {Hass} hass
  * @param {Place} place
  * @returns {Section}
  */
-export function criticalitySection(hass, place) {
-  const texts = textsIn(hass.locale?.language ?? hass.language);
-  const days = CRITICALITY_DAYS.map((day) => place.entity("sensor", "alert", day)).filter(
-    (entity) => entity !== undefined,
-  );
-  const risks = CRITICALITY_DAYS.flatMap((day) =>
-    RISK_SENSORS.map((key) => ({
-      entity: place.entity("binary_sensor", key, day),
-      level: place.entity("sensor", `${key}_level`, day),
-    })),
-  ).filter(({ entity }) => entity !== undefined);
-  const maps = CRITICALITY_DAYS.map((day) => place.entity("image", "criticality_map", day)).filter(
-    (entity) => entity !== undefined,
-  );
+export function placeSection(hass, place) {
+  const half = { grid_options: { columns: 6 } };
   return {
     type: "grid",
     cards: [
-      { type: "heading", heading: texts.criticality, icon: ICON },
-      ...days.flatMap((entity) =>
-        colorByState(
-          tile(hass, entity, { state_content: ["state", "risks"] }),
-          entity,
-          ALERT_COLORS,
-        ),
+      { type: "heading", heading: place.name, icon: ICON },
+      ...coloredTile(hass, place.entity("sensor", "highest_alert"), HIGHEST_ALERT_COLORS, half),
+      ...coloredTile(
+        hass,
+        place.entity("sensor", "highest_precipitation"),
+        HIGHEST_PRECIPITATION_COLORS,
+        half,
       ),
-      ...risks.flatMap(({ entity, level }) =>
-        riskBanners(hass, /** @type {string} */ (entity), level),
-      ),
-      ...maps.map(mapPicture),
     ],
   };
 }
 
 /**
- * Return the section of the vigilance bulletin: the precipitation of each day,
- * the phenomena near the place on a map, and the maps of the bulletin.
+ * Return the section of a day: a banner for each risk on, the alert and the
+ * criticality, the level of each risk, the precipitation, the phenomena near
+ * the place on a map, and the maps of the bulletins.
+ *
+ * @param {Hass} hass
+ * @param {Place} place
+ * @param {string} day e.g. "today"
+ * @returns {Section}
+ */
+export function daySection(hass, place, day) {
+  /** @param {string} domain @param {string} key */
+  const entity = (domain, key) => place.entity(domain, key, day);
+  const phenomena = place.entitiesOf("geo_location", day);
+  return {
+    type: "grid",
+    cards: [
+      { type: "heading", heading: place.dayName(day), icon: "mdi:calendar" },
+      ...RISK_SENSORS.flatMap((key) => {
+        const risk = entity("binary_sensor", key);
+        return risk ? riskBanners(hass, risk, entity("sensor", `${key}_level`)) : [];
+      }),
+      ...coloredTile(hass, entity("sensor", "alert"), ALERT_COLORS, {
+        state_content: ["state", "risks"],
+        grid_options: { columns: 12 },
+      }),
+      ...coloredTile(hass, entity("sensor", "criticality"), CRITICALITY_COLORS, {
+        grid_options: { columns: 12 },
+      }),
+      ...RISK_SENSORS.flatMap((key) =>
+        coloredTile(hass, entity("sensor", `${key}_level`), ALERT_COLORS, {
+          grid_options: { columns: 4 },
+        }),
+      ),
+      ...coloredTile(hass, entity("sensor", "precipitation"), PRECIPITATION_COLORS, {
+        grid_options: { columns: 6 },
+      }),
+      ...tiles(hass, [entity("sensor", "nearby_phenomena")], { grid_options: { columns: 6 } }),
+      ...(phenomena.length
+        ? [
+            {
+              type: "map",
+              entities: phenomena.map((phenomenon) => ({ entity: phenomenon })),
+              grid_options: { columns: 12 },
+            },
+          ]
+        : []),
+      // DPC publishes no vigilance map for the day after tomorrow
+      ...["criticality_map", "vigilance_map"]
+        .map((key) => entity("image", key))
+        .filter((map) => map !== undefined)
+        .map(mapPicture),
+    ],
+  };
+}
+
+/**
+ * Return the section of the bulletins of the place: its zones, when each
+ * bulletin was published, and until when each covers.
  *
  * @param {Hass} hass
  * @param {Place} place
  * @returns {Section}
  */
-export function vigilanceSection(hass, place) {
+export function bulletinsSection(hass, place) {
   const texts = textsIn(hass.locale?.language ?? hass.language);
-  const days = DAYS.map((day) => place.entity("sensor", "precipitation", day)).filter(
-    (entity) => entity !== undefined,
-  );
-  const phenomena = place.entitiesOf("geo_location");
-  // DPC publishes no vigilance map for the day after tomorrow
-  const maps = CRITICALITY_DAYS.map((day) => place.entity("image", "vigilance_map", day)).filter(
-    (entity) => entity !== undefined,
-  );
   return {
     type: "grid",
     cards: [
-      { type: "heading", heading: texts.vigilance, icon: "mdi:weather-pouring" },
-      ...days.flatMap((entity) =>
-        colorByState(
-          tile(hass, entity, { grid_options: { columns: 4 } }),
-          entity,
-          PRECIPITATION_COLORS,
-        ),
+      { type: "heading", heading: texts.bulletins, icon: "mdi:file-document-multiple" },
+      ...tiles(
+        hass,
+        BULLETIN_SENSORS.map((key) => place.entity("sensor", key)),
+        { grid_options: { columns: 6 } },
       ),
-      ...(phenomena.length
-        ? [
-            {
-              type: "map",
-              entities: phenomena.map((entity) => ({ entity })),
-              grid_options: { columns: 12 },
-            },
-          ]
-        : []),
-      ...maps.map(mapPicture),
     ],
   };
 }
@@ -464,8 +560,12 @@ export function vigilanceSection(hass, place) {
 export function placeView(hass, place) {
   return {
     type: "sections",
-    max_columns: 2,
-    sections: [criticalitySection(hass, place), vigilanceSection(hass, place)],
+    max_columns: 3,
+    sections: [
+      placeSection(hass, place),
+      ...DAYS.filter((day) => place.days.has(day)).map((day) => daySection(hass, place, day)),
+      bulletinsSection(hass, place),
+    ],
   };
 }
 
