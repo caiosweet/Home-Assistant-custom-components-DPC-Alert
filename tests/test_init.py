@@ -296,9 +296,8 @@ async def test_options_update_reloads_entry(
     options = hass.config_entries.options
     result = await options.async_init(entry.entry_id)
     result = await options.async_configure(
-        result["flow_id"], {CONF_MUNICIPALITY: "Roma"}
+        result["flow_id"], {"next_step_id": "alerts"}
     )
-    result = await options.async_configure(result["flow_id"], {})
     result = await options.async_configure(result["flow_id"], {CONF_WARNING_LEVEL: "3"})
     await hass.async_block_till_done()
 

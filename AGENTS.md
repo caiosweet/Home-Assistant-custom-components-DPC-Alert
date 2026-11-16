@@ -43,7 +43,7 @@ alongside this repository. This repository holds the Home Assistant side only.
 custom_components/dpc/
   __init__.py        setup, unload, migration of config entries (to version 2.2)
   config_flow.py     menu (map or zone), DPC alert zone, municipality, what to
-                     show, alerts; the options go through the same steps
+                     show, alerts; the options are a menu of the same steps
   bulletins.py       one download of each bulletin for all places, read at each
                      place in an executor
   coordinator.py     DpcDataUpdateCoordinator, one per place (entry.runtime_data)

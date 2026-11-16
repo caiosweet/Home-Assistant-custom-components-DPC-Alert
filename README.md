@@ -67,9 +67,9 @@ A place is named after its alert zone, and its device after its municipality: fo
 
 ### Options
 
-**Configure** on the integration goes through the steps of the setup:
+**Configure** on the integration opens a menu of the steps of the setup: choose the one to change, which saves on its own.
 
-1. **Place**: its municipality, among those of its alert zone.
+1. **Municipality**: among those of the alert zone of the place.
 2. **What to show**:
    - **Days**: today, tomorrow and the day after tomorrow, each a device with its entities. Unchecking a day removes its device and entities; the place keeps its highest alert and precipitation and its bulletins.
    - **Entities**: the binary sensors of the risks, the sensors, the maps and the phenomena on the map, off by default. Unchecking a kind removes its entities from the place and from every day.

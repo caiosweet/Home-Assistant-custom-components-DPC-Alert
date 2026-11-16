@@ -71,11 +71,12 @@ that followed them.
 
 ### Changed
 
-- **The setup and the options go step by step**: the place and its
-  municipality; what to show, the days and the kinds of entities; and the
-  alerts, the minimum level of warning chosen among the named alerts ("Yellow
-  alert", "Orange alert", "Red alert"), the radius of the phenomena and the
-  update interval. Each field says what it does.
+- **The setup goes step by step**: the place and its municipality; what to
+  show, the days and the kinds of entities; and the alerts, the minimum level
+  of warning chosen among the named alerts ("Yellow alert", "Orange alert",
+  "Red alert"), the radius of the phenomena and the update interval. Each
+  field says what it does. **The options are a menu of the same steps**: the
+  one chosen saves on its own.
 - **The alert and vigilance sensors are named Highest alert and Highest
   precipitation**, what they are: the highest level of the zones of the place
   over the days. Their states are still 1 to 4 and 1 to 5, so automations

@@ -399,17 +399,44 @@ async def test_homonym_of_another_place(hass: HomeAssistant) -> None:
     )
 
 
-async def test_options_flow(
+async def open_options(
+    hass: HomeAssistant, entry: MockConfigEntry, step: str, **alert_zone: Any
+) -> FlowResult:
+    """Open the options of a place and choose a step in their menu.
+
+    alert_zone: how DPC answers for the alert zone (return_value or side_effect).
+    """
+    options = hass.config_entries.options
+    result = await options.async_init(entry.entry_id)
+    assert result["type"] is FlowResultType.MENU
+    with patch(GET_ALERT_ZONE, **(alert_zone or {"return_value": ROME_ZONE})):
+        return await options.async_configure(result["flow_id"], {"next_step_id": step})
+
+
+async def test_options_menu(
     hass: HomeAssistant, mock_config_entry: MockConfigEntry
 ) -> None:
-    """Test the options in the steps of the setup: place, what to show, alerts."""
+    """Test that the options are a menu of the steps of the setup."""
     mock_config_entry.add_to_hass(hass)
-    options = hass.config_entries.options
 
-    with patch(GET_ALERT_ZONE, return_value=ROME_ZONE):
-        result = await options.async_init(mock_config_entry.entry_id)
-    assert result["type"] is FlowResultType.FORM
+    result = await hass.config_entries.options.async_init(mock_config_entry.entry_id)
+
+    assert result["type"] is FlowResultType.MENU
+    assert result["step_id"] == "init"
+    assert result["menu_options"] == ["place", "display", "alerts"]
+
+
+async def test_options_municipality(
+    hass: HomeAssistant, mock_config_entry: MockConfigEntry
+) -> None:
+    """Test the municipality, among those of the zone, saved on its own."""
+    mock_config_entry.add_to_hass(hass)
+    others = dict(mock_config_entry.options)
+
+    result = await open_options(hass, mock_config_entry, "place")
+
     assert result["step_id"] == "place"
+    assert result["last_step"] is True
     assert selector_config(result, CONF_MUNICIPALITY)["options"] == [
         "Fiumicino",
         "Roma",
@@ -417,12 +444,26 @@ async def test_options_flow(
     ]
     # Required, also for the places added before it was
     assert is_required(result, CONF_MUNICIPALITY)
-    result = await options.async_configure(
+    result = await hass.config_entries.options.async_configure(
         result["flow_id"], {CONF_MUNICIPALITY: "roma"}
     )
 
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert mock_config_entry.options == {**others, CONF_MUNICIPALITY: "Roma"}
+
+
+async def test_options_what_to_show(
+    hass: HomeAssistant, mock_config_entry: MockConfigEntry
+) -> None:
+    """Test the days and the kinds of entities, saved on their own."""
+    mock_config_entry.add_to_hass(hass)
+    others = dict(mock_config_entry.options)
+
+    result = await open_options(hass, mock_config_entry, "display")
+
     # Any of the three days and kinds of entities, starting from those of the place
     assert result["step_id"] == "display"
+    assert result["last_step"] is True
     assert selector_config(result, CONF_DAYS) == {
         "options": ["today", "tomorrow", "aftertomorrow"],
         "multiple": True,
@@ -437,7 +478,7 @@ async def test_options_flow(
         "aftertomorrow",
     ]
     assert schema_key(result, CONF_ENTITIES).default() == ALL_ENTITIES
-    result = await options.async_configure(
+    result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         {
             CONF_DAYS: ["today", "aftertomorrow"],
@@ -445,21 +486,37 @@ async def test_options_flow(
         },
     )
 
-    assert result["step_id"] == "alerts"
-    result = await options.async_configure(
-        result["flow_id"],
-        {CONF_WARNING_LEVEL: "3", CONF_RADIUS: 30, CONF_SCAN_INTERVAL: 15},
-    )
-
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert mock_config_entry.options == {
-        CONF_MUNICIPALITY: "Roma",
+        **others,
         CONF_DAYS: ["today", "aftertomorrow"],
         # Each kind of entity is the option of its platform, as it has always been
         "binary_sensor": False,
         "sensor": True,
         "image": True,
         "geo_location": True,
+    }
+
+
+async def test_options_alerts(
+    hass: HomeAssistant, mock_config_entry: MockConfigEntry
+) -> None:
+    """Test the warning level, the radius and the updates, saved on their own."""
+    mock_config_entry.add_to_hass(hass)
+    others = dict(mock_config_entry.options)
+
+    result = await open_options(hass, mock_config_entry, "alerts")
+
+    assert result["step_id"] == "alerts"
+    assert result["last_step"] is True
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {CONF_WARNING_LEVEL: "3", CONF_RADIUS: 30, CONF_SCAN_INTERVAL: 15},
+    )
+
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert mock_config_entry.options == {
+        **others,
         # The warning level is a number, as it has always been
         CONF_WARNING_LEVEL: 3,
         CONF_RADIUS: 30.0,
@@ -470,67 +527,46 @@ async def test_options_flow(
 @pytest.mark.parametrize(
     "entry_options", [{"image": False, CONF_WARNING_LEVEL: 4, CONF_RADIUS: 20.0}]
 )
-async def test_options_flow_starts_from_the_options(
+async def test_options_start_from_the_options(
     hass: HomeAssistant, mock_config_entry: MockConfigEntry
 ) -> None:
     """Test that the steps of the options show the options of the place."""
     mock_config_entry.add_to_hass(hass)
-    options = hass.config_entries.options
-    with patch(GET_ALERT_ZONE, return_value=ROME_ZONE):
-        result = await options.async_init(mock_config_entry.entry_id)
-    result = await options.async_configure(
-        result["flow_id"], {CONF_MUNICIPALITY: "Roma"}
-    )
 
+    result = await open_options(hass, mock_config_entry, "display")
     assert schema_key(result, CONF_ENTITIES).default() == [
         "binary_sensor",
         "geo_location",
         "sensor",
     ]
-    result = await options.async_configure(result["flow_id"], {})
 
+    result = await open_options(hass, mock_config_entry, "alerts")
     assert schema_key(result, CONF_WARNING_LEVEL).default() == "4"
     assert schema_key(result, CONF_RADIUS).default() == 20.0
-    result = await options.async_configure(result["flow_id"], {})
-
-    assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert mock_config_entry.options["image"] is False
-    assert mock_config_entry.options[CONF_WARNING_LEVEL] == 4
 
 
 @pytest.mark.parametrize("entry_options", [{CONF_WARNING_LEVEL: 1}])
-async def test_options_flow_with_a_level_no_longer_offered(
+async def test_options_with_a_level_no_longer_offered(
     hass: HomeAssistant, mock_config_entry: MockConfigEntry
 ) -> None:
     """Test that a place that chose green, no alert, starts from yellow."""
     mock_config_entry.add_to_hass(hass)
-    options = hass.config_entries.options
-    with patch(GET_ALERT_ZONE, return_value=ROME_ZONE):
-        result = await options.async_init(mock_config_entry.entry_id)
-    result = await options.async_configure(
-        result["flow_id"], {CONF_MUNICIPALITY: "Roma"}
-    )
-    result = await options.async_configure(result["flow_id"], {})
+
+    result = await open_options(hass, mock_config_entry, "alerts")
 
     assert schema_key(result, CONF_WARNING_LEVEL).default() == "2"
 
 
-async def test_options_flow_without_days(
+async def test_options_without_days(
     hass: HomeAssistant, mock_config_entry: MockConfigEntry
 ) -> None:
     """Test that a place can show no day: it keeps its own entities."""
     mock_config_entry.add_to_hass(hass)
-    options = hass.config_entries.options
-    with patch(GET_ALERT_ZONE, return_value=ROME_ZONE):
-        result = await options.async_init(mock_config_entry.entry_id)
-    result = await options.async_configure(
-        result["flow_id"], {CONF_MUNICIPALITY: "Roma"}
-    )
+    result = await open_options(hass, mock_config_entry, "display")
 
-    result = await options.async_configure(
+    result = await hass.config_entries.options.async_configure(
         result["flow_id"], {CONF_DAYS: [], CONF_ENTITIES: ALL_ENTITIES}
     )
-    result = await options.async_configure(result["flow_id"], {})
 
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert mock_config_entry.options[CONF_DAYS] == []
@@ -540,7 +576,7 @@ async def test_options_flow_without_days(
     ("municipality", "saved"), [("Tivoli", "Tivoli"), ("  ", None)]
 )
 @pytest.mark.parametrize("entry_options", [{CONF_MUNICIPALITY: "Roma"}])
-async def test_options_flow_without_alert_zone(
+async def test_options_without_alert_zone(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     municipality: str,
@@ -549,10 +585,9 @@ async def test_options_flow_without_alert_zone(
     """Test that any municipality can be typed when DPC is unreachable."""
     mock_config_entry.add_to_hass(hass)
 
-    with patch(GET_ALERT_ZONE, side_effect=DpcConnectionError):
-        result = await hass.config_entries.options.async_init(
-            mock_config_entry.entry_id
-        )
+    result = await open_options(
+        hass, mock_config_entry, "place", side_effect=DpcConnectionError
+    )
     config = selector_config(result, CONF_MUNICIPALITY)
     assert config["options"] == ["Roma"]
     assert config["custom_value"] is True
@@ -562,7 +597,6 @@ async def test_options_flow_without_alert_zone(
     )
 
     if saved:
-        await with_defaults(hass.config_entries.options, result)
         assert mock_config_entry.options[CONF_MUNICIPALITY] == saved
     else:
         assert result["errors"] == {CONF_MUNICIPALITY: "municipality_not_listed"}
@@ -580,7 +614,7 @@ async def test_options_flow_without_alert_zone(
     ],
 )
 @pytest.mark.parametrize("entry_options", [{CONF_MUNICIPALITY: "Roma"}])
-async def test_options_flow_checks_the_municipality(
+async def test_options_check_the_municipality(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     municipality: str,
@@ -589,17 +623,14 @@ async def test_options_flow_checks_the_municipality(
     """Test that the options check the municipality, keeping what was entered."""
     mock_config_entry.add_to_hass(hass)
     place_entry("Bacini di Roma", 41.96, 12.8, "Tivoli").add_to_hass(hass)
-    with patch(GET_ALERT_ZONE, return_value=ROME_ZONE):
-        result = await hass.config_entries.options.async_init(
-            mock_config_entry.entry_id
-        )
+    result = await open_options(hass, mock_config_entry, "place")
+
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], {CONF_MUNICIPALITY: municipality}
     )
 
     assert (result.get("errors") or None) == errors
     if not errors:
-        await with_defaults(hass.config_entries.options, result)
         assert mock_config_entry.options[CONF_MUNICIPALITY] == municipality
         return
     assert result["type"] is FlowResultType.FORM
