@@ -8,6 +8,14 @@ that followed them.
 
 ## [Unreleased]
 
+### Fixed
+
+- The README: installing and uninstalling with the Marketplace of Home
+  Assistant 2026.11, or with HACS before; the diagnostics show the
+  municipality and the DPC zones of the place, in the names of its devices
+  and entities; the versions of Home Assistant that recreate entity IDs
+  (2025.6) and list the risks in the Security dashboard (2025.11).
+
 ## [2026.11.1] - 2026-11-16
 
 ### Breaking changes
@@ -92,7 +100,8 @@ that followed them.
   `binary_sensor.dpc_milano_today_hydraulic_risk`,
   `sensor.dpc_milano_highest_alert`. Existing entities keep their IDs, such
   as `binary_sensor.dpc_milano_idraulico_oggi`; **Recreate entity IDs**, in
-  **Settings → Entities**, now gives them the new ones.
+  **Settings → Entities** (Home Assistant 2025.6 or newer), now gives them the
+  new ones.
 - The texts of the levels, risks, criticalities, precipitation, phenomena,
   directions, days and bulletins come from aiodpc, the same in the library
   and in the integration; in Italian, they are those DPC writes.
