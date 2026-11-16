@@ -23,6 +23,16 @@ that followed them.
     a map, which shows its map; `map: vigilance` for the vigilance map rather
     than the criticality map.
 
+### Changed
+
+- The DPC Alert dashboard names the days and the entities in the language of
+  each user, as the states, rather than in the language of the system.
+- The dashboard shows the zones and the bulletins of a place in the section of
+  the place, rather than in a section of their own, and the maps of a day
+  right after its criticality, where they no longer leave gaps between them.
+- No precipitation is shown in the blue of the icons of the theme, rather than
+  in the white of the DPC map, which a light theme does not show.
+
 ### Fixed
 
 - The README: installing and uninstalling with the Marketplace of Home

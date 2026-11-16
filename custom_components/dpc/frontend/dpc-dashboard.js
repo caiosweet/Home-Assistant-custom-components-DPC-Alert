@@ -39,6 +39,10 @@
  * @property {{ version: string }} config
  * @property {{ language: string }} [locale]
  * @property {string} [language]
+ * @property {(key: string, values?: Record<string, string>) => string} [localize]
+ *   The texts of the frontend, in the language of the user.
+ * @property {(category: string, integration: string) => Promise<Hass["localize"]>} [loadBackendTranslation]
+ *   Load texts of an integration into the frontend, and return them with the others.
  *
  * @typedef {Record<string, any>} Card A card configuration.
  * @typedef {{ type: string, cards: Card[] }} Section A section of a sections view.
@@ -66,8 +70,19 @@ const RISKS = ["hydraulic", "thunderstorms", "hydrogeological"];
 /** The colors of the alert levels on the DPC criticality map: none, yellow, orange, red. */
 const DPC_ALERT_COLORS = ["#90c985", "#f8f865", "#f0bf01", "#fd6767"];
 
-/** The colors of the precipitation on the DPC vigilance map: none to very heavy. */
-const DPC_PRECIPITATION_COLORS = ["#FFFFFF", "#C3FFFE", "#50FFFF", "#508BFF", "#A040FF"];
+/**
+ * The colors of the precipitation on the DPC vigilance map: none to very heavy.
+ *
+ * DPC draws no precipitation in white, which a light theme does not show: it
+ * has the color Home Assistant gives the icons of sensors, a blue.
+ */
+const DPC_PRECIPITATION_COLORS = [
+  "var(--state-icon-color)",
+  "#C3FFFE",
+  "#50FFFF",
+  "#508BFF",
+  "#A040FF",
+];
 
 /** Color of each state of the alert of a day, and of the level of each risk. */
 export const ALERT_COLORS = Object.fromEntries(
@@ -263,6 +278,69 @@ export function dashboardSuggestion(language) {
 }
 
 /**
+ * Return Home Assistant with the texts of the integration in the language of
+ * the user. The frontend has the names of the entities; the names of the days
+ * are those of the devices, which it loads when asked.
+ *
+ * @param {Hass} hass
+ * @returns {Promise<Hass>}
+ */
+export async function withTexts(hass) {
+  if (!hass.loadBackendTranslation) {
+    return hass;
+  }
+  await hass.loadBackendTranslation("entity", PLATFORM);
+  const localize = await hass.loadBackendTranslation("device", PLATFORM);
+  return { ...hass, localize };
+}
+
+/**
+ * Return a text of the integration in the language of the user, if the
+ * frontend has it.
+ *
+ * @param {Hass} hass
+ * @param {string} key e.g. "entity.sensor.precipitation.name"
+ * @param {Record<string, string>} [values]
+ */
+export function translated(hass, key, values) {
+  return hass.localize?.(`component.${PLATFORM}.${key}`, values) || undefined;
+}
+
+/**
+ * Return the name of an entity of the integration in the language of the
+ * user, from its translation key: "Precipitação" for the precipitation of a
+ * day. Home Assistant names entities in the language of the server.
+ *
+ * @param {Hass} hass
+ * @param {string} entity
+ */
+export function entityName(hass, entity) {
+  const key = hass.entities[entity]?.translation_key;
+  return key ? translated(hass, `entity.${entity.split(".")[0]}.${key}.name`) : undefined;
+}
+
+/**
+ * Return the name of a day of a place in the language of the user: the name
+ * the user gave its device, or the name of the days of the integration
+ * ("Hoje"), or else the name of its device, in the language of the server.
+ *
+ * @param {Hass} hass
+ * @param {Place} place
+ * @param {string} day
+ */
+export function dayName(hass, place, day) {
+  if (place.days.get(day)?.name_by_user) {
+    return place.dayName(day);
+  }
+  const name = translated(hass, `device.${day}.name`, { place: place.name });
+  if (!name) {
+    return place.dayName(day);
+  }
+  const prefix = `${place.name} · `;
+  return name.startsWith(prefix) ? name.slice(prefix.length) : name;
+}
+
+/**
  * Return whether Home Assistant is at least the given year and month version.
  *
  * @param {Hass} hass
@@ -454,7 +532,7 @@ export function riskBanners(hass, entity, level) {
   return Object.entries(ALERT_COLORS).map(([state, color]) => ({
     type: "alert",
     entity,
-    name: { type: "entity" },
+    name: entityName(hass, entity) ?? { type: "entity" },
     alert_color: color,
     hide_state: true,
     visibility: [isOn, { condition: "state", entity: level, state }],
@@ -462,7 +540,8 @@ export function riskBanners(hass, entity, level) {
 }
 
 /**
- * Return a tile of an entity, named without the place when Home Assistant can.
+ * Return a tile of an entity, named in the language of the user, or else
+ * without the place when Home Assistant can.
  *
  * @param {Hass} hass
  * @param {string} entity
@@ -470,22 +549,30 @@ export function riskBanners(hass, entity, level) {
  * @returns {Card}
  */
 export function tile(hass, entity, options = {}) {
-  const name = isAtLeast(hass, ENTITY_NAME_VERSION)
-    ? { name: { type: "entity" } }
-    : {};
+  const translatedName = entityName(hass, entity);
+  /** @type {Card} */
+  let name = {};
+  if (translatedName) {
+    name = { name: translatedName };
+  } else if (isAtLeast(hass, ENTITY_NAME_VERSION)) {
+    name = { name: { type: "entity" } };
+  }
   return { type: "tile", entity, ...name, ...options };
 }
 
 /**
- * Return the picture of a map of the bulletin.
+ * Return the picture of a map of the bulletin, named in the language of the user.
  *
+ * @param {Hass} hass
  * @param {string} entity An image entity.
  * @returns {Card}
  */
-function mapPicture(entity) {
+function mapPicture(hass, entity) {
+  const name = entityName(hass, entity);
   return {
     type: "picture-entity",
     entity,
+    ...(name ? { name } : {}),
     show_state: false,
     grid_options: { columns: 6 },
     visibility: [{ condition: "state", entity, state_not: NO_DATA_STATES }],
@@ -519,7 +606,8 @@ function tiles(hass, entities, options = {}) {
 
 /**
  * Return the section of the whole place: its highest alert and precipitation,
- * in the colors of DPC.
+ * in the colors of DPC, then its zones, when each bulletin was published, and
+ * until when each covers.
  *
  * @param {Hass} hass
  * @param {Place} place
@@ -538,14 +626,24 @@ export function placeSection(hass, place) {
         HIGHEST_PRECIPITATION_COLORS,
         half,
       ),
+      ...tiles(
+        hass,
+        BULLETIN_SENSORS.map((key) => place.entity("sensor", key)),
+        half,
+      ),
     ],
   };
 }
 
 /**
  * Return the section of a day: a banner for each risk on, the alert and the
- * criticality, the level of each risk, the precipitation, the phenomena near
- * the place on a map, and the maps of the bulletins.
+ * criticality, the maps of the bulletins and the phenomena near the place on a
+ * map, then the level of each risk, the precipitation and the number of
+ * phenomena.
+ *
+ * The maps come right after cards as wide as the section, so that the two maps
+ * of the bulletins start a row together, rather than one of them filling the
+ * room a smaller card left.
  *
  * @param {Hass} hass
  * @param {Place} place
@@ -559,7 +657,7 @@ export function daySection(hass, place, day) {
   return {
     type: "grid",
     cards: [
-      { type: "heading", heading: place.dayName(day), icon: "mdi:calendar" },
+      { type: "heading", heading: dayName(hass, place, day), icon: "mdi:calendar" },
       ...RISK_SENSORS.flatMap((key) => {
         const risk = entity("binary_sensor", key);
         return risk ? riskBanners(hass, risk, entity("sensor", `${key}_level`)) : [];
@@ -571,15 +669,11 @@ export function daySection(hass, place, day) {
       ...coloredTile(hass, entity("sensor", "criticality"), CRITICALITY_COLORS, {
         grid_options: { columns: 12 },
       }),
-      ...RISK_SENSORS.flatMap((key) =>
-        coloredTile(hass, entity("sensor", `${key}_level`), ALERT_COLORS, {
-          grid_options: { columns: 4 },
-        }),
-      ),
-      ...coloredTile(hass, entity("sensor", "precipitation"), PRECIPITATION_COLORS, {
-        grid_options: { columns: 6 },
-      }),
-      ...tiles(hass, [entity("sensor", "nearby_phenomena")], { grid_options: { columns: 6 } }),
+      // DPC publishes no vigilance map for the day after tomorrow
+      ...["criticality_map", "vigilance_map"]
+        .map((key) => entity("image", key))
+        .filter((map) => map !== undefined)
+        .map((map) => mapPicture(hass, map)),
       ...(phenomena.length
         ? [
             {
@@ -590,34 +684,15 @@ export function daySection(hass, place, day) {
             },
           ]
         : []),
-      // DPC publishes no vigilance map for the day after tomorrow
-      ...["criticality_map", "vigilance_map"]
-        .map((key) => entity("image", key))
-        .filter((map) => map !== undefined)
-        .map(mapPicture),
-    ],
-  };
-}
-
-/**
- * Return the section of the bulletins of the place: its zones, when each
- * bulletin was published, and until when each covers.
- *
- * @param {Hass} hass
- * @param {Place} place
- * @returns {Section}
- */
-export function bulletinsSection(hass, place) {
-  const texts = textsIn(hass.locale?.language ?? hass.language);
-  return {
-    type: "grid",
-    cards: [
-      { type: "heading", heading: texts.bulletins, icon: "mdi:file-document-multiple" },
-      ...tiles(
-        hass,
-        BULLETIN_SENSORS.map((key) => place.entity("sensor", key)),
-        { grid_options: { columns: 6 } },
+      ...RISK_SENSORS.flatMap((key) =>
+        coloredTile(hass, entity("sensor", `${key}_level`), ALERT_COLORS, {
+          grid_options: { columns: 4 },
+        }),
       ),
+      ...coloredTile(hass, entity("sensor", "precipitation"), PRECIPITATION_COLORS, {
+        grid_options: { columns: 6 },
+      }),
+      ...tiles(hass, [entity("sensor", "nearby_phenomena")], { grid_options: { columns: 6 } }),
     ],
   };
 }
@@ -635,7 +710,6 @@ export function placeView(hass, place) {
     sections: [
       placeSection(hass, place),
       ...DAYS.filter((day) => place.days.has(day)).map((day) => daySection(hass, place, day)),
-      bulletinsSection(hass, place),
     ],
   };
 }
@@ -722,7 +796,7 @@ if (globalThis.customElements && globalThis.HTMLElement) {
 
     /** @param {{ device_id?: string }} config @param {Hass} hass */
     static async generate(config, hass) {
-      return generateView(config, hass);
+      return generateView(config, await withTexts(hass));
     }
   }
 

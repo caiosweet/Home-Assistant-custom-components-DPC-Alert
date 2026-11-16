@@ -9,14 +9,46 @@ import {
   PRECIPITATION_COLORS,
   colorByState,
   dashboardSuggestion,
+  dayName,
+  entityName,
   findPlaces,
   generateDashboard,
   generateView,
   isAtLeast,
   slugify,
   textsIn,
+  translated,
+  withTexts,
 } from "../../custom_components/dpc/frontend/dpc-dashboard.js";
 import { homeAssistant, placeDevices, placeEntities } from "./fixtures.mjs";
+
+/** The texts of the integration in Portuguese, some of them. */
+const PORTUGUESE = {
+  "component.dpc.entity.sensor.precipitation.name": "Precipitação",
+  "component.dpc.entity.image.criticality_map.name": "Mapa de criticidade",
+  "component.dpc.entity.binary_sensor.hydraulic_risk.name": "Risco hidráulico",
+  "component.dpc.device.today.name": "{place} · Hoje",
+};
+
+/**
+ * Return a Home Assistant whose frontend loads the texts of the integration
+ * in Portuguese: the entities first, then the devices.
+ */
+function portuguese(hass) {
+  const loaded = [];
+  const localize = (key, values = {}) =>
+    loaded.includes("device") || !key.includes(".device.")
+      ? (PORTUGUESE[key] ?? "").replace(/\{(\w+)\}/g, (_, name) => values[name])
+      : "";
+  return {
+    ...hass,
+    loadBackendTranslation: async (category, integration) => {
+      assert.equal(integration, "dpc");
+      loaded.push(category);
+      return localize;
+    },
+  };
+}
 
 /** Return the cards of every section of a view. */
 const cardsOf = (view) => view.sections.flatMap((section) => section.cards);
@@ -105,14 +137,14 @@ describe("dashboard", () => {
 });
 
 describe("view of a place", () => {
-  it("has a section for the place, one for each of its days, and the bulletins", () => {
+  it("has a section for the place and one for each of its days", () => {
     const view = generateView({ device_id: "roma" }, homeAssistant());
 
     assert.equal(view.type, "sections");
     // The days as their devices name them, without the place
     assert.deepEqual(
       view.sections.map((section) => section.cards[0].heading),
-      ["Roma", "Today", "Tomorrow", "Day after tomorrow", "Bulletins"],
+      ["Roma", "Today", "Tomorrow", "Day after tomorrow"],
     );
   });
 
@@ -126,7 +158,7 @@ describe("view of a place", () => {
 
     assert.deepEqual(
       view.sections.map((section) => section.cards[0].heading),
-      ["Roma", "Today", "Day after tomorrow", "Bulletins"],
+      ["Roma", "Today", "Day after tomorrow"],
     );
   });
 
@@ -149,7 +181,8 @@ describe("view of a place", () => {
       4: "#fd6767",
     });
     assert.deepEqual(colorsOf(view, "sensor.dpc_roma_highest_precipitation"), {
-      1: "#FFFFFF",
+      // No precipitation in the color of the icons of the theme, rather than white
+      1: "var(--state-icon-color)",
       2: "#C3FFFE",
       3: "#50FFFF",
       4: "#508BFF",
@@ -297,12 +330,12 @@ describe("view of a place", () => {
     assert.equal(afterTomorrow.cards.filter((card) => card.type === "picture-entity").length, 0);
   });
 
-  it("shows the zones and bulletins of the place", () => {
+  it("shows the zones and bulletins in the section of the place", () => {
     const view = generateView({ device_id: "roma" }, homeAssistant());
-    const bulletins = view.sections.at(-1);
+    const [place] = view.sections;
 
     assert.deepEqual(
-      bulletins.cards.slice(1).map((card) => card.entity),
+      place.cards.filter((card) => card.type === "tile" && !card.visibility).map((card) => card.entity),
       [
         "sensor.dpc_roma_alert_zone",
         "sensor.dpc_roma_vigilance_zone",
@@ -326,10 +359,61 @@ describe("view of a place", () => {
     assert.equal(cardsOf(view).filter((card) => card.entity?.endsWith("_zone")).length, 0);
   });
 
-  it("titles the bulletins in the language of the user", () => {
-    const view = generateView({ device_id: "roma" }, homeAssistant({ language: "pt-BR" }));
+  it("shows the maps of a day right after the cards as wide as the section", () => {
+    const view = generateView({ device_id: "roma" }, homeAssistant());
+    const today = view.sections[1];
+    const order = [...new Set(today.cards.map((card) => card.entity ?? card.type))];
 
-    assert.equal(view.sections.at(-1).cards[0].heading, "Boletins");
+    assert.deepEqual(order.slice(order.indexOf("sensor.dpc_roma_today_criticality")), [
+      "sensor.dpc_roma_today_criticality",
+      "image.dpc_roma_today_criticality_map",
+      "image.dpc_roma_today_vigilance_map",
+      "map",
+      "sensor.dpc_roma_today_hydraulic_risk_level",
+      "sensor.dpc_roma_today_thunderstorm_risk_level",
+      "sensor.dpc_roma_today_hydrogeological_risk_level",
+      "sensor.dpc_roma_today_precipitation",
+      "sensor.dpc_roma_today_nearby_phenomena",
+    ]);
+  });
+
+  it("names the days and the entities in the language of the user", async () => {
+    const hass = await withTexts(portuguese(homeAssistant()));
+    const view = generateView({ device_id: "roma" }, hass);
+    const [, today] = view.sections;
+
+    assert.equal(today.cards[0].heading, "Hoje");
+    assert.equal(cardsFor(view, "sensor.dpc_roma_today_precipitation")[0].name, "Precipitação");
+    assert.equal(
+      cardsFor(view, "image.dpc_roma_today_criticality_map")[0].name,
+      "Mapa de criticidade",
+    );
+    assert.equal(
+      cardsFor(view, "binary_sensor.dpc_roma_today_hydraulic_risk")[0].name,
+      "Risco hidráulico",
+    );
+    // Without a text, as Home Assistant names the entity
+    assert.deepEqual(cardsFor(view, "sensor.dpc_roma_today_alert")[0].name, { type: "entity" });
+    assert.equal(cardsFor(view, "image.dpc_roma_today_vigilance_map")[0].name, undefined);
+  });
+
+  it("keeps the name the user gave a day", async () => {
+    const hass = await withTexts(portuguese(homeAssistant()));
+    hass.devices["roma-tomorrow"].name_by_user = "Roma · Domani";
+
+    assert.equal(dayName(hass, findPlaces(hass)[1], "tomorrow"), "Domani");
+    // A text of a day without the place is taken whole
+    const other = { ...hass, localize: () => "Amanhã" };
+    assert.equal(dayName(other, findPlaces(other)[1], "today"), "Amanhã");
+  });
+
+  it("names as Home Assistant does without the texts of the integration", async () => {
+    const hass = homeAssistant();
+    assert.equal(await withTexts(hass), hass);
+    assert.equal(entityName(hass, "sensor.dpc_roma_today_precipitation"), undefined);
+    assert.equal(entityName(hass, "sensor.not_in_the_registry"), undefined);
+    assert.equal(translated(hass, "device.today.name"), undefined);
+    assert.equal(dayName(hass, findPlaces(hass)[1], "today"), "Today");
   });
 
   it("asks for a place when the device is gone", () => {

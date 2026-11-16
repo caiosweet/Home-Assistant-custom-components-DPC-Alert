@@ -29,11 +29,12 @@ import {
   HIGHEST_PRECIPITATION_COLORS,
   ICON,
   NO_DATA_STATES,
-  PLATFORM,
   PRECIPITATION_COLORS,
+  dayName,
   findPlaces,
   textsIn,
   tile,
+  withTexts,
 } from "./dpc-dashboard.js";
 
 /**
@@ -45,11 +46,8 @@ import {
  * @property {string} entity_id
  * @property {string} state
  *
- * @typedef {Hass & {
- *   states: Record<string, StateObject>,
- *   localize?: (key: string, values?: Record<string, string>) => string,
- *   loadBackendTranslation?: (category: string, integration: string) => Promise<unknown>,
- * }} CardHass The parts of the Home Assistant object the cards read.
+ * @typedef {Hass & { states: Record<string, StateObject> }} CardHass
+ *   The parts of the Home Assistant object the cards read.
  *
  * @typedef {object} CardConfig
  * @property {string} [device_id] The device of the place; the first place without it.
@@ -100,25 +98,6 @@ export const BULLETIN_CARD = "dpc-bulletin-card";
 export const MAP_CARD = "dpc-map-card";
 
 /**
- * Return the colors of states without white: the DPC maps draw no
- * precipitation in white, which a light theme does not show, so those states
- * keep the color of the theme.
- *
- * @param {Record<string, string>} colors
- */
-function withoutWhite(colors) {
-  return Object.fromEntries(
-    Object.entries(colors).filter(([, color]) => color.toUpperCase() !== "#FFFFFF"),
-  );
-}
-
-/** Color of each state of the precipitation of a day, on a card. */
-const DAY_PRECIPITATION_COLORS = withoutWhite(PRECIPITATION_COLORS);
-
-/** Color of each state of the highest precipitation of a place, on a card. */
-const PLACE_PRECIPITATION_COLORS = withoutWhite(HIGHEST_PRECIPITATION_COLORS);
-
-/**
  * The maps of the map card: the image of each day, the sensor of the day its
  * block shows, and the sensor of the place its heading shows, with their colors.
  */
@@ -133,9 +112,9 @@ export const MAPS = {
   vigilance: {
     image: "vigilance_map",
     day: "precipitation",
-    dayColors: DAY_PRECIPITATION_COLORS,
+    dayColors: PRECIPITATION_COLORS,
     place: "highest_precipitation",
-    placeColors: PLACE_PRECIPITATION_COLORS,
+    placeColors: HIGHEST_PRECIPITATION_COLORS,
   },
 };
 
@@ -178,61 +157,12 @@ export function swatch(states, entity, colors) {
 }
 
 /**
- * Return a text of the integration in the language of the user, if the
- * frontend has it.
- *
- * @param {CardHass} hass
- * @param {string} key e.g. "entity.sensor.precipitation.name"
- * @param {Record<string, string>} [values]
- */
-export function translated(hass, key, values) {
-  return hass.localize?.(`component.${PLATFORM}.${key}`, values) || undefined;
-}
-
-/**
- * Return the name of a day of a place in the language of the user: the name
- * the user gave its device, or the name of the days of the integration
- * ("Hoje"), or else the name of its device, in the language of the server.
- *
- * @param {CardHass} hass
- * @param {Place} place
- * @param {string} day
- */
-export function dayName(hass, place, day) {
-  if (place.days.get(day)?.name_by_user) {
-    return place.dayName(day);
-  }
-  const name = translated(hass, `device.${day}.name`, { place: place.name });
-  const prefix = `${place.name} · `;
-  if (!name) {
-    return place.dayName(day);
-  }
-  return name.startsWith(prefix) ? name.slice(prefix.length) : name;
-}
-
-/**
  * Return the color option of a card: the color of the state, if it has one.
  *
  * @param {Swatch} item
  */
 function colorOf(item) {
   return item.color ? { color: item.color } : {};
-}
-
-/**
- * Return a tile named in the language of the user, as the integration names
- * its entity: "Precipitação" for the precipitation of a day.
- *
- * @param {CardHass} hass
- * @param {string} entity
- * @param {string} key The translation key of the entity.
- * @param {Card} [options]
- * @returns {Card}
- */
-function namedTile(hass, entity, key, options = {}) {
-  const domain = entity.split(".")[0];
-  const name = translated(hass, `entity.${domain}.${key}.name`);
-  return name ? { type: "tile", entity, name, ...options } : tile(hass, entity, options);
 }
 
 /**
@@ -273,7 +203,7 @@ export function cardModel(hass, place) {
     highestPrecipitation: swatch(
       states,
       place.entity("sensor", "highest_precipitation"),
-      PLACE_PRECIPITATION_COLORS,
+      HIGHEST_PRECIPITATION_COLORS,
     ),
     days: DAYS.filter((day) => place.days.has(day)).map((day) => ({
       day,
@@ -282,7 +212,7 @@ export function cardModel(hass, place) {
       precipitation: swatch(
         states,
         place.entity("sensor", "precipitation", day),
-        DAY_PRECIPITATION_COLORS,
+        PRECIPITATION_COLORS,
       ),
     })),
   };
@@ -311,7 +241,7 @@ function dayTiles(hass, day) {
     const options = colorOf(precipitation);
     tiles.push({
       card: alert
-        ? namedTile(hass, precipitation.entity, "precipitation", options)
+        ? tile(hass, precipitation.entity, options)
         : { type: "tile", entity: precipitation.entity, name: day.name, ...options },
       column: "end",
     });
@@ -356,7 +286,7 @@ export function bulletinLayout(hass, place) {
     ])) {
       const entity = place.entity("sensor", key);
       if (entity) {
-        layout.push({ card: namedTile(hass, entity, key), column });
+        layout.push({ card: tile(hass, entity), column });
       }
     }
   }
@@ -564,9 +494,13 @@ if (globalThis.customElements && globalThis.HTMLElement) {
       /** @type {string | undefined} */
       #selected;
 
-      /** The language whose names of the days were asked for. */
+      /** The language whose texts of the integration were asked for. */
       /** @type {string | undefined} */
       #language;
+
+      /** The texts of the frontend with those of the integration, once loaded. */
+      /** @type {CardHass["localize"]} */
+      #localize;
 
       /** @type {number} */
       #size = 1;
@@ -605,18 +539,20 @@ if (globalThis.customElements && globalThis.HTMLElement) {
       }
 
       /**
-       * Have the frontend load the names of the days in the language of the
-       * user: it has the names of the entities, not those of the devices. With
-       * them, it gives the card a new Home Assistant object, which renders it.
+       * Have the frontend load the texts of the integration in the language
+       * of the user, such as the names of the days, and render the card again
+       * with them.
        *
        * @param {CardHass} hass
        */
-      #loadTranslations(hass) {
+      async #loadTranslations(hass) {
         const language = hass.locale?.language ?? hass.language;
-        if (language !== this.#language) {
-          this.#language = language;
-          hass.loadBackendTranslation?.("device", PLATFORM);
+        if (language === this.#language) {
+          return;
         }
+        this.#language = language;
+        this.#localize = (await withTexts(hass)).localize;
+        this.#update();
       }
 
       /** Return the places, from the registries of the last time they changed. */
@@ -640,10 +576,10 @@ if (globalThis.customElements && globalThis.HTMLElement) {
        * color of a state; otherwise only give them the new states.
        */
       async #update() {
-        const hass = this.#hass;
-        if (!hass || !this.shadowRoot) {
+        if (!this.#hass || !this.shadowRoot) {
           return;
         }
+        const hass = { ...this.#hass, localize: this.#localize ?? this.#hass.localize };
         const placed = cardLayout(layout, hass, this.#findPlaces(), this.#config, this.#selected);
         const shown = JSON.stringify(placed);
         if (shown !== this.#shown) {

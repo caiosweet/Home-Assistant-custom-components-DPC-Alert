@@ -9,12 +9,10 @@ import {
   cardLayout,
   cardModel,
   checkConfig,
-  dayName,
   mapLayout,
   placeLayout,
   placeOf,
   swatch,
-  translated,
 } from "../../custom_components/dpc/frontend/dpc-card.js";
 import { findPlaces } from "../../custom_components/dpc/frontend/dpc-dashboard.js";
 import { homeAssistant } from "./fixtures.mjs";
@@ -110,7 +108,7 @@ describe("card", () => {
     assert.equal(days[2].alert, undefined);
   });
 
-  it("leaves no precipitation in the color of the theme, rather than white", () => {
+  it("shows no precipitation in the color of the icons of the theme, rather than white", () => {
     const hass = withStates(
       {},
       statesOf({
@@ -119,8 +117,8 @@ describe("card", () => {
       }),
     );
     const model = cardModel(hass, milano(hass));
-    assert.equal(model.highestPrecipitation?.color, undefined);
-    assert.equal(model.days[0].precipitation?.color, undefined);
+    assert.equal(model.highestPrecipitation?.color, "var(--state-icon-color)");
+    assert.equal(model.days[0].precipitation?.color, "var(--state-icon-color)");
   });
 
   it("has no color without data", () => {
@@ -141,21 +139,6 @@ describe("card", () => {
       tiles.map(({ card }) => card.name),
       ["Hoje", "Precipitação", "Amanhã", "Precipitação", "Depois de amanhã"],
     );
-  });
-
-  it("keeps the name the user gave a day", () => {
-    const hass = { ...withStates(), localize: localizeWith(PORTUGUESE) };
-    hass.devices["milano-today"].name_by_user = "Milano · Oggi";
-    assert.equal(dayName(hass, milano(hass), "today"), "Oggi");
-  });
-
-  it("names a day as its device without the texts of the integration", () => {
-    const hass = { ...withStates(), localize: localizeWith({}) };
-    assert.equal(dayName(hass, milano(hass), "tomorrow"), "Tomorrow");
-    assert.equal(translated(hass, "entity.sensor.precipitation.name"), undefined);
-    // A translation that does not start with the place is kept whole
-    const other = { ...hass, localize: () => "Domani" };
-    assert.equal(dayName(other, milano(other), "tomorrow"), "Domani");
   });
 
   it("is made of native cards: a heading, and the tiles of each day in their column", () => {
