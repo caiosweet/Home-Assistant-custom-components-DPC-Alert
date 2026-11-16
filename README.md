@@ -18,7 +18,7 @@ How the alert system works: [_Civil Protection Department_](https://rischi.prote
 
 ## Features
 
-- **A device for each day**: Milano · Today, Milano · Tomorrow and Milano · Day after tomorrow, part of the device of the place. The setup and the options choose the days.
+- **A device for each day**: Torino · Today, Torino · Tomorrow and Torino · Day after tomorrow, part of the device of the place. The setup and the options choose the days.
 - **Each day**: the alert (no alert, yellow, orange or red) with the risks at that level; the criticality DPC states for the zone, such as "Moderate criticality for hydrogeological risk"; the level of the hydraulic, hydrogeological and thunderstorm risk, and a binary sensor of each, on when it reaches the alert level you choose; the expected precipitation; and the weather phenomena within the radius you choose, on a map, once the options turn them on. The criticality bulletin covers today and tomorrow, the vigilance bulletin the day after too.
 - **The place**: its highest alert and highest precipitation, its DPC zones and its bulletins.
 - **Maps** of the criticality and vigilance bulletins, today and tomorrow, as images.
@@ -67,13 +67,24 @@ DPC Alert is in the community catalog, which both the Marketplace of Home Assist
 4. **What to show**: the days (today by default) and the kinds of entities (all but the phenomena by default).
 5. **Alerts**: the minimum level of warning, the radius of the phenomena and the update interval. Each field says what it does, and the options change them later.
 
+<p>
+  <img src="https://raw.githubusercontent.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/main/assets/images/setup-map.png" alt="Pick the place on a map" width="49%">
+  <img src="https://raw.githubusercontent.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/main/assets/images/setup-municipality.png" alt="Choose its municipality among those of its alert zone" width="49%">
+  <img src="https://raw.githubusercontent.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/main/assets/images/setup-what-to-show.png" alt="What to show: the days and the kinds of entities" width="49%">
+  <img src="https://raw.githubusercontent.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/main/assets/images/setup-alerts.png" alt="Alerts: the minimum level of warning, the radius of the phenomena and the update interval" width="49%">
+</p>
+
 Add as many places as you want, each with its own municipality: two places in the same municipality would get the same bulletins. The places share the downloads: each bulletin is downloaded once for all of them.
 
-A place is named after its alert zone, and its device after its municipality: for a place in Milan, the device is Milano, and the device of today is Milano · Today. A new place shows today, unless you choose other days. The entity IDs start with `dpc_`, then the place, the day and the entity, in English whatever the language: `sensor.dpc_milano_highest_alert`, `binary_sensor.dpc_milano_today_hydraulic_risk`. See [Entities](#entities) for all of them.
+A place is named after its alert zone, and its device after its municipality: for a place in Turin, the device is Torino, and the device of today is Torino · Today. A new place shows today, unless you choose other days. The entity IDs start with `dpc_`, then the place, the day and the entity, in English whatever the language: `sensor.dpc_torino_highest_alert`, `binary_sensor.dpc_torino_today_hydraulic_risk`. See [Entities](#entities) for all of them.
+
+<img src="https://raw.githubusercontent.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/main/assets/images/places.png" alt="The place Torino, in the alert zone Pianura Torinese e Colline, with a device for each day" width="100%">
 
 ### Options
 
 **Configure** on the integration opens a menu of the steps of the setup: choose the one to change, which saves on its own.
+
+<img src="https://raw.githubusercontent.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/main/assets/images/options.png" alt="The options: municipality, what to show and alerts" width="400">
 
 1. **Municipality**: among those of the alert zone of the place; while DPC cannot be reached, any name can be typed.
 2. **What to show**:
@@ -102,13 +113,15 @@ It has a tab for each place, with the levels in the colors of the DPC alert map,
 - **The place**: its highest alert and highest precipitation, its zones, when each bulletin was published and until when it covers.
 - **Each day** it shows: a banner for each risk at or above the warning level, in the color of its level (without the sensors, a tile of each risk, on or off); the alert, with the risks at that level; the criticality; the maps of the bulletins; the phenomena of the day on a map; the level of each risk; the expected precipitation and the number of phenomena.
 
+<img src="https://raw.githubusercontent.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/main/assets/images/dashboard.png" alt="The DPC Alert dashboard of Torino: the place, today and tomorrow" width="100%">
+
 The dashboard follows your places: it changes by itself when you add one, check or uncheck a day, and when a bulletin brings other phenomena. The alert, the criticality, the levels, the precipitation and the maps of a day are hidden while they have no data, such as tomorrow's after midnight, until DPC publishes the next bulletin. The colored banners of the risks need Home Assistant 2026.9 or newer; before, the risks are shown as tiles.
 
 To show a place in another dashboard, add a view with the strategy of the dashboard and the ID of the device of the place, the end of the address of its device page:
 
 ```yaml
 views:
-  - title: Milano
+  - title: Torino
     strategy:
       type: custom:dpc-alert
       device_id: 0123456789abcdef0123456789abcdef
@@ -124,7 +137,15 @@ The integration comes with three cards for your own dashboards, in the card pick
 - **DPC Alert · Bulletins** (`custom:dpc-bulletin-card`): the criticality bulletin and, beside it, the vigilance bulletin: their zones, when they were published and until when they cover.
 - **DPC Alert · Maps** (`custom:dpc-map-card`): the map of a day and, beside it, a list as high as the map: a block for each day with a map, the zone of the map and the number of phenomena near the place. With two days, a click on a block shows its map. Without a map, as when DPC publishes it blank or after midnight until the next bulletin, the list takes the whole card.
 
+<p>
+  <img src="https://raw.githubusercontent.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/main/assets/images/card-alert.png" alt="The DPC Alert card: the alert and the precipitation of each day" width="49%">
+  <img src="https://raw.githubusercontent.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/main/assets/images/card-bulletins.png" alt="The bulletins card: the zones, the publications and the validity of both bulletins" width="49%">
+  <img src="https://raw.githubusercontent.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/main/assets/images/card-maps.png" alt="The maps card: the vigilance map of today, beside the day, the zone and the phenomena" width="49%">
+</p>
+
 The visual editor chooses what each card shows. In YAML, an option left out shows everything:
+
+<img src="https://raw.githubusercontent.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/main/assets/images/card-editor.png" alt="The visual editor of the maps card" width="100%">
 
 | Option | Cards | Without it |
 | --- | --- | --- |
@@ -151,12 +172,12 @@ days:
 
 ### With the cards of Home Assistant
 
-The entities fit the cards of Home Assistant without templates. For a place in Milan:
+The entities fit the cards of Home Assistant without templates. For a place in Turin:
 
 ```yaml
 # The alert of tomorrow and the risks at its level: "Orange alert · Hydrogeological risk"
 type: tile
-entity: sensor.dpc_milano_tomorrow_alert
+entity: sensor.dpc_torino_tomorrow_alert
 state_content:
   - state
   - risks
@@ -166,11 +187,11 @@ state_content:
 # The same tile in the orange of the DPC map, while the alert is orange; add one
 # for each level: green #90c985, yellow #f8f865, orange #f0bf01, red #fd6767
 type: tile
-entity: sensor.dpc_milano_tomorrow_alert
+entity: sensor.dpc_torino_tomorrow_alert
 color: "#f0bf01"
 visibility:
   - condition: state
-    entity: sensor.dpc_milano_tomorrow_alert
+    entity: sensor.dpc_torino_tomorrow_alert
     state: orange
 ```
 
@@ -178,21 +199,21 @@ visibility:
 # A banner while the hydrogeological risk of tomorrow is at or above the warning
 # level and orange (Home Assistant 2026.9 or newer)
 type: alert
-entity: binary_sensor.dpc_milano_tomorrow_hydrogeological_risk
+entity: binary_sensor.dpc_torino_tomorrow_hydrogeological_risk
 alert_color: "#f0bf01"
 visibility:
   - condition: state
-    entity: binary_sensor.dpc_milano_tomorrow_hydrogeological_risk
+    entity: binary_sensor.dpc_torino_tomorrow_hydrogeological_risk
     state: "on"
   - condition: state
-    entity: sensor.dpc_milano_tomorrow_hydrogeological_risk_level
+    entity: sensor.dpc_torino_tomorrow_hydrogeological_risk_level
     state: orange
 ```
 
 ```yaml
 # The criticality map of today
 type: picture-entity
-entity: image.dpc_milano_today_criticality_map
+entity: image.dpc_torino_today_criticality_map
 show_state: false
 ```
 
@@ -229,37 +250,41 @@ geo_location_sources:
 - **An automation reads an attribute that is gone**, such as `level`, `info`, `zone_name` or `expires`: the data of the bulletins became entities. The [changelog](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/CHANGELOG.md) lists where each attribute is now.
 - **After an update, texts in English or names such as `municipality_in_use` in the forms**: Home Assistant and the browser keep the texts of the previous version. Restart Home Assistant, then reload the page, clearing its cache (Ctrl+F5).
 - **Entity and device names in another language**: Home Assistant names entities and devices in the language of the system, not of your profile: **Settings → System → General → Language**. So are the names of the phenomena. The states and the translated values of the attributes follow your profile, and so do the names in the DPC Alert dashboard and cards.
-- **Entity IDs such as `binary_sensor.dpc_milano_idraulico_oggi`**: the entities of places added with an earlier version keep their IDs, so that automations keep working. To give them the IDs of new places, such as `binary_sensor.dpc_milano_today_hydraulic_risk` (Home Assistant 2025.6 or newer): on the page of each device, choose **⋮ → Recreate entity IDs**, or select the entities in **Settings → Entities** and choose **Recreate entity IDs of selected**. Then update the automations and dashboards that use them. The same gives the new IDs after you rename a place.
+- **Entity IDs such as `binary_sensor.dpc_torino_idraulico_oggi`**: the entities of places added with an earlier version keep their IDs, so that automations keep working. To give them the IDs of new places, such as `binary_sensor.dpc_torino_today_hydraulic_risk` (Home Assistant 2025.6 or newer): on the page of each device, choose **⋮ → Recreate entity IDs**, or select the entities in **Settings → Entities** and choose **Recreate entity IDs of selected**. Then update the automations and dashboards that use them. The same gives the new IDs after you rename a place.
 - **DPC Alert is not among the community dashboards, or its cards are not in the card picker**: the browser loads them when it opens Home Assistant. Reload the page after installing or updating the integration.
 - **A place added before 2026.11 has no municipality**: it uses the alert zone of its coordinates, and its device is named after its entry. Choose its municipality in its options, under **Municipality**, among those of its alert zone.
 - **Reporting a problem**: on the integration, choose **Enable debug logging** in the **⋮** menu, reproduce the problem, then disable it to download the log. Add the diagnostics (**⋮ → Download diagnostics**) to an [issue](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/issues). They leave out the coordinates of the place and the positions, distances and directions of the phenomena, but not the municipality and the DPC zones of the place, which the names of its devices and entities show: remove them from the file before posting it if you prefer to keep them private.
 
 ## Entities
 
-For a place in Milan, with Home Assistant in English. The device of the place, **Milano**:
+For a place in Turin, with Home Assistant in English. The device of the place, **Torino**:
+
+<img src="https://raw.githubusercontent.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/main/assets/images/device-place.png" alt="The device of the place Torino: its highest levels, zones and bulletins, and the devices of its days" width="100%">
 
 | Entity | State |
 | --- | --- |
-| `sensor.dpc_milano_highest_alert` | The highest alert level of today and tomorrow: 1 (no alert) to 4 (red), shown as the alert, such as "Orange alert" |
-| `sensor.dpc_milano_highest_precipitation` | The highest expected precipitation of the next three days: 1 (none) to 5 (very heavy), shown as the precipitation |
-| `sensor.dpc_milano_alert_zone`, `…_vigilance_zone` | The DPC zones of the place, for its diagnostics |
-| `sensor.dpc_milano_criticality_bulletin`, `…_vigilance_bulletin` | When the latest bulletin was published, for its diagnostics: the time of the criticality bulletin; the day of the vigilance bulletin, at midnight |
-| `sensor.dpc_milano_criticality_valid_until`, `…_vigilance_valid_until` | The end of the last day the bulletin covers, for its diagnostics |
+| `sensor.dpc_torino_highest_alert` | The highest alert level of today and tomorrow: 1 (no alert) to 4 (red), shown as the alert, such as "Orange alert" |
+| `sensor.dpc_torino_highest_precipitation` | The highest expected precipitation of the next three days: 1 (none) to 5 (very heavy), shown as the precipitation |
+| `sensor.dpc_torino_alert_zone`, `…_vigilance_zone` | The DPC zones of the place, for its diagnostics |
+| `sensor.dpc_torino_criticality_bulletin`, `…_vigilance_bulletin` | When the latest bulletin was published, for its diagnostics: the time of the criticality bulletin; the day of the vigilance bulletin, at midnight |
+| `sensor.dpc_torino_criticality_valid_until`, `…_vigilance_valid_until` | The end of the last day the bulletin covers, for its diagnostics |
 
-The devices of the days, **Milano · Today** and **Milano · Tomorrow** (`today` and `tomorrow` in the IDs):
+The devices of the days, **Torino · Today** and **Torino · Tomorrow** (`today` and `tomorrow` in the IDs):
+
+<img src="https://raw.githubusercontent.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/main/assets/images/device-today.png" alt="The device Torino · Today: its alert, criticality, risks, precipitation, phenomena and maps" width="100%">
 
 | Entity | State |
 | --- | --- |
-| `sensor.dpc_milano_today_alert` | The alert of the day: no alert, yellow, orange or red |
-| `sensor.dpc_milano_today_criticality` | The criticality DPC states for the zone, and the risk its map shows: "Moderate criticality for hydrogeological risk" (`moderate_hydrogeological`), or "No significant phenomena expected" (`absent`) |
-| `binary_sensor.dpc_milano_today_hydraulic_risk`, `…_thunderstorm_risk`, `…_hydrogeological_risk` | On when the risk reaches the minimum level of warning of the options |
-| `sensor.dpc_milano_today_hydraulic_risk_level`, `…_thunderstorm_risk_level`, `…_hydrogeological_risk_level` | The level of the risk: no alert, yellow, orange or red |
-| `sensor.dpc_milano_today_precipitation` | The expected precipitation of the day: none to very heavy |
-| `sensor.dpc_milano_today_nearby_phenomena` | The number of weather phenomena within the radius |
-| `image.dpc_milano_today_criticality_map`, `…_vigilance_map` | The national map of the bulletin, as DPC previews it; unavailable while DPC publishes it blank |
-| `geo_location.dpc_milano_today_gale_nw` and so on | A weather phenomenon within the radius, once the options turn the phenomena on, named after its type, distance and direction ("Gale, 12.4 km NW"): its distance, in km |
+| `sensor.dpc_torino_today_alert` | The alert of the day: no alert, yellow, orange or red |
+| `sensor.dpc_torino_today_criticality` | The criticality DPC states for the zone, and the risk its map shows: "Moderate criticality for hydrogeological risk" (`moderate_hydrogeological`), or "No significant phenomena expected" (`absent`) |
+| `binary_sensor.dpc_torino_today_hydraulic_risk`, `…_thunderstorm_risk`, `…_hydrogeological_risk` | On when the risk reaches the minimum level of warning of the options |
+| `sensor.dpc_torino_today_hydraulic_risk_level`, `…_thunderstorm_risk_level`, `…_hydrogeological_risk_level` | The level of the risk: no alert, yellow, orange or red |
+| `sensor.dpc_torino_today_precipitation` | The expected precipitation of the day: none to very heavy |
+| `sensor.dpc_torino_today_nearby_phenomena` | The number of weather phenomena within the radius |
+| `image.dpc_torino_today_criticality_map`, `…_vigilance_map` | The national map of the bulletin, as DPC previews it; unavailable while DPC publishes it blank |
+| `geo_location.dpc_torino_today_gale_nw` and so on | A weather phenomenon within the radius, once the options turn the phenomena on, named after its type, distance and direction ("Gale, 12.4 km NW"): its distance, in km |
 
-The device of the day after tomorrow, **Milano · Day after tomorrow** (`after_tomorrow` in the IDs), has the precipitation, the number of phenomena and the phenomena: the criticality bulletin covers two days.
+The device of the day after tomorrow, **Torino · Day after tomorrow** (`after_tomorrow` in the IDs), has the precipitation, the number of phenomena and the phenomena: the criticality bulletin covers two days.
 
 The alert and the levels of a day are those of the bulletin, whatever the minimum level of warning of the options. After midnight, until DPC publishes the next bulletins, the alert, the criticality, the risks and their levels of tomorrow are unknown, and its maps unavailable; the precipitation and the number of phenomena of the day after tomorrow are unknown, and its phenomena removed.
 
@@ -269,20 +294,20 @@ Home Assistant translates the states, and the values of the attributes in the da
 <summary>Attributes</summary>
 
 ```yaml
-# sensor.dpc_milano_tomorrow_alert
+# sensor.dpc_torino_tomorrow_alert
 state: orange # green (no alert), yellow, orange or red
 risks: # the risks at that level, none when green
   - hydrogeological # hydraulic, thunderstorms or hydrogeological
 ```
 
 ```yaml
-# sensor.dpc_milano_highest_alert, and the same for the highest precipitation
+# sensor.dpc_torino_highest_alert, and the same for the highest precipitation
 state: 3
 total_alerts: 3 # the risks (the days, for the precipitation) at or above the minimum level of warning
 ```
 
 ```yaml
-# sensor.dpc_milano_criticality_bulletin, and the same for the vigilance bulletin
+# sensor.dpc_torino_criticality_bulletin, and the same for the vigilance bulletin
 state: '2026-11-14T13:30:00+00:00' # when it was published
 id: '20261114_1430'
 link: https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-criticita/
@@ -290,12 +315,12 @@ last_check: '2026-11-14T15:00:00+01:00' # when DPC last confirmed it is the late
 ```
 
 ```yaml
-# image.dpc_milano_today_criticality_map
+# image.dpc_torino_today_criticality_map
 image_url: https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Criticita-Idrogeologica-Idraulica/master/files/preview/20261114_1430_oggi.png
 ```
 
 ```yaml
-# geo_location.dpc_milano_tomorrow_light_snow_nne
+# geo_location.dpc_torino_tomorrow_light_snow_nne
 state: 44.3 # the distance from the place, in km
 source: dpc
 latitude: 45.83
@@ -310,7 +335,7 @@ Weather phenomena come and go with the bulletins, each on the device of its day.
 
 ## Automation examples
 
-The examples use Milan: replace `milano` with the place in the entity IDs of yours, and `notify.mobile_app_your_phone` with your notification. Paste an example into the YAML editor of a new automation. The messages are in the language of Home Assistant.
+The examples use Turin: replace `torino` with the place in the entity IDs of yours, and `notify.mobile_app_your_phone` with your notification. Paste an example into the YAML editor of a new automation. The messages are in the language of Home Assistant.
 
 <details>
 <summary>Notify the alert of today or tomorrow</summary>
@@ -320,8 +345,8 @@ alias: DPC alert
 triggers:
   - trigger: state
     entity_id:
-      - sensor.dpc_milano_today_alert
-      - sensor.dpc_milano_tomorrow_alert
+      - sensor.dpc_torino_today_alert
+      - sensor.dpc_torino_tomorrow_alert
     to:
       - yellow
       - orange
@@ -334,7 +359,7 @@ actions:
 mode: queued
 ```
 
-For example *Milano · Tomorrow Alert: Orange alert*, when the alert of a day becomes yellow, orange or red, or changes between them.
+For example *Torino · Tomorrow Alert: Orange alert*, when the alert of a day becomes yellow, orange or red, or changes between them.
 
 </details>
 
@@ -346,12 +371,12 @@ alias: DPC risks
 triggers:
   - trigger: state
     entity_id:
-      - binary_sensor.dpc_milano_today_hydraulic_risk
-      - binary_sensor.dpc_milano_today_thunderstorm_risk
-      - binary_sensor.dpc_milano_today_hydrogeological_risk
-      - binary_sensor.dpc_milano_tomorrow_hydraulic_risk
-      - binary_sensor.dpc_milano_tomorrow_thunderstorm_risk
-      - binary_sensor.dpc_milano_tomorrow_hydrogeological_risk
+      - binary_sensor.dpc_torino_today_hydraulic_risk
+      - binary_sensor.dpc_torino_today_thunderstorm_risk
+      - binary_sensor.dpc_torino_today_hydrogeological_risk
+      - binary_sensor.dpc_torino_tomorrow_hydraulic_risk
+      - binary_sensor.dpc_torino_tomorrow_thunderstorm_risk
+      - binary_sensor.dpc_torino_tomorrow_hydrogeological_risk
     to: "on"
 actions:
   - action: notify.mobile_app_your_phone
@@ -364,7 +389,7 @@ actions:
 mode: queued
 ```
 
-For example *Milano · Tomorrow Hydrogeological risk: Orange alert*. The binary sensors turn on at the minimum level of warning of the options, one risk at a time. The message finds the level from the entity ID of the binary sensor, so it needs the entity IDs of new places.
+For example *Torino · Tomorrow Hydrogeological risk: Orange alert*. The binary sensors turn on at the minimum level of warning of the options, one risk at a time. The message finds the level from the entity ID of the binary sensor, so it needs the entity IDs of new places.
 
 </details>
 
@@ -376,9 +401,9 @@ alias: DPC precipitation
 triggers:
   - trigger: state
     entity_id:
-      - sensor.dpc_milano_today_precipitation
-      - sensor.dpc_milano_tomorrow_precipitation
-      - sensor.dpc_milano_after_tomorrow_precipitation
+      - sensor.dpc_torino_today_precipitation
+      - sensor.dpc_torino_tomorrow_precipitation
+      - sensor.dpc_torino_after_tomorrow_precipitation
     to:
       - moderate
       - heavy
@@ -411,7 +436,7 @@ actions:
 mode: queued
 ```
 
-The phenomena must be on in the options. `zone.around_home` is a zone you create around home, with the radius you care about, such as 20 km, in **Settings → Areas, labels & zones → Zones**: the zone Home is usually too small. The automation runs when a phenomenon of the bulletin is inside it, for example *Milano · Tomorrow Light or moderate snowfall, 44.3 km NNE*: its day, type, distance and direction from the place.
+The phenomena must be on in the options. `zone.around_home` is a zone you create around home, with the radius you care about, such as 20 km, in **Settings → Areas, labels & zones → Zones**: the zone Home is usually too small. The automation runs when a phenomenon of the bulletin is inside it, for example *Torino · Tomorrow Light or moderate snowfall, 44.3 km NNE*: its day, type, distance and direction from the place.
 
 </details>
 

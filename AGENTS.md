@@ -101,9 +101,9 @@ Users' automations and dashboards depend on what the integration exposes.
 - Entities suggest their ID with `DpcEntity.suggest_entity_id()`:
   `<platform>.dpc_<place>[_<day>]_<key>` (`place_entity_id()`), with the
   translation key as `<key>`, so IDs are English whatever the language
-  (`binary_sensor.dpc_milano_today_hydraulic_risk`). Home Assistant keeps
+  (`binary_sensor.dpc_torino_today_hydraulic_risk`). Home Assistant keeps
   the IDs of existing entities in its registry (such as
-  `binary_sensor.dpc_milano_idraulico_oggi`, from before), adds `_2` to a
+  `binary_sensor.dpc_torino_idraulico_oggi`, from before), adds `_2` to a
   repeated ID, and **Recreate entity IDs** gives users the suggested one.
 - A place is a device; each day it shows is a device linked to it
   (`via_device_id` from Home Assistant 2026.8, `via_device` before; see

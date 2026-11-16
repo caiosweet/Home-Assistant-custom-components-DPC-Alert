@@ -42,6 +42,8 @@ that followed them.
   blue of the icons of the theme, rather than in a white that a light theme
   does not show.
 - Requires aiodpc 0.9.0.
+- The README shows the setup, a place and its devices, the dashboard and the
+  cards, and its examples use Turin.
 
 ### Fixed
 
