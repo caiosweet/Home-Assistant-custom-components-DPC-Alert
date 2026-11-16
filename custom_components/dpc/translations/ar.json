@@ -1,0 +1,598 @@
+{
+    "title": "إدارة الحماية المدنية",
+    "config": {
+        "flow_title": "{name}",
+        "step": {
+            "user": {
+                "title": "إدارة الحماية المدنية",
+                "description": "كيف تريد اختيار المكان المراد مراقبته؟ تغطي نشرات DPC إيطاليا.",
+                "menu_options": {
+                    "map": "اختره على الخريطة",
+                    "zone": "استخدم منطقة، مثل المنزل"
+                }
+            },
+            "map": {
+                "title": "مكان على الخريطة",
+                "description": "حرّك الدبوس إلى المكان المراد مراقبته.",
+                "data": {
+                    "location": "المكان"
+                },
+                "data_description": {
+                    "location": "يجب أن يكون المكان في إيطاليا: تغطي نشرات DPC إيطاليا فقط."
+                }
+            },
+            "zone": {
+                "title": "مكان منطقة",
+                "description": "اختر إحدى مناطقك في Home Assistant.",
+                "data": {
+                    "zone": "المنطقة"
+                },
+                "data_description": {
+                    "zone": "يُنسخ موقع المنطقة: نقل المنطقة لاحقاً لا ينقل المكان."
+                }
+            },
+            "municipality": {
+                "title": "البلدية",
+                "description": "يقع المكان في منطقة إنذار DPC **{zone}**. اختر بلديته.",
+                "data": {
+                    "municipality": "البلدية"
+                },
+                "data_description": {
+                    "municipality": "تمتد البلديات الكبيرة على عدة مناطق إنذار: يحصل المكان حينها على أعلى إنذار بينها. يمكن إضافة كل بلدية مرة واحدة فقط."
+                }
+            },
+            "display": {
+                "title": "ما يُعرض",
+                "description": "يمكنك تغييرها لاحقاً في الخيارات.",
+                "data": {
+                    "days": "الأيام",
+                    "entities": "الكيانات"
+                },
+                "data_description": {
+                    "days": "يحصل كل يوم مختار على جهاز بإنذاراته وهطوله وخرائطه وظواهره.",
+                    "entities": "إلغاء تحديد نوع يزيل كياناته من المكان ومن كل يوم."
+                }
+            },
+            "alerts": {
+                "title": "الإنذارات",
+                "description": "يمكنك تغييرها لاحقاً في الخيارات.",
+                "data": {
+                    "warning_level": "الحد الأدنى لمستوى الإنذار",
+                    "radius": "نطاق الظواهر",
+                    "scan_interval": "فترة التحديث"
+                },
+                "data_description": {
+                    "warning_level": "يعمل المستشعر الثنائي لكل خطر ابتداءً من هذا المستوى فما فوق.",
+                    "radius": "الظواهر الجوية ضمن هذه المسافة من المكان، بالكيلومتر (الافتراضي 50).",
+                    "scan_interval": "الدقائق بين عمليات التحقق من النشرات الجديدة (الافتراضي 30)."
+                }
+            }
+        },
+        "error": {
+            "coordinates_outside": "الإحداثيات خارج مناطق إنذار DPC.",
+            "cannot_connect": "تعذّر التحقق من الإحداثيات. تحقّق من اتصالك.",
+            "zone_not_found": "لم يتم العثور على المنطقة.",
+            "municipality_in_use": "{municipality} مُعدّة مسبقاً: يمكن إضافة كل بلدية مرة واحدة فقط.",
+            "municipality_not_listed": "اختر بلدية من القائمة."
+        },
+        "abort": {
+            "single_instance_allowed": "يتم دعم عدة نسخ. يمكن إضافة كل موقع مرة واحدة فقط.",
+            "already_configured": "يوجد إدخال مُعدّ مسبقاً لهذا الموقع."
+        },
+        "create_entry": {
+            "default": "لعرض الإنذارات على لوحة معلومات، انتقل إلى **الإعدادات ← لوحات المعلومات ← إضافة لوحة معلومات** واختر **DPC Alert** من بين لوحات معلومات المجتمع. إذا لم تظهر، أعد تحميل الصفحة."
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "title": "ما الذي تريد تغييره",
+                "menu_options": {
+                    "place": "البلدية",
+                    "display": "ما يُعرض",
+                    "alerts": "الإنذارات"
+                }
+            },
+            "place": {
+                "title": "البلدية",
+                "data": {
+                    "municipality": "البلدية"
+                },
+                "data_description": {
+                    "municipality": "تمتد البلديات الكبيرة على عدة مناطق إنذار: يحصل المكان حينها على أعلى إنذار بينها. يمكن إضافة كل بلدية مرة واحدة فقط."
+                }
+            },
+            "display": {
+                "title": "ما يُعرض",
+                "data": {
+                    "days": "الأيام",
+                    "entities": "الكيانات"
+                },
+                "data_description": {
+                    "days": "يحصل كل يوم مختار على جهاز بإنذاراته وهطوله وخرائطه وظواهره.",
+                    "entities": "إلغاء تحديد نوع يزيل كياناته من المكان ومن كل يوم."
+                }
+            },
+            "alerts": {
+                "title": "الإنذارات",
+                "data": {
+                    "warning_level": "الحد الأدنى لمستوى الإنذار",
+                    "radius": "نطاق الظواهر",
+                    "scan_interval": "فترة التحديث"
+                },
+                "data_description": {
+                    "warning_level": "يعمل المستشعر الثنائي لكل خطر ابتداءً من هذا المستوى فما فوق.",
+                    "radius": "الظواهر الجوية ضمن هذه المسافة من المكان، بالكيلومتر (الافتراضي 50).",
+                    "scan_interval": "الدقائق بين عمليات التحقق من النشرات الجديدة (الافتراضي 30)."
+                }
+            }
+        },
+        "error": {
+            "municipality_not_listed": "اختر بلدية من القائمة.",
+            "municipality_in_use": "{municipality} مُعدّة مسبقاً: يمكن إضافة كل بلدية مرة واحدة فقط."
+        }
+    },
+    "selector": {
+        "days": {
+            "options": {
+                "today": "اليوم",
+                "tomorrow": "غداً",
+                "aftertomorrow": "بعد غد"
+            }
+        },
+        "entities": {
+            "options": {
+                "binary_sensor": "المستشعرات الثنائية للمخاطر",
+                "sensor": "المستشعرات",
+                "image": "الخرائط",
+                "geo_location": "الظواهر على الخريطة"
+            }
+        },
+        "warning_level": {
+            "options": {
+                "2": "إنذار أصفر",
+                "3": "إنذار برتقالي",
+                "4": "إنذار أحمر"
+            }
+        }
+    },
+    "device": {
+        "today": {
+            "name": "{place} · اليوم"
+        },
+        "tomorrow": {
+            "name": "{place} · غداً"
+        },
+        "aftertomorrow": {
+            "name": "{place} · بعد غد"
+        }
+    },
+    "entity": {
+        "binary_sensor": {
+            "hydraulic_risk": {
+                "name": "الخطر الهيدروليكي"
+            },
+            "thunderstorm_risk": {
+                "name": "خطر العواصف الرعدية"
+            },
+            "hydrogeological_risk": {
+                "name": "الخطر الهيدروجيولوجي"
+            }
+        },
+        "sensor": {
+            "highest_alert": {
+                "name": "أعلى إنذار",
+                "state": {
+                    "1": "لا يوجد إنذار",
+                    "2": "إنذار أصفر",
+                    "3": "إنذار برتقالي",
+                    "4": "إنذار أحمر"
+                },
+                "state_attributes": {
+                    "total_alerts": {
+                        "name": "مجموع الإنذارات"
+                    }
+                }
+            },
+            "highest_precipitation": {
+                "name": "أعلى هطول",
+                "state": {
+                    "1": "منعدمة أو غير مهمة",
+                    "2": "خفيفة",
+                    "3": "معتدلة",
+                    "4": "غزيرة",
+                    "5": "غزيرة جداً"
+                },
+                "state_attributes": {
+                    "total_alerts": {
+                        "name": "مجموع الإنذارات"
+                    }
+                }
+            },
+            "alert_zone": {
+                "name": "منطقة الإنذار"
+            },
+            "vigilance_zone": {
+                "name": "منطقة اليقظة"
+            },
+            "criticality_bulletin": {
+                "name": "نشرة الخطورة الهيدروجيولوجية والهيدروليكية",
+                "state_attributes": {
+                    "id": {
+                        "name": "معرّف النشرة"
+                    },
+                    "link": {
+                        "name": "رابط النشرة"
+                    },
+                    "last_check": {
+                        "name": "آخر تحقق"
+                    }
+                }
+            },
+            "vigilance_bulletin": {
+                "name": "نشرة اليقظة الجوية",
+                "state_attributes": {
+                    "id": {
+                        "name": "معرّف النشرة"
+                    },
+                    "link": {
+                        "name": "رابط النشرة"
+                    },
+                    "last_check": {
+                        "name": "آخر تحقق"
+                    }
+                }
+            },
+            "criticality_valid_until": {
+                "name": "الخطورة صالحة حتى"
+            },
+            "vigilance_valid_until": {
+                "name": "اليقظة صالحة حتى"
+            },
+            "alert": {
+                "name": "الإنذار",
+                "state": {
+                    "green": "لا يوجد إنذار",
+                    "yellow": "إنذار أصفر",
+                    "orange": "إنذار برتقالي",
+                    "red": "إنذار أحمر"
+                },
+                "state_attributes": {
+                    "risks": {
+                        "name": "المخاطر",
+                        "state": {
+                            "hydraulic": "الخطر الهيدروليكي",
+                            "thunderstorms": "خطر العواصف الرعدية",
+                            "hydrogeological": "الخطر الهيدروجيولوجي"
+                        }
+                    }
+                }
+            },
+            "criticality": {
+                "name": "الخطورة",
+                "state": {
+                    "absent": "لا يُتوقع حدوث ظواهر مهمة",
+                    "ordinary_hydraulic": "خطورة عادية — الخطر الهيدروليكي",
+                    "ordinary_thunderstorms": "خطورة عادية — خطر العواصف الرعدية",
+                    "ordinary_hydrogeological": "خطورة عادية — الخطر الهيدروجيولوجي",
+                    "moderate_hydraulic": "خطورة متوسطة — الخطر الهيدروليكي",
+                    "moderate_thunderstorms": "خطورة متوسطة — خطر العواصف الرعدية",
+                    "moderate_hydrogeological": "خطورة متوسطة — الخطر الهيدروجيولوجي",
+                    "high_hydraulic": "خطورة عالية — الخطر الهيدروليكي",
+                    "high_thunderstorms": "خطورة عالية — خطر العواصف الرعدية",
+                    "high_hydrogeological": "خطورة عالية — الخطر الهيدروجيولوجي"
+                }
+            },
+            "hydraulic_risk_level": {
+                "name": "مستوى الخطر الهيدروليكي",
+                "state": {
+                    "green": "لا يوجد إنذار",
+                    "yellow": "إنذار أصفر",
+                    "orange": "إنذار برتقالي",
+                    "red": "إنذار أحمر"
+                }
+            },
+            "thunderstorm_risk_level": {
+                "name": "مستوى خطر العواصف الرعدية",
+                "state": {
+                    "green": "لا يوجد إنذار",
+                    "yellow": "إنذار أصفر",
+                    "orange": "إنذار برتقالي",
+                    "red": "إنذار أحمر"
+                }
+            },
+            "hydrogeological_risk_level": {
+                "name": "مستوى الخطر الهيدروجيولوجي",
+                "state": {
+                    "green": "لا يوجد إنذار",
+                    "yellow": "إنذار أصفر",
+                    "orange": "إنذار برتقالي",
+                    "red": "إنذار أحمر"
+                }
+            },
+            "precipitation": {
+                "name": "الهطول",
+                "state": {
+                    "none": "منعدمة أو غير مهمة",
+                    "light": "خفيفة",
+                    "moderate": "معتدلة",
+                    "heavy": "غزيرة",
+                    "very_heavy": "غزيرة جداً"
+                }
+            },
+            "nearby_phenomena": {
+                "name": "الظواهر القريبة",
+                "unit_of_measurement": "ظواهر"
+            }
+        },
+        "image": {
+            "criticality_map": {
+                "name": "خريطة الخطورة",
+                "state_attributes": {
+                    "image_url": {
+                        "name": "رابط الصورة"
+                    }
+                }
+            },
+            "vigilance_map": {
+                "name": "خريطة اليقظة",
+                "state_attributes": {
+                    "image_url": {
+                        "name": "رابط الصورة"
+                    }
+                }
+            }
+        },
+        "geo_location": {
+            "precipitation": {
+                "name": "{phenomenon}، {distance} كم {direction}",
+                "state_attributes": {
+                    "phenomenon": {
+                        "name": "الظاهرة",
+                        "state": {
+                            "scattered_rain": "أمطار متفرقة أو متقطعة",
+                            "widespread_rain": "أمطار واسعة الانتشار ومستمرة",
+                            "light_snow": "تساقط ثلوج خفيف أو معتدل",
+                            "heavy_snow": "تساقط ثلوج غزير",
+                            "isolated_thunderstorms": "زخات أو عواصف رعدية معزولة",
+                            "scattered_thunderstorms": "زخات أو عواصف رعدية متفرقة",
+                            "widespread_thunderstorms": "زخات أو عواصف رعدية واسعة الانتشار"
+                        }
+                    },
+                    "direction": {
+                        "name": "الاتجاه",
+                        "state": {
+                            "n": "شمال",
+                            "nne": "شمال شمال شرق",
+                            "ne": "شمال شرق",
+                            "ene": "شرق شمال شرق",
+                            "e": "شرق",
+                            "ese": "شرق جنوب شرق",
+                            "se": "جنوب شرق",
+                            "sse": "جنوب جنوب شرق",
+                            "s": "جنوب",
+                            "ssw": "جنوب جنوب غرب",
+                            "sw": "جنوب غرب",
+                            "wsw": "غرب جنوب غرب",
+                            "w": "غرب",
+                            "wnw": "غرب شمال غرب",
+                            "nw": "شمال غرب",
+                            "nnw": "شمال شمال غرب"
+                        }
+                    }
+                }
+            },
+            "wind": {
+                "name": "{phenomenon}، {distance} كم {direction}",
+                "state_attributes": {
+                    "phenomenon": {
+                        "name": "الظاهرة",
+                        "state": {
+                            "strong_wind": "رياح قوية",
+                            "gale": "رياح عاتية",
+                            "storm": "عاصفة",
+                            "frequent_gusts": "هبات رياح متكررة"
+                        }
+                    },
+                    "direction": {
+                        "name": "الاتجاه",
+                        "state": {
+                            "n": "شمال",
+                            "nne": "شمال شمال شرق",
+                            "ne": "شمال شرق",
+                            "ene": "شرق شمال شرق",
+                            "e": "شرق",
+                            "ese": "شرق جنوب شرق",
+                            "se": "جنوب شرق",
+                            "sse": "جنوب جنوب شرق",
+                            "s": "جنوب",
+                            "ssw": "جنوب جنوب غرب",
+                            "sw": "جنوب غرب",
+                            "wsw": "غرب جنوب غرب",
+                            "w": "غرب",
+                            "wnw": "غرب شمال غرب",
+                            "nw": "شمال غرب",
+                            "nnw": "شمال شمال غرب"
+                        }
+                    }
+                }
+            },
+            "frost": {
+                "name": "{phenomenon}، {distance} كم {direction}",
+                "state_attributes": {
+                    "phenomenon": {
+                        "name": "الظاهرة",
+                        "state": {
+                            "ice_on_hills": "تكوّن جليد واسع على الأرض في المناطق التلية",
+                            "ice_on_plains": "تكوّن جليد واسع على الأرض في السهول"
+                        }
+                    },
+                    "direction": {
+                        "name": "الاتجاه",
+                        "state": {
+                            "n": "شمال",
+                            "nne": "شمال شمال شرق",
+                            "ne": "شمال شرق",
+                            "ene": "شرق شمال شرق",
+                            "e": "شرق",
+                            "ese": "شرق جنوب شرق",
+                            "se": "جنوب شرق",
+                            "sse": "جنوب جنوب شرق",
+                            "s": "جنوب",
+                            "ssw": "جنوب جنوب غرب",
+                            "sw": "جنوب غرب",
+                            "wsw": "غرب جنوب غرب",
+                            "w": "غرب",
+                            "wnw": "غرب شمال غرب",
+                            "nw": "شمال غرب",
+                            "nnw": "شمال شمال غرب"
+                        }
+                    }
+                }
+            },
+            "fog": {
+                "name": "{phenomenon}، {distance} كم {direction}",
+                "state_attributes": {
+                    "phenomenon": {
+                        "name": "الظاهرة",
+                        "state": {
+                            "night_fog": "ضباب واسع الانتشار ليلاً وفي الصباح الباكر",
+                            "persistent_fog": "ضباب واسع الانتشار ومستمر حتى أثناء النهار"
+                        }
+                    },
+                    "direction": {
+                        "name": "الاتجاه",
+                        "state": {
+                            "n": "شمال",
+                            "nne": "شمال شمال شرق",
+                            "ne": "شمال شرق",
+                            "ene": "شرق شمال شرق",
+                            "e": "شرق",
+                            "ese": "شرق جنوب شرق",
+                            "se": "جنوب شرق",
+                            "sse": "جنوب جنوب شرق",
+                            "s": "جنوب",
+                            "ssw": "جنوب جنوب غرب",
+                            "sw": "جنوب غرب",
+                            "wsw": "غرب جنوب غرب",
+                            "w": "غرب",
+                            "wnw": "غرب شمال غرب",
+                            "nw": "شمال غرب",
+                            "nnw": "شمال شمال غرب"
+                        }
+                    }
+                }
+            },
+            "sea": {
+                "name": "{phenomenon}، {distance} كم {direction}",
+                "state_attributes": {
+                    "phenomenon": {
+                        "name": "الظاهرة",
+                        "state": {
+                            "moderate_sea": "بحر متوسط الموج",
+                            "rough_sea": "بحر هائج أو هائج جداً",
+                            "high_sea": "بحر عالي الموج أو عالي الموج جداً"
+                        }
+                    },
+                    "direction": {
+                        "name": "الاتجاه",
+                        "state": {
+                            "n": "شمال",
+                            "nne": "شمال شمال شرق",
+                            "ne": "شمال شرق",
+                            "ene": "شرق شمال شرق",
+                            "e": "شرق",
+                            "ese": "شرق جنوب شرق",
+                            "se": "جنوب شرق",
+                            "sse": "جنوب جنوب شرق",
+                            "s": "جنوب",
+                            "ssw": "جنوب جنوب غرب",
+                            "sw": "جنوب غرب",
+                            "wsw": "غرب جنوب غرب",
+                            "w": "غرب",
+                            "wnw": "غرب شمال غرب",
+                            "nw": "شمال غرب",
+                            "nnw": "شمال شمال غرب"
+                        }
+                    }
+                }
+            },
+            "wave_motion": {
+                "name": "{phenomenon}، {distance} كم {direction}",
+                "state_attributes": {
+                    "phenomenon": {
+                        "name": "الظاهرة",
+                        "state": {
+                            "rising_waves": "أمواج متزايدة",
+                            "falling_waves": "أمواج متناقصة"
+                        }
+                    },
+                    "direction": {
+                        "name": "الاتجاه",
+                        "state": {
+                            "n": "شمال",
+                            "nne": "شمال شمال شرق",
+                            "ne": "شمال شرق",
+                            "ene": "شرق شمال شرق",
+                            "e": "شرق",
+                            "ese": "شرق جنوب شرق",
+                            "se": "جنوب شرق",
+                            "sse": "جنوب جنوب شرق",
+                            "s": "جنوب",
+                            "ssw": "جنوب جنوب غرب",
+                            "sw": "جنوب غرب",
+                            "wsw": "غرب جنوب غرب",
+                            "w": "غرب",
+                            "wnw": "غرب شمال غرب",
+                            "nw": "شمال غرب",
+                            "nnw": "شمال شمال غرب"
+                        }
+                    }
+                }
+            },
+            "temperature": {
+                "name": "{phenomenon}، {distance} كم {direction}",
+                "state_attributes": {
+                    "phenomenon": {
+                        "name": "الظاهرة",
+                        "state": {
+                            "high_temperatures": "درجات حرارة مرتفعة أو في ارتفاع ملحوظ",
+                            "very_high_temperatures": "درجات حرارة مرتفعة جداً أو في ارتفاع حاد",
+                            "low_temperatures": "درجات حرارة منخفضة أو في انخفاض ملحوظ",
+                            "very_low_temperatures": "درجات حرارة منخفضة جداً أو في انخفاض حاد"
+                        }
+                    },
+                    "direction": {
+                        "name": "الاتجاه",
+                        "state": {
+                            "n": "شمال",
+                            "nne": "شمال شمال شرق",
+                            "ne": "شمال شرق",
+                            "ene": "شرق شمال شرق",
+                            "e": "شرق",
+                            "ese": "شرق جنوب شرق",
+                            "se": "جنوب شرق",
+                            "sse": "جنوب جنوب شرق",
+                            "s": "جنوب",
+                            "ssw": "جنوب جنوب غرب",
+                            "sw": "جنوب غرب",
+                            "wsw": "غرب جنوب غرب",
+                            "w": "غرب",
+                            "wnw": "غرب شمال غرب",
+                            "nw": "شمال غرب",
+                            "nnw": "شمال شمال غرب"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "exceptions": {
+        "update_failed": {
+            "message": "تعذّر جلب أي نشرة من DPC: {error}"
+        },
+        "outside_alert_zones": {
+            "message": "{place} ليس ضمن أي منطقة إنذار من DPC."
+        }
+    }
+}

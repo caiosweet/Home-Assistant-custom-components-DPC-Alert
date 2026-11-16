@@ -1,0 +1,598 @@
+{
+    "title": "意大利民防部",
+    "config": {
+        "flow_title": "{name}",
+        "step": {
+            "user": {
+                "title": "意大利民防部",
+                "description": "您想如何选择要监测的地点？DPC 公报覆盖意大利。",
+                "menu_options": {
+                    "map": "在地图上选择",
+                    "zone": "使用区域，例如“家”"
+                }
+            },
+            "map": {
+                "title": "地图上的地点",
+                "description": "将图钉移动到要监测的地点。",
+                "data": {
+                    "location": "地点"
+                },
+                "data_description": {
+                    "location": "地点必须位于意大利：DPC 公报仅覆盖意大利。"
+                }
+            },
+            "zone": {
+                "title": "区域的地点",
+                "description": "选择 Home Assistant 中的一个区域。",
+                "data": {
+                    "zone": "区域"
+                },
+                "data_description": {
+                    "zone": "将复制区域的位置：之后移动区域不会移动该地点。"
+                }
+            },
+            "municipality": {
+                "title": "市镇",
+                "description": "该地点位于 DPC 预警区 **{zone}**。请选择其市镇。",
+                "data": {
+                    "municipality": "市镇"
+                },
+                "data_description": {
+                    "municipality": "大型市镇跨越多个预警区：该地点将获得其中最高的预警。每个市镇只能添加一次。"
+                }
+            },
+            "display": {
+                "title": "显示内容",
+                "description": "之后可以在选项中更改。",
+                "data": {
+                    "days": "日期",
+                    "entities": "实体"
+                },
+                "data_description": {
+                    "days": "每个选中的日期都会有一个设备，包含其预警、降水、地图和现象。",
+                    "entities": "取消勾选某一类型会从该地点和每一天中删除其实体。"
+                }
+            },
+            "alerts": {
+                "title": "预警",
+                "description": "之后可以在选项中更改。",
+                "data": {
+                    "warning_level": "最低预警级别",
+                    "radius": "现象半径",
+                    "scan_interval": "更新间隔"
+                },
+                "data_description": {
+                    "warning_level": "每种风险的二元传感器从此级别起开启。",
+                    "radius": "距该地点此距离内的天气现象，单位为公里（默认 50）。",
+                    "scan_interval": "检查新公报的间隔分钟数（默认 30）。"
+                }
+            }
+        },
+        "error": {
+            "coordinates_outside": "坐标位于 DPC 预警区域之外。",
+            "cannot_connect": "无法验证坐标。请检查您的网络连接。",
+            "zone_not_found": "未找到该区域。",
+            "municipality_in_use": "{municipality} 已配置：每个市镇只能添加一次。",
+            "municipality_not_listed": "请从列表中选择一个市镇。"
+        },
+        "abort": {
+            "single_instance_allowed": "支持多个实例。每个位置只能添加一次。",
+            "already_configured": "此位置的条目已配置。"
+        },
+        "create_entry": {
+            "default": "要在仪表盘上查看预警，请前往 **设置 → 仪表盘 → 添加仪表盘**，并在社区仪表盘中选择 **DPC Alert**。如果未列出，请重新加载页面。"
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "title": "更改内容",
+                "menu_options": {
+                    "place": "市镇",
+                    "display": "显示内容",
+                    "alerts": "预警"
+                }
+            },
+            "place": {
+                "title": "市镇",
+                "data": {
+                    "municipality": "市镇"
+                },
+                "data_description": {
+                    "municipality": "大型市镇跨越多个预警区：该地点将获得其中最高的预警。每个市镇只能添加一次。"
+                }
+            },
+            "display": {
+                "title": "显示内容",
+                "data": {
+                    "days": "日期",
+                    "entities": "实体"
+                },
+                "data_description": {
+                    "days": "每个选中的日期都会有一个设备，包含其预警、降水、地图和现象。",
+                    "entities": "取消勾选某一类型会从该地点和每一天中删除其实体。"
+                }
+            },
+            "alerts": {
+                "title": "预警",
+                "data": {
+                    "warning_level": "最低预警级别",
+                    "radius": "现象半径",
+                    "scan_interval": "更新间隔"
+                },
+                "data_description": {
+                    "warning_level": "每种风险的二元传感器从此级别起开启。",
+                    "radius": "距该地点此距离内的天气现象，单位为公里（默认 50）。",
+                    "scan_interval": "检查新公报的间隔分钟数（默认 30）。"
+                }
+            }
+        },
+        "error": {
+            "municipality_not_listed": "请从列表中选择一个市镇。",
+            "municipality_in_use": "{municipality} 已配置：每个市镇只能添加一次。"
+        }
+    },
+    "selector": {
+        "days": {
+            "options": {
+                "today": "今天",
+                "tomorrow": "明天",
+                "aftertomorrow": "后天"
+            }
+        },
+        "entities": {
+            "options": {
+                "binary_sensor": "风险二元传感器",
+                "sensor": "传感器",
+                "image": "地图",
+                "geo_location": "地图上的现象"
+            }
+        },
+        "warning_level": {
+            "options": {
+                "2": "黄色预警",
+                "3": "橙色预警",
+                "4": "红色预警"
+            }
+        }
+    },
+    "device": {
+        "today": {
+            "name": "{place} · 今天"
+        },
+        "tomorrow": {
+            "name": "{place} · 明天"
+        },
+        "aftertomorrow": {
+            "name": "{place} · 后天"
+        }
+    },
+    "entity": {
+        "binary_sensor": {
+            "hydraulic_risk": {
+                "name": "水力风险"
+            },
+            "thunderstorm_risk": {
+                "name": "雷暴风险"
+            },
+            "hydrogeological_risk": {
+                "name": "水文地质风险"
+            }
+        },
+        "sensor": {
+            "highest_alert": {
+                "name": "最高预警",
+                "state": {
+                    "1": "无预警",
+                    "2": "黄色预警",
+                    "3": "橙色预警",
+                    "4": "红色预警"
+                },
+                "state_attributes": {
+                    "total_alerts": {
+                        "name": "预警总数"
+                    }
+                }
+            },
+            "highest_precipitation": {
+                "name": "最大降水",
+                "state": {
+                    "1": "无或不显著",
+                    "2": "弱",
+                    "3": "中等",
+                    "4": "强",
+                    "5": "很强"
+                },
+                "state_attributes": {
+                    "total_alerts": {
+                        "name": "预警总数"
+                    }
+                }
+            },
+            "alert_zone": {
+                "name": "预警区"
+            },
+            "vigilance_zone": {
+                "name": "警戒区"
+            },
+            "criticality_bulletin": {
+                "name": "水文地质与水力危急程度公报",
+                "state_attributes": {
+                    "id": {
+                        "name": "公报编号"
+                    },
+                    "link": {
+                        "name": "公报链接"
+                    },
+                    "last_check": {
+                        "name": "上次检查"
+                    }
+                }
+            },
+            "vigilance_bulletin": {
+                "name": "气象警戒公报",
+                "state_attributes": {
+                    "id": {
+                        "name": "公报编号"
+                    },
+                    "link": {
+                        "name": "公报链接"
+                    },
+                    "last_check": {
+                        "name": "上次检查"
+                    }
+                }
+            },
+            "criticality_valid_until": {
+                "name": "危急程度有效期至"
+            },
+            "vigilance_valid_until": {
+                "name": "警戒有效期至"
+            },
+            "alert": {
+                "name": "预警",
+                "state": {
+                    "green": "无预警",
+                    "yellow": "黄色预警",
+                    "orange": "橙色预警",
+                    "red": "红色预警"
+                },
+                "state_attributes": {
+                    "risks": {
+                        "name": "风险",
+                        "state": {
+                            "hydraulic": "水力风险",
+                            "thunderstorms": "雷暴风险",
+                            "hydrogeological": "水文地质风险"
+                        }
+                    }
+                }
+            },
+            "criticality": {
+                "name": "危急程度",
+                "state": {
+                    "absent": "预计无显著现象",
+                    "ordinary_hydraulic": "水力风险一般危急程度",
+                    "ordinary_thunderstorms": "雷暴风险一般危急程度",
+                    "ordinary_hydrogeological": "水文地质风险一般危急程度",
+                    "moderate_hydraulic": "水力风险中等危急程度",
+                    "moderate_thunderstorms": "雷暴风险中等危急程度",
+                    "moderate_hydrogeological": "水文地质风险中等危急程度",
+                    "high_hydraulic": "水力风险高危急程度",
+                    "high_thunderstorms": "雷暴风险高危急程度",
+                    "high_hydrogeological": "水文地质风险高危急程度"
+                }
+            },
+            "hydraulic_risk_level": {
+                "name": "水力风险级别",
+                "state": {
+                    "green": "无预警",
+                    "yellow": "黄色预警",
+                    "orange": "橙色预警",
+                    "red": "红色预警"
+                }
+            },
+            "thunderstorm_risk_level": {
+                "name": "雷暴风险级别",
+                "state": {
+                    "green": "无预警",
+                    "yellow": "黄色预警",
+                    "orange": "橙色预警",
+                    "red": "红色预警"
+                }
+            },
+            "hydrogeological_risk_level": {
+                "name": "水文地质风险级别",
+                "state": {
+                    "green": "无预警",
+                    "yellow": "黄色预警",
+                    "orange": "橙色预警",
+                    "red": "红色预警"
+                }
+            },
+            "precipitation": {
+                "name": "降水",
+                "state": {
+                    "none": "无或不显著",
+                    "light": "弱",
+                    "moderate": "中等",
+                    "heavy": "强",
+                    "very_heavy": "很强"
+                }
+            },
+            "nearby_phenomena": {
+                "name": "附近现象",
+                "unit_of_measurement": "个"
+            }
+        },
+        "image": {
+            "criticality_map": {
+                "name": "危急程度地图",
+                "state_attributes": {
+                    "image_url": {
+                        "name": "图片网址"
+                    }
+                }
+            },
+            "vigilance_map": {
+                "name": "警戒地图",
+                "state_attributes": {
+                    "image_url": {
+                        "name": "图片网址"
+                    }
+                }
+            }
+        },
+        "geo_location": {
+            "precipitation": {
+                "name": "{phenomenon}，{distance} 公里 {direction}",
+                "state_attributes": {
+                    "phenomenon": {
+                        "name": "现象",
+                        "state": {
+                            "scattered_rain": "零星或间歇性降雨",
+                            "widespread_rain": "大范围持续性降雨",
+                            "light_snow": "小到中雪",
+                            "heavy_snow": "大雪",
+                            "isolated_thunderstorms": "局地阵雨或雷暴",
+                            "scattered_thunderstorms": "分散性阵雨或雷暴",
+                            "widespread_thunderstorms": "大范围阵雨或雷暴"
+                        }
+                    },
+                    "direction": {
+                        "name": "方向",
+                        "state": {
+                            "n": "北",
+                            "nne": "北东北",
+                            "ne": "东北",
+                            "ene": "东东北",
+                            "e": "东",
+                            "ese": "东东南",
+                            "se": "东南",
+                            "sse": "南东南",
+                            "s": "南",
+                            "ssw": "南西南",
+                            "sw": "西南",
+                            "wsw": "西西南",
+                            "w": "西",
+                            "wnw": "西西北",
+                            "nw": "西北",
+                            "nnw": "北西北"
+                        }
+                    }
+                }
+            },
+            "wind": {
+                "name": "{phenomenon}，{distance} 公里 {direction}",
+                "state_attributes": {
+                    "phenomenon": {
+                        "name": "现象",
+                        "state": {
+                            "strong_wind": "强风",
+                            "gale": "大风",
+                            "storm": "暴风",
+                            "frequent_gusts": "频繁阵风"
+                        }
+                    },
+                    "direction": {
+                        "name": "方向",
+                        "state": {
+                            "n": "北",
+                            "nne": "北东北",
+                            "ne": "东北",
+                            "ene": "东东北",
+                            "e": "东",
+                            "ese": "东东南",
+                            "se": "东南",
+                            "sse": "南东南",
+                            "s": "南",
+                            "ssw": "南西南",
+                            "sw": "西南",
+                            "wsw": "西西南",
+                            "w": "西",
+                            "wnw": "西西北",
+                            "nw": "西北",
+                            "nnw": "北西北"
+                        }
+                    }
+                }
+            },
+            "frost": {
+                "name": "{phenomenon}，{distance} 公里 {direction}",
+                "state_attributes": {
+                    "phenomenon": {
+                        "name": "现象",
+                        "state": {
+                            "ice_on_hills": "丘陵地区地面大范围结冰",
+                            "ice_on_plains": "平原地区地面大范围结冰"
+                        }
+                    },
+                    "direction": {
+                        "name": "方向",
+                        "state": {
+                            "n": "北",
+                            "nne": "北东北",
+                            "ne": "东北",
+                            "ene": "东东北",
+                            "e": "东",
+                            "ese": "东东南",
+                            "se": "东南",
+                            "sse": "南东南",
+                            "s": "南",
+                            "ssw": "南西南",
+                            "sw": "西南",
+                            "wsw": "西西南",
+                            "w": "西",
+                            "wnw": "西西北",
+                            "nw": "西北",
+                            "nnw": "北西北"
+                        }
+                    }
+                }
+            },
+            "fog": {
+                "name": "{phenomenon}，{distance} 公里 {direction}",
+                "state_attributes": {
+                    "phenomenon": {
+                        "name": "现象",
+                        "state": {
+                            "night_fog": "夜间和清晨大范围雾",
+                            "persistent_fog": "大范围持续性雾，白天亦不消散"
+                        }
+                    },
+                    "direction": {
+                        "name": "方向",
+                        "state": {
+                            "n": "北",
+                            "nne": "北东北",
+                            "ne": "东北",
+                            "ene": "东东北",
+                            "e": "东",
+                            "ese": "东东南",
+                            "se": "东南",
+                            "sse": "南东南",
+                            "s": "南",
+                            "ssw": "南西南",
+                            "sw": "西南",
+                            "wsw": "西西南",
+                            "w": "西",
+                            "wnw": "西西北",
+                            "nw": "西北",
+                            "nnw": "北西北"
+                        }
+                    }
+                }
+            },
+            "sea": {
+                "name": "{phenomenon}，{distance} 公里 {direction}",
+                "state_attributes": {
+                    "phenomenon": {
+                        "name": "现象",
+                        "state": {
+                            "moderate_sea": "中浪",
+                            "rough_sea": "大浪或巨浪",
+                            "high_sea": "狂浪或狂涛"
+                        }
+                    },
+                    "direction": {
+                        "name": "方向",
+                        "state": {
+                            "n": "北",
+                            "nne": "北东北",
+                            "ne": "东北",
+                            "ene": "东东北",
+                            "e": "东",
+                            "ese": "东东南",
+                            "se": "东南",
+                            "sse": "南东南",
+                            "s": "南",
+                            "ssw": "南西南",
+                            "sw": "西南",
+                            "wsw": "西西南",
+                            "w": "西",
+                            "wnw": "西西北",
+                            "nw": "西北",
+                            "nnw": "北西北"
+                        }
+                    }
+                }
+            },
+            "wave_motion": {
+                "name": "{phenomenon}，{distance} 公里 {direction}",
+                "state_attributes": {
+                    "phenomenon": {
+                        "name": "现象",
+                        "state": {
+                            "rising_waves": "海浪增强",
+                            "falling_waves": "海浪减弱"
+                        }
+                    },
+                    "direction": {
+                        "name": "方向",
+                        "state": {
+                            "n": "北",
+                            "nne": "北东北",
+                            "ne": "东北",
+                            "ene": "东东北",
+                            "e": "东",
+                            "ese": "东东南",
+                            "se": "东南",
+                            "sse": "南东南",
+                            "s": "南",
+                            "ssw": "南西南",
+                            "sw": "西南",
+                            "wsw": "西西南",
+                            "w": "西",
+                            "wnw": "西西北",
+                            "nw": "西北",
+                            "nnw": "北西北"
+                        }
+                    }
+                }
+            },
+            "temperature": {
+                "name": "{phenomenon}，{distance} 公里 {direction}",
+                "state_attributes": {
+                    "phenomenon": {
+                        "name": "现象",
+                        "state": {
+                            "high_temperatures": "气温偏高或明显上升",
+                            "very_high_temperatures": "气温很高或急剧上升",
+                            "low_temperatures": "气温偏低或明显下降",
+                            "very_low_temperatures": "气温很低或急剧下降"
+                        }
+                    },
+                    "direction": {
+                        "name": "方向",
+                        "state": {
+                            "n": "北",
+                            "nne": "北东北",
+                            "ne": "东北",
+                            "ene": "东东北",
+                            "e": "东",
+                            "ese": "东东南",
+                            "se": "东南",
+                            "sse": "南东南",
+                            "s": "南",
+                            "ssw": "南西南",
+                            "sw": "西南",
+                            "wsw": "西西南",
+                            "w": "西",
+                            "wnw": "西西北",
+                            "nw": "西北",
+                            "nnw": "北西北"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "exceptions": {
+        "update_failed": {
+            "message": "无法获取 DPC 公报：{error}"
+        },
+        "outside_alert_zones": {
+            "message": "{place} 不在任何 DPC 预警区内。"
+        }
+    }
+}

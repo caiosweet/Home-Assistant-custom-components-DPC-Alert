@@ -1,0 +1,598 @@
+{
+    "title": "नागरिक सुरक्षा विभाग",
+    "config": {
+        "flow_title": "{name}",
+        "step": {
+            "user": {
+                "title": "नागरिक सुरक्षा विभाग",
+                "description": "आप निगरानी के लिए स्थान कैसे चुनना चाहते हैं? DPC बुलेटिन इटली को कवर करते हैं।",
+                "menu_options": {
+                    "map": "मानचित्र पर चुनें",
+                    "zone": "किसी ज़ोन का उपयोग करें, जैसे होम"
+                }
+            },
+            "map": {
+                "title": "मानचित्र पर स्थान",
+                "description": "पिन को निगरानी वाले स्थान पर ले जाएँ।",
+                "data": {
+                    "location": "स्थान"
+                },
+                "data_description": {
+                    "location": "स्थान इटली में होना चाहिए: DPC बुलेटिन केवल इटली को कवर करते हैं।"
+                }
+            },
+            "zone": {
+                "title": "ज़ोन का स्थान",
+                "description": "Home Assistant में अपने ज़ोन में से एक चुनें।",
+                "data": {
+                    "zone": "ज़ोन"
+                },
+                "data_description": {
+                    "zone": "ज़ोन का स्थान कॉपी किया जाता है: बाद में ज़ोन हिलाने से स्थान नहीं हिलता।"
+                }
+            },
+            "municipality": {
+                "title": "नगरपालिका",
+                "description": "स्थान DPC चेतावनी क्षेत्र **{zone}** में है। इसकी नगरपालिका चुनें।",
+                "data": {
+                    "municipality": "नगरपालिका"
+                },
+                "data_description": {
+                    "municipality": "बड़ी नगरपालिकाएँ कई चेतावनी क्षेत्रों में फैली होती हैं: तब स्थान को उन सबमें सबसे ऊँची चेतावनी मिलती है। हर नगरपालिका केवल एक बार जोड़ी जा सकती है।"
+                }
+            },
+            "display": {
+                "title": "क्या दिखाना है",
+                "description": "आप इन्हें बाद में विकल्पों में बदल सकते हैं।",
+                "data": {
+                    "days": "दिन",
+                    "entities": "एंटिटी"
+                },
+                "data_description": {
+                    "days": "हर चुने गए दिन को उसकी चेतावनियों, वर्षण, मानचित्रों और घटनाओं वाला एक डिवाइस मिलता है।",
+                    "entities": "किसी प्रकार का चयन हटाने से उसकी एंटिटी स्थान और हर दिन से हटा दी जाती हैं।"
+                }
+            },
+            "alerts": {
+                "title": "चेतावनियाँ",
+                "description": "आप इन्हें बाद में विकल्पों में बदल सकते हैं।",
+                "data": {
+                    "warning_level": "चेतावनी का न्यूनतम स्तर",
+                    "radius": "घटनाओं की त्रिज्या",
+                    "scan_interval": "अपडेट अंतराल"
+                },
+                "data_description": {
+                    "warning_level": "हर जोखिम का बाइनरी सेंसर इस स्तर और उससे ऊपर चालू होता है।",
+                    "radius": "स्थान से इस दूरी के भीतर मौसम की घटनाएँ, किमी में (डिफ़ॉल्ट 50)।",
+                    "scan_interval": "नए बुलेटिनों की जाँच के बीच के मिनट (डिफ़ॉल्ट 30)।"
+                }
+            }
+        },
+        "error": {
+            "coordinates_outside": "निर्देशांक DPC चेतावनी क्षेत्रों से बाहर हैं।",
+            "cannot_connect": "निर्देशांकों की पुष्टि नहीं हो सकी। अपना कनेक्शन जाँचें।",
+            "zone_not_found": "ज़ोन नहीं मिला।",
+            "municipality_in_use": "{municipality} पहले से कॉन्फ़िगर है: हर नगरपालिका केवल एक बार जोड़ी जा सकती है।",
+            "municipality_not_listed": "सूची से एक नगरपालिका चुनें।"
+        },
+        "abort": {
+            "single_instance_allowed": "कई इंस्टेंस समर्थित हैं। हर स्थान केवल एक बार जोड़ा जा सकता है।",
+            "already_configured": "इस स्थान के लिए एक प्रविष्टि पहले से कॉन्फ़िगर है।"
+        },
+        "create_entry": {
+            "default": "डैशबोर्ड पर चेतावनियाँ देखने के लिए **सेटिंग्स → डैशबोर्ड → डैशबोर्ड जोड़ें** पर जाएँ और कम्युनिटी डैशबोर्ड में से **DPC Alert** चुनें। अगर यह सूची में नहीं है, तो पेज फिर से लोड करें।"
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "title": "क्या बदलना है",
+                "menu_options": {
+                    "place": "नगरपालिका",
+                    "display": "क्या दिखाना है",
+                    "alerts": "चेतावनियाँ"
+                }
+            },
+            "place": {
+                "title": "नगरपालिका",
+                "data": {
+                    "municipality": "नगरपालिका"
+                },
+                "data_description": {
+                    "municipality": "बड़ी नगरपालिकाएँ कई चेतावनी क्षेत्रों में फैली होती हैं: तब स्थान को उन सबमें सबसे ऊँची चेतावनी मिलती है। हर नगरपालिका केवल एक बार जोड़ी जा सकती है।"
+                }
+            },
+            "display": {
+                "title": "क्या दिखाना है",
+                "data": {
+                    "days": "दिन",
+                    "entities": "एंटिटी"
+                },
+                "data_description": {
+                    "days": "हर चुने गए दिन को उसकी चेतावनियों, वर्षण, मानचित्रों और घटनाओं वाला एक डिवाइस मिलता है।",
+                    "entities": "किसी प्रकार का चयन हटाने से उसकी एंटिटी स्थान और हर दिन से हटा दी जाती हैं।"
+                }
+            },
+            "alerts": {
+                "title": "चेतावनियाँ",
+                "data": {
+                    "warning_level": "चेतावनी का न्यूनतम स्तर",
+                    "radius": "घटनाओं की त्रिज्या",
+                    "scan_interval": "अपडेट अंतराल"
+                },
+                "data_description": {
+                    "warning_level": "हर जोखिम का बाइनरी सेंसर इस स्तर और उससे ऊपर चालू होता है।",
+                    "radius": "स्थान से इस दूरी के भीतर मौसम की घटनाएँ, किमी में (डिफ़ॉल्ट 50)।",
+                    "scan_interval": "नए बुलेटिनों की जाँच के बीच के मिनट (डिफ़ॉल्ट 30)।"
+                }
+            }
+        },
+        "error": {
+            "municipality_not_listed": "सूची से एक नगरपालिका चुनें।",
+            "municipality_in_use": "{municipality} पहले से कॉन्फ़िगर है: हर नगरपालिका केवल एक बार जोड़ी जा सकती है।"
+        }
+    },
+    "selector": {
+        "days": {
+            "options": {
+                "today": "आज",
+                "tomorrow": "कल",
+                "aftertomorrow": "परसों"
+            }
+        },
+        "entities": {
+            "options": {
+                "binary_sensor": "जोखिमों के बाइनरी सेंसर",
+                "sensor": "सेंसर",
+                "image": "मानचित्र",
+                "geo_location": "मानचित्र पर घटनाएँ"
+            }
+        },
+        "warning_level": {
+            "options": {
+                "2": "पीली चेतावनी",
+                "3": "नारंगी चेतावनी",
+                "4": "लाल चेतावनी"
+            }
+        }
+    },
+    "device": {
+        "today": {
+            "name": "{place} · आज"
+        },
+        "tomorrow": {
+            "name": "{place} · कल"
+        },
+        "aftertomorrow": {
+            "name": "{place} · परसों"
+        }
+    },
+    "entity": {
+        "binary_sensor": {
+            "hydraulic_risk": {
+                "name": "हाइड्रोलिक जोखिम"
+            },
+            "thunderstorm_risk": {
+                "name": "आंधी-तूफ़ान जोखिम"
+            },
+            "hydrogeological_risk": {
+                "name": "जल-भूवैज्ञानिक जोखिम"
+            }
+        },
+        "sensor": {
+            "highest_alert": {
+                "name": "सबसे ऊँची चेतावनी",
+                "state": {
+                    "1": "कोई चेतावनी नहीं",
+                    "2": "पीली चेतावनी",
+                    "3": "नारंगी चेतावनी",
+                    "4": "लाल चेतावनी"
+                },
+                "state_attributes": {
+                    "total_alerts": {
+                        "name": "कुल चेतावनियाँ"
+                    }
+                }
+            },
+            "highest_precipitation": {
+                "name": "सबसे अधिक वर्षण",
+                "state": {
+                    "1": "अनुपस्थित या नगण्य",
+                    "2": "हल्की",
+                    "3": "मध्यम",
+                    "4": "भारी",
+                    "5": "बहुत भारी"
+                },
+                "state_attributes": {
+                    "total_alerts": {
+                        "name": "कुल चेतावनियाँ"
+                    }
+                }
+            },
+            "alert_zone": {
+                "name": "चेतावनी क्षेत्र"
+            },
+            "vigilance_zone": {
+                "name": "सतर्कता क्षेत्र"
+            },
+            "criticality_bulletin": {
+                "name": "जल-भूवैज्ञानिक और हाइड्रोलिक गंभीरता बुलेटिन",
+                "state_attributes": {
+                    "id": {
+                        "name": "बुलेटिन आईडी"
+                    },
+                    "link": {
+                        "name": "बुलेटिन लिंक"
+                    },
+                    "last_check": {
+                        "name": "अंतिम जाँच"
+                    }
+                }
+            },
+            "vigilance_bulletin": {
+                "name": "मौसम सतर्कता बुलेटिन",
+                "state_attributes": {
+                    "id": {
+                        "name": "बुलेटिन आईडी"
+                    },
+                    "link": {
+                        "name": "बुलेटिन लिंक"
+                    },
+                    "last_check": {
+                        "name": "अंतिम जाँच"
+                    }
+                }
+            },
+            "criticality_valid_until": {
+                "name": "गंभीरता इस तक मान्य"
+            },
+            "vigilance_valid_until": {
+                "name": "सतर्कता इस तक मान्य"
+            },
+            "alert": {
+                "name": "चेतावनी",
+                "state": {
+                    "green": "कोई चेतावनी नहीं",
+                    "yellow": "पीली चेतावनी",
+                    "orange": "नारंगी चेतावनी",
+                    "red": "लाल चेतावनी"
+                },
+                "state_attributes": {
+                    "risks": {
+                        "name": "जोखिम",
+                        "state": {
+                            "hydraulic": "हाइड्रोलिक जोखिम",
+                            "thunderstorms": "आंधी-तूफ़ान जोखिम",
+                            "hydrogeological": "जल-भूवैज्ञानिक जोखिम"
+                        }
+                    }
+                }
+            },
+            "criticality": {
+                "name": "गंभीरता",
+                "state": {
+                    "absent": "किसी महत्वपूर्ण घटना की संभावना नहीं",
+                    "ordinary_hydraulic": "हाइड्रोलिक जोखिम के लिए सामान्य गंभीरता",
+                    "ordinary_thunderstorms": "आंधी-तूफ़ान जोखिम के लिए सामान्य गंभीरता",
+                    "ordinary_hydrogeological": "जल-भूवैज्ञानिक जोखिम के लिए सामान्य गंभीरता",
+                    "moderate_hydraulic": "हाइड्रोलिक जोखिम के लिए मध्यम गंभीरता",
+                    "moderate_thunderstorms": "आंधी-तूफ़ान जोखिम के लिए मध्यम गंभीरता",
+                    "moderate_hydrogeological": "जल-भूवैज्ञानिक जोखिम के लिए मध्यम गंभीरता",
+                    "high_hydraulic": "हाइड्रोलिक जोखिम के लिए उच्च गंभीरता",
+                    "high_thunderstorms": "आंधी-तूफ़ान जोखिम के लिए उच्च गंभीरता",
+                    "high_hydrogeological": "जल-भूवैज्ञानिक जोखिम के लिए उच्च गंभीरता"
+                }
+            },
+            "hydraulic_risk_level": {
+                "name": "हाइड्रोलिक जोखिम का स्तर",
+                "state": {
+                    "green": "कोई चेतावनी नहीं",
+                    "yellow": "पीली चेतावनी",
+                    "orange": "नारंगी चेतावनी",
+                    "red": "लाल चेतावनी"
+                }
+            },
+            "thunderstorm_risk_level": {
+                "name": "आंधी-तूफ़ान जोखिम का स्तर",
+                "state": {
+                    "green": "कोई चेतावनी नहीं",
+                    "yellow": "पीली चेतावनी",
+                    "orange": "नारंगी चेतावनी",
+                    "red": "लाल चेतावनी"
+                }
+            },
+            "hydrogeological_risk_level": {
+                "name": "जल-भूवैज्ञानिक जोखिम का स्तर",
+                "state": {
+                    "green": "कोई चेतावनी नहीं",
+                    "yellow": "पीली चेतावनी",
+                    "orange": "नारंगी चेतावनी",
+                    "red": "लाल चेतावनी"
+                }
+            },
+            "precipitation": {
+                "name": "वर्षण",
+                "state": {
+                    "none": "अनुपस्थित या नगण्य",
+                    "light": "हल्की",
+                    "moderate": "मध्यम",
+                    "heavy": "भारी",
+                    "very_heavy": "बहुत भारी"
+                }
+            },
+            "nearby_phenomena": {
+                "name": "आस-पास की घटनाएँ",
+                "unit_of_measurement": "घटनाएँ"
+            }
+        },
+        "image": {
+            "criticality_map": {
+                "name": "गंभीरता मानचित्र",
+                "state_attributes": {
+                    "image_url": {
+                        "name": "छवि URL"
+                    }
+                }
+            },
+            "vigilance_map": {
+                "name": "सतर्कता मानचित्र",
+                "state_attributes": {
+                    "image_url": {
+                        "name": "छवि URL"
+                    }
+                }
+            }
+        },
+        "geo_location": {
+            "precipitation": {
+                "name": "{phenomenon}, {distance} किमी {direction}",
+                "state_attributes": {
+                    "phenomenon": {
+                        "name": "घटना",
+                        "state": {
+                            "scattered_rain": "छिटपुट या रुक-रुक कर बारिश",
+                            "widespread_rain": "व्यापक और लगातार बारिश",
+                            "light_snow": "हल्की या मध्यम बर्फबारी",
+                            "heavy_snow": "भारी बर्फबारी",
+                            "isolated_thunderstorms": "कहीं-कहीं बौछारें या आंधी-तूफ़ान",
+                            "scattered_thunderstorms": "छिटपुट बौछारें या आंधी-तूफ़ान",
+                            "widespread_thunderstorms": "व्यापक बौछारें या आंधी-तूफ़ान"
+                        }
+                    },
+                    "direction": {
+                        "name": "दिशा",
+                        "state": {
+                            "n": "उ",
+                            "nne": "उउपू",
+                            "ne": "उपू",
+                            "ene": "पूउपू",
+                            "e": "पू",
+                            "ese": "पूदपू",
+                            "se": "दपू",
+                            "sse": "ददपू",
+                            "s": "द",
+                            "ssw": "ददप",
+                            "sw": "दप",
+                            "wsw": "पदप",
+                            "w": "प",
+                            "wnw": "पउप",
+                            "nw": "उप",
+                            "nnw": "उउप"
+                        }
+                    }
+                }
+            },
+            "wind": {
+                "name": "{phenomenon}, {distance} किमी {direction}",
+                "state_attributes": {
+                    "phenomenon": {
+                        "name": "घटना",
+                        "state": {
+                            "strong_wind": "तेज़ हवा",
+                            "gale": "प्रचंड हवा",
+                            "storm": "तूफ़ान",
+                            "frequent_gusts": "बार-बार तेज़ झोंके"
+                        }
+                    },
+                    "direction": {
+                        "name": "दिशा",
+                        "state": {
+                            "n": "उ",
+                            "nne": "उउपू",
+                            "ne": "उपू",
+                            "ene": "पूउपू",
+                            "e": "पू",
+                            "ese": "पूदपू",
+                            "se": "दपू",
+                            "sse": "ददपू",
+                            "s": "द",
+                            "ssw": "ददप",
+                            "sw": "दप",
+                            "wsw": "पदप",
+                            "w": "प",
+                            "wnw": "पउप",
+                            "nw": "उप",
+                            "nnw": "उउप"
+                        }
+                    }
+                }
+            },
+            "frost": {
+                "name": "{phenomenon}, {distance} किमी {direction}",
+                "state_attributes": {
+                    "phenomenon": {
+                        "name": "घटना",
+                        "state": {
+                            "ice_on_hills": "पहाड़ी क्षेत्रों में ज़मीन पर व्यापक बर्फ़ जमना",
+                            "ice_on_plains": "मैदानी क्षेत्रों में ज़मीन पर व्यापक बर्फ़ जमना"
+                        }
+                    },
+                    "direction": {
+                        "name": "दिशा",
+                        "state": {
+                            "n": "उ",
+                            "nne": "उउपू",
+                            "ne": "उपू",
+                            "ene": "पूउपू",
+                            "e": "पू",
+                            "ese": "पूदपू",
+                            "se": "दपू",
+                            "sse": "ददपू",
+                            "s": "द",
+                            "ssw": "ददप",
+                            "sw": "दप",
+                            "wsw": "पदप",
+                            "w": "प",
+                            "wnw": "पउप",
+                            "nw": "उप",
+                            "nnw": "उउप"
+                        }
+                    }
+                }
+            },
+            "fog": {
+                "name": "{phenomenon}, {distance} किमी {direction}",
+                "state_attributes": {
+                    "phenomenon": {
+                        "name": "घटना",
+                        "state": {
+                            "night_fog": "रात और सुबह-सुबह व्यापक कोहरा",
+                            "persistent_fog": "व्यापक और दिन में भी बना रहने वाला कोहरा"
+                        }
+                    },
+                    "direction": {
+                        "name": "दिशा",
+                        "state": {
+                            "n": "उ",
+                            "nne": "उउपू",
+                            "ne": "उपू",
+                            "ene": "पूउपू",
+                            "e": "पू",
+                            "ese": "पूदपू",
+                            "se": "दपू",
+                            "sse": "ददपू",
+                            "s": "द",
+                            "ssw": "ददप",
+                            "sw": "दप",
+                            "wsw": "पदप",
+                            "w": "प",
+                            "wnw": "पउप",
+                            "nw": "उप",
+                            "nnw": "उउप"
+                        }
+                    }
+                }
+            },
+            "sea": {
+                "name": "{phenomenon}, {distance} किमी {direction}",
+                "state_attributes": {
+                    "phenomenon": {
+                        "name": "घटना",
+                        "state": {
+                            "moderate_sea": "समुद्र में मध्यम हलचल",
+                            "rough_sea": "समुद्र में तेज़ या बहुत तेज़ हलचल",
+                            "high_sea": "समुद्र में ऊँची या बहुत ऊँची लहरें"
+                        }
+                    },
+                    "direction": {
+                        "name": "दिशा",
+                        "state": {
+                            "n": "उ",
+                            "nne": "उउपू",
+                            "ne": "उपू",
+                            "ene": "पूउपू",
+                            "e": "पू",
+                            "ese": "पूदपू",
+                            "se": "दपू",
+                            "sse": "ददपू",
+                            "s": "द",
+                            "ssw": "ददप",
+                            "sw": "दप",
+                            "wsw": "पदप",
+                            "w": "प",
+                            "wnw": "पउप",
+                            "nw": "उप",
+                            "nnw": "उउप"
+                        }
+                    }
+                }
+            },
+            "wave_motion": {
+                "name": "{phenomenon}, {distance} किमी {direction}",
+                "state_attributes": {
+                    "phenomenon": {
+                        "name": "घटना",
+                        "state": {
+                            "rising_waves": "बढ़ती लहरें",
+                            "falling_waves": "घटती लहरें"
+                        }
+                    },
+                    "direction": {
+                        "name": "दिशा",
+                        "state": {
+                            "n": "उ",
+                            "nne": "उउपू",
+                            "ne": "उपू",
+                            "ene": "पूउपू",
+                            "e": "पू",
+                            "ese": "पूदपू",
+                            "se": "दपू",
+                            "sse": "ददपू",
+                            "s": "द",
+                            "ssw": "ददप",
+                            "sw": "दप",
+                            "wsw": "पदप",
+                            "w": "प",
+                            "wnw": "पउप",
+                            "nw": "उप",
+                            "nnw": "उउप"
+                        }
+                    }
+                }
+            },
+            "temperature": {
+                "name": "{phenomenon}, {distance} किमी {direction}",
+                "state_attributes": {
+                    "phenomenon": {
+                        "name": "घटना",
+                        "state": {
+                            "high_temperatures": "उच्च या उल्लेखनीय रूप से बढ़ता तापमान",
+                            "very_high_temperatures": "बहुत उच्च या तेज़ी से बढ़ता तापमान",
+                            "low_temperatures": "निम्न या उल्लेखनीय रूप से गिरता तापमान",
+                            "very_low_temperatures": "बहुत निम्न या तेज़ी से गिरता तापमान"
+                        }
+                    },
+                    "direction": {
+                        "name": "दिशा",
+                        "state": {
+                            "n": "उ",
+                            "nne": "उउपू",
+                            "ne": "उपू",
+                            "ene": "पूउपू",
+                            "e": "पू",
+                            "ese": "पूदपू",
+                            "se": "दपू",
+                            "sse": "ददपू",
+                            "s": "द",
+                            "ssw": "ददप",
+                            "sw": "दप",
+                            "wsw": "पदप",
+                            "w": "प",
+                            "wnw": "पउप",
+                            "nw": "उप",
+                            "nnw": "उउप"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "exceptions": {
+        "update_failed": {
+            "message": "कोई DPC बुलेटिन नहीं लाया जा सका: {error}"
+        },
+        "outside_alert_zones": {
+            "message": "{place} किसी DPC चेतावनी क्षेत्र में नहीं है।"
+        }
+    }
+}

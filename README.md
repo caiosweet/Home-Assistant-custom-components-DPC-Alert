@@ -24,7 +24,7 @@ How the alert system works: [_Civil Protection Department_](https://rischi.prote
 - **Maps** of the criticality and vigilance bulletins, today and tomorrow, as images.
 - **A dashboard** of every place, made of the cards of Home Assistant, in the colors of the DPC maps: see [Dashboard](#dashboard).
 - **Several places**, picked on a map or from a zone, each with its municipality. Each bulletin is downloaded once for all of them.
-- **Six languages**: English, Italian, French, German, Spanish and Brazilian Portuguese. The texts of the levels, risks, phenomena and directions are those of the [aiodpc](https://pypi.org/project/aiodpc/) library; in Italian, those DPC writes.
+- **Most used languages in Italy**: English, Italian, French, German, Spanish, Brazilian Portuguese, Simplified Chinese, Romanian, Arabic, Ukrainian, Albanian, Bengali and Hindi. The texts of the levels, risks, phenomena and directions are those of the [aiodpc](https://pypi.org/project/aiodpc/) library; in Italian, those DPC writes.
 - **Official data**: the criticality and weather vigilance bulletins that DPC publishes every day.
 
 Requires Home Assistant 2025.2 or newer. See the [changelog](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/CHANGELOG.md) for what changed in each version.

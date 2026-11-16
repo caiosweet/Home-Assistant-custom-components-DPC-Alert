@@ -1,0 +1,598 @@
+{
+    "title": "Departamentul Protecției Civile",
+    "config": {
+        "flow_title": "{name}",
+        "step": {
+            "user": {
+                "title": "Departamentul Protecției Civile",
+                "description": "Cum vrei să alegi locul de monitorizat? Buletinele DPC acoperă Italia.",
+                "menu_options": {
+                    "map": "Alege-l pe hartă",
+                    "zone": "Folosește o zonă, de exemplu Acasă"
+                }
+            },
+            "map": {
+                "title": "Loc pe hartă",
+                "description": "Mută acul pe locul de monitorizat.",
+                "data": {
+                    "location": "Loc"
+                },
+                "data_description": {
+                    "location": "Locul trebuie să fie în Italia: buletinele DPC acoperă doar Italia."
+                }
+            },
+            "zone": {
+                "title": "Locul unei zone",
+                "description": "Alege una dintre zonele tale din Home Assistant.",
+                "data": {
+                    "zone": "Zonă"
+                },
+                "data_description": {
+                    "zone": "Locul zonei este copiat: mutarea ulterioară a zonei nu mută locul."
+                }
+            },
+            "municipality": {
+                "title": "Comună",
+                "description": "Locul se află în zona de alertă DPC **{zone}**. Alege comuna lui.",
+                "data": {
+                    "municipality": "Comună"
+                },
+                "data_description": {
+                    "municipality": "Comunele mari se întind pe mai multe zone de alertă: locul primește atunci cea mai ridicată alertă dintre ele. Fiecare comună poate fi adăugată o singură dată."
+                }
+            },
+            "display": {
+                "title": "Ce se afișează",
+                "description": "Le poți schimba ulterior în opțiuni.",
+                "data": {
+                    "days": "Zile",
+                    "entities": "Entități"
+                },
+                "data_description": {
+                    "days": "Fiecare zi aleasă primește un dispozitiv cu alertele, precipitațiile, hărțile și fenomenele ei.",
+                    "entities": "Debifarea unui tip elimină entitățile lui din loc și din fiecare zi."
+                }
+            },
+            "alerts": {
+                "title": "Alerte",
+                "description": "Le poți schimba ulterior în opțiuni.",
+                "data": {
+                    "warning_level": "Nivel minim de alertă",
+                    "radius": "Raza fenomenelor",
+                    "scan_interval": "Interval de actualizare"
+                },
+                "data_description": {
+                    "warning_level": "Senzorul binar al fiecărui risc se activează de la acest nivel în sus.",
+                    "radius": "Fenomene meteo aflate la cel mult această distanță de loc, în km (implicit 50).",
+                    "scan_interval": "Minute între verificările buletinelor noi (implicit 30)."
+                }
+            }
+        },
+        "error": {
+            "coordinates_outside": "Coordonatele sunt în afara zonelor de alertă DPC.",
+            "cannot_connect": "Coordonatele nu pot fi validate. Verifică conexiunea.",
+            "zone_not_found": "Zona nu a fost găsită.",
+            "municipality_in_use": "{municipality} este deja configurată: fiecare comună poate fi adăugată o singură dată.",
+            "municipality_not_listed": "Alege o comună din listă."
+        },
+        "abort": {
+            "single_instance_allowed": "Sunt acceptate mai multe instanțe. Fiecare loc poate fi adăugat o singură dată.",
+            "already_configured": "O intrare pentru acest loc este deja configurată."
+        },
+        "create_entry": {
+            "default": "Pentru a vedea alertele pe un tablou de bord, mergi la **Setări → Tablouri de bord → Adaugă tablou de bord** și alege **DPC Alert** printre tablourile de bord ale comunității. Dacă nu apare, reîncarcă pagina."
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "title": "Ce se modifică",
+                "menu_options": {
+                    "place": "Comună",
+                    "display": "Ce se afișează",
+                    "alerts": "Alerte"
+                }
+            },
+            "place": {
+                "title": "Comună",
+                "data": {
+                    "municipality": "Comună"
+                },
+                "data_description": {
+                    "municipality": "Comunele mari se întind pe mai multe zone de alertă: locul primește atunci cea mai ridicată alertă dintre ele. Fiecare comună poate fi adăugată o singură dată."
+                }
+            },
+            "display": {
+                "title": "Ce se afișează",
+                "data": {
+                    "days": "Zile",
+                    "entities": "Entități"
+                },
+                "data_description": {
+                    "days": "Fiecare zi aleasă primește un dispozitiv cu alertele, precipitațiile, hărțile și fenomenele ei.",
+                    "entities": "Debifarea unui tip elimină entitățile lui din loc și din fiecare zi."
+                }
+            },
+            "alerts": {
+                "title": "Alerte",
+                "data": {
+                    "warning_level": "Nivel minim de alertă",
+                    "radius": "Raza fenomenelor",
+                    "scan_interval": "Interval de actualizare"
+                },
+                "data_description": {
+                    "warning_level": "Senzorul binar al fiecărui risc se activează de la acest nivel în sus.",
+                    "radius": "Fenomene meteo aflate la cel mult această distanță de loc, în km (implicit 50).",
+                    "scan_interval": "Minute între verificările buletinelor noi (implicit 30)."
+                }
+            }
+        },
+        "error": {
+            "municipality_not_listed": "Alege o comună din listă.",
+            "municipality_in_use": "{municipality} este deja configurată: fiecare comună poate fi adăugată o singură dată."
+        }
+    },
+    "selector": {
+        "days": {
+            "options": {
+                "today": "Astăzi",
+                "tomorrow": "Mâine",
+                "aftertomorrow": "Poimâine"
+            }
+        },
+        "entities": {
+            "options": {
+                "binary_sensor": "Senzori binari ai riscurilor",
+                "sensor": "Senzori",
+                "image": "Hărți",
+                "geo_location": "Fenomene pe hartă"
+            }
+        },
+        "warning_level": {
+            "options": {
+                "2": "Alertă galbenă",
+                "3": "Alertă portocalie",
+                "4": "Alertă roșie"
+            }
+        }
+    },
+    "device": {
+        "today": {
+            "name": "{place} · Astăzi"
+        },
+        "tomorrow": {
+            "name": "{place} · Mâine"
+        },
+        "aftertomorrow": {
+            "name": "{place} · Poimâine"
+        }
+    },
+    "entity": {
+        "binary_sensor": {
+            "hydraulic_risk": {
+                "name": "Risc hidraulic"
+            },
+            "thunderstorm_risk": {
+                "name": "Risc de oraje"
+            },
+            "hydrogeological_risk": {
+                "name": "Risc hidrogeologic"
+            }
+        },
+        "sensor": {
+            "highest_alert": {
+                "name": "Alerta maximă",
+                "state": {
+                    "1": "Nicio alertă",
+                    "2": "Alertă galbenă",
+                    "3": "Alertă portocalie",
+                    "4": "Alertă roșie"
+                },
+                "state_attributes": {
+                    "total_alerts": {
+                        "name": "Total alerte"
+                    }
+                }
+            },
+            "highest_precipitation": {
+                "name": "Precipitații maxime",
+                "state": {
+                    "1": "Absente sau nesemnificative",
+                    "2": "Slabe",
+                    "3": "Moderate",
+                    "4": "Abundente",
+                    "5": "Foarte abundente"
+                },
+                "state_attributes": {
+                    "total_alerts": {
+                        "name": "Total alerte"
+                    }
+                }
+            },
+            "alert_zone": {
+                "name": "Zonă de alertă"
+            },
+            "vigilance_zone": {
+                "name": "Zonă de vigilență"
+            },
+            "criticality_bulletin": {
+                "name": "Buletin de criticitate hidrogeologică și hidraulică",
+                "state_attributes": {
+                    "id": {
+                        "name": "ID buletin"
+                    },
+                    "link": {
+                        "name": "Link buletin"
+                    },
+                    "last_check": {
+                        "name": "Ultima verificare"
+                    }
+                }
+            },
+            "vigilance_bulletin": {
+                "name": "Buletin de vigilență meteorologică",
+                "state_attributes": {
+                    "id": {
+                        "name": "ID buletin"
+                    },
+                    "link": {
+                        "name": "Link buletin"
+                    },
+                    "last_check": {
+                        "name": "Ultima verificare"
+                    }
+                }
+            },
+            "criticality_valid_until": {
+                "name": "Criticitate valabilă până la"
+            },
+            "vigilance_valid_until": {
+                "name": "Vigilență valabilă până la"
+            },
+            "alert": {
+                "name": "Alertă",
+                "state": {
+                    "green": "Nicio alertă",
+                    "yellow": "Alertă galbenă",
+                    "orange": "Alertă portocalie",
+                    "red": "Alertă roșie"
+                },
+                "state_attributes": {
+                    "risks": {
+                        "name": "Riscuri",
+                        "state": {
+                            "hydraulic": "Risc hidraulic",
+                            "thunderstorms": "Risc de oraje",
+                            "hydrogeological": "Risc hidrogeologic"
+                        }
+                    }
+                }
+            },
+            "criticality": {
+                "name": "Criticitate",
+                "state": {
+                    "absent": "Nu se prevăd fenomene semnificative",
+                    "ordinary_hydraulic": "Criticitate ordinară pentru risc hidraulic",
+                    "ordinary_thunderstorms": "Criticitate ordinară pentru risc de oraje",
+                    "ordinary_hydrogeological": "Criticitate ordinară pentru risc hidrogeologic",
+                    "moderate_hydraulic": "Criticitate moderată pentru risc hidraulic",
+                    "moderate_thunderstorms": "Criticitate moderată pentru risc de oraje",
+                    "moderate_hydrogeological": "Criticitate moderată pentru risc hidrogeologic",
+                    "high_hydraulic": "Criticitate ridicată pentru risc hidraulic",
+                    "high_thunderstorms": "Criticitate ridicată pentru risc de oraje",
+                    "high_hydrogeological": "Criticitate ridicată pentru risc hidrogeologic"
+                }
+            },
+            "hydraulic_risk_level": {
+                "name": "Nivel de risc hidraulic",
+                "state": {
+                    "green": "Nicio alertă",
+                    "yellow": "Alertă galbenă",
+                    "orange": "Alertă portocalie",
+                    "red": "Alertă roșie"
+                }
+            },
+            "thunderstorm_risk_level": {
+                "name": "Nivel de risc de oraje",
+                "state": {
+                    "green": "Nicio alertă",
+                    "yellow": "Alertă galbenă",
+                    "orange": "Alertă portocalie",
+                    "red": "Alertă roșie"
+                }
+            },
+            "hydrogeological_risk_level": {
+                "name": "Nivel de risc hidrogeologic",
+                "state": {
+                    "green": "Nicio alertă",
+                    "yellow": "Alertă galbenă",
+                    "orange": "Alertă portocalie",
+                    "red": "Alertă roșie"
+                }
+            },
+            "precipitation": {
+                "name": "Precipitații",
+                "state": {
+                    "none": "Absente sau nesemnificative",
+                    "light": "Slabe",
+                    "moderate": "Moderate",
+                    "heavy": "Abundente",
+                    "very_heavy": "Foarte abundente"
+                }
+            },
+            "nearby_phenomena": {
+                "name": "Fenomene în apropiere",
+                "unit_of_measurement": "fenomene"
+            }
+        },
+        "image": {
+            "criticality_map": {
+                "name": "Hartă de criticitate",
+                "state_attributes": {
+                    "image_url": {
+                        "name": "URL imagine"
+                    }
+                }
+            },
+            "vigilance_map": {
+                "name": "Hartă de vigilență",
+                "state_attributes": {
+                    "image_url": {
+                        "name": "URL imagine"
+                    }
+                }
+            }
+        },
+        "geo_location": {
+            "precipitation": {
+                "name": "{phenomenon}, {distance} km {direction}",
+                "state_attributes": {
+                    "phenomenon": {
+                        "name": "Fenomen",
+                        "state": {
+                            "scattered_rain": "Ploi împrăștiate sau intermitente",
+                            "widespread_rain": "Ploi generalizate și continue",
+                            "light_snow": "Ninsori slabe sau moderate",
+                            "heavy_snow": "Ninsori abundente",
+                            "isolated_thunderstorms": "Averse sau oraje izolate",
+                            "scattered_thunderstorms": "Averse sau oraje împrăștiate",
+                            "widespread_thunderstorms": "Averse sau oraje generalizate"
+                        }
+                    },
+                    "direction": {
+                        "name": "Direcție",
+                        "state": {
+                            "n": "N",
+                            "nne": "NNE",
+                            "ne": "NE",
+                            "ene": "ENE",
+                            "e": "E",
+                            "ese": "ESE",
+                            "se": "SE",
+                            "sse": "SSE",
+                            "s": "S",
+                            "ssw": "SSV",
+                            "sw": "SV",
+                            "wsw": "VSV",
+                            "w": "V",
+                            "wnw": "VNV",
+                            "nw": "NV",
+                            "nnw": "NNV"
+                        }
+                    }
+                }
+            },
+            "wind": {
+                "name": "{phenomenon}, {distance} km {direction}",
+                "state_attributes": {
+                    "phenomenon": {
+                        "name": "Fenomen",
+                        "state": {
+                            "strong_wind": "Vânt puternic",
+                            "gale": "Vijelie",
+                            "storm": "Furtună",
+                            "frequent_gusts": "Rafale frecvente"
+                        }
+                    },
+                    "direction": {
+                        "name": "Direcție",
+                        "state": {
+                            "n": "N",
+                            "nne": "NNE",
+                            "ne": "NE",
+                            "ene": "ENE",
+                            "e": "E",
+                            "ese": "ESE",
+                            "se": "SE",
+                            "sse": "SSE",
+                            "s": "S",
+                            "ssw": "SSV",
+                            "sw": "SV",
+                            "wsw": "VSV",
+                            "w": "V",
+                            "wnw": "VNV",
+                            "nw": "NV",
+                            "nnw": "NNV"
+                        }
+                    }
+                }
+            },
+            "frost": {
+                "name": "{phenomenon}, {distance} km {direction}",
+                "state_attributes": {
+                    "phenomenon": {
+                        "name": "Fenomen",
+                        "state": {
+                            "ice_on_hills": "Polei generalizat pe sol în zonele de deal",
+                            "ice_on_plains": "Polei generalizat pe sol în zonele de câmpie"
+                        }
+                    },
+                    "direction": {
+                        "name": "Direcție",
+                        "state": {
+                            "n": "N",
+                            "nne": "NNE",
+                            "ne": "NE",
+                            "ene": "ENE",
+                            "e": "E",
+                            "ese": "ESE",
+                            "se": "SE",
+                            "sse": "SSE",
+                            "s": "S",
+                            "ssw": "SSV",
+                            "sw": "SV",
+                            "wsw": "VSV",
+                            "w": "V",
+                            "wnw": "VNV",
+                            "nw": "NV",
+                            "nnw": "NNV"
+                        }
+                    }
+                }
+            },
+            "fog": {
+                "name": "{phenomenon}, {distance} km {direction}",
+                "state_attributes": {
+                    "phenomenon": {
+                        "name": "Fenomen",
+                        "state": {
+                            "night_fog": "Ceață extinsă noaptea și dimineața devreme",
+                            "persistent_fog": "Ceață extinsă și persistentă și în timpul zilei"
+                        }
+                    },
+                    "direction": {
+                        "name": "Direcție",
+                        "state": {
+                            "n": "N",
+                            "nne": "NNE",
+                            "ne": "NE",
+                            "ene": "ENE",
+                            "e": "E",
+                            "ese": "ESE",
+                            "se": "SE",
+                            "sse": "SSE",
+                            "s": "S",
+                            "ssw": "SSV",
+                            "sw": "SV",
+                            "wsw": "VSV",
+                            "w": "V",
+                            "wnw": "VNV",
+                            "nw": "NV",
+                            "nnw": "NNV"
+                        }
+                    }
+                }
+            },
+            "sea": {
+                "name": "{phenomenon}, {distance} km {direction}",
+                "state_attributes": {
+                    "phenomenon": {
+                        "name": "Fenomen",
+                        "state": {
+                            "moderate_sea": "Mare moderată",
+                            "rough_sea": "Mare agitată sau foarte agitată",
+                            "high_sea": "Mare montată sau foarte montată"
+                        }
+                    },
+                    "direction": {
+                        "name": "Direcție",
+                        "state": {
+                            "n": "N",
+                            "nne": "NNE",
+                            "ne": "NE",
+                            "ene": "ENE",
+                            "e": "E",
+                            "ese": "ESE",
+                            "se": "SE",
+                            "sse": "SSE",
+                            "s": "S",
+                            "ssw": "SSV",
+                            "sw": "SV",
+                            "wsw": "VSV",
+                            "w": "V",
+                            "wnw": "VNV",
+                            "nw": "NV",
+                            "nnw": "NNV"
+                        }
+                    }
+                }
+            },
+            "wave_motion": {
+                "name": "{phenomenon}, {distance} km {direction}",
+                "state_attributes": {
+                    "phenomenon": {
+                        "name": "Fenomen",
+                        "state": {
+                            "rising_waves": "Hulă în creștere",
+                            "falling_waves": "Hulă în scădere"
+                        }
+                    },
+                    "direction": {
+                        "name": "Direcție",
+                        "state": {
+                            "n": "N",
+                            "nne": "NNE",
+                            "ne": "NE",
+                            "ene": "ENE",
+                            "e": "E",
+                            "ese": "ESE",
+                            "se": "SE",
+                            "sse": "SSE",
+                            "s": "S",
+                            "ssw": "SSV",
+                            "sw": "SV",
+                            "wsw": "VSV",
+                            "w": "V",
+                            "wnw": "VNV",
+                            "nw": "NV",
+                            "nnw": "NNV"
+                        }
+                    }
+                }
+            },
+            "temperature": {
+                "name": "{phenomenon}, {distance} km {direction}",
+                "state_attributes": {
+                    "phenomenon": {
+                        "name": "Fenomen",
+                        "state": {
+                            "high_temperatures": "Temperaturi ridicate sau în creștere sensibilă",
+                            "very_high_temperatures": "Temperaturi foarte ridicate sau în creștere accentuată",
+                            "low_temperatures": "Temperaturi scăzute sau în scădere sensibilă",
+                            "very_low_temperatures": "Temperaturi foarte scăzute sau în scădere accentuată"
+                        }
+                    },
+                    "direction": {
+                        "name": "Direcție",
+                        "state": {
+                            "n": "N",
+                            "nne": "NNE",
+                            "ne": "NE",
+                            "ene": "ENE",
+                            "e": "E",
+                            "ese": "ESE",
+                            "se": "SE",
+                            "sse": "SSE",
+                            "s": "S",
+                            "ssw": "SSV",
+                            "sw": "SV",
+                            "wsw": "VSV",
+                            "w": "V",
+                            "wnw": "VNV",
+                            "nw": "NV",
+                            "nnw": "NNV"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "exceptions": {
+        "update_failed": {
+            "message": "Nu a putut fi obținut niciun buletin DPC: {error}"
+        },
+        "outside_alert_zones": {
+            "message": "{place} nu se află în nicio zonă de alertă DPC."
+        }
+    }
+}

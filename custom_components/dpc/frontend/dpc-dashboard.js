@@ -166,6 +166,62 @@ const TEXTS = {
     no_places:
       "Añade un lugar de la integración Departamento de Protección Civil para ver aquí sus alertas.",
   },
+  "zh-Hans": {
+    integration_name: "意大利民防部",
+    bulletins: "公报",
+    description:
+      "意大利民防部为您在意大利的地点提供的预警和气象警戒。",
+    no_places:
+      "添加意大利民防部集成的地点，即可在此查看其预警。",
+  },
+  ro: {
+    integration_name: "Departamentul Protecției Civile",
+    bulletins: "Buletine",
+    description:
+      "Alertele și vigilența meteorologică ale Departamentului Protecției Civile pentru locurile tale din Italia.",
+    no_places:
+      "Adaugă un loc al integrării Departamentul Protecției Civile pentru a-i vedea alertele aici.",
+  },
+  ar: {
+    integration_name: "إدارة الحماية المدنية",
+    bulletins: "النشرات",
+    description:
+      "إنذارات ويقظة الطقس من إدارة الحماية المدنية لأماكنك في إيطاليا.",
+    no_places:
+      "أضف مكاناً من تكامل إدارة الحماية المدنية لرؤية إنذاراته هنا.",
+  },
+  uk: {
+    integration_name: "Департамент цивільного захисту",
+    bulletins: "Бюлетені",
+    description:
+      "Попередження та метеорологічна пильність Департаменту цивільного захисту для ваших місць в Італії.",
+    no_places:
+      "Додайте місце інтеграції «Департамент цивільного захисту», щоб побачити тут його попередження.",
+  },
+  sq: {
+    integration_name: "Departamenti i Mbrojtjes Civile",
+    bulletins: "Buletinet",
+    description:
+      "Paralajmërimet dhe vigjilenca meteorologjike e Departamentit të Mbrojtjes Civile për vendet e tua në Itali.",
+    no_places:
+      "Shto një vend të integrimit Departamenti i Mbrojtjes Civile për të parë këtu paralajmërimet e tij.",
+  },
+  bn: {
+    integration_name: "নাগরিক সুরক্ষা বিভাগ",
+    bulletins: "বুলেটিন",
+    description:
+      "ইতালিতে আপনার জায়গাগুলোর জন্য নাগরিক সুরক্ষা বিভাগের সতর্কতা ও আবহাওয়া নজরদারি।",
+    no_places:
+      "এখানে সতর্কতা দেখতে নাগরিক সুরক্ষা বিভাগ ইন্টিগ্রেশনের একটি জায়গা যোগ করুন।",
+  },
+  hi: {
+    integration_name: "नागरिक सुरक्षा विभाग",
+    bulletins: "बुलेटिन",
+    description:
+      "इटली में आपके स्थानों के लिए नागरिक सुरक्षा विभाग की चेतावनियाँ और मौसम सतर्कता।",
+    no_places:
+      "यहाँ इसकी चेतावनियाँ देखने के लिए नागरिक सुरक्षा विभाग इंटीग्रेशन का एक स्थान जोड़ें।",
+  },
 };
 
 /**

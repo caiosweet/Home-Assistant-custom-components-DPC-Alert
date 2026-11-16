@@ -2,4 +2,4 @@ pytest-homeassistant-custom-component==0.13.375
 # Type checking, for the strict-typing rule of the quality scale
 mypy==2.4.1
 # Requirements of the integration (manifest.json), not installed by the test harness
-aiodpc==0.7.0
+aiodpc==0.8.0

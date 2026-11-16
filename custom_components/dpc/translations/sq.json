@@ -1,0 +1,598 @@
+{
+    "title": "Departamenti i Mbrojtjes Civile",
+    "config": {
+        "flow_title": "{name}",
+        "step": {
+            "user": {
+                "title": "Departamenti i Mbrojtjes Civile",
+                "description": "Si dëshiron ta zgjedhësh vendin për t'u monitoruar? Buletinet e DPC mbulojnë Italinë.",
+                "menu_options": {
+                    "map": "Zgjidhe në hartë",
+                    "zone": "Përdor një zonë, si Shtëpia"
+                }
+            },
+            "map": {
+                "title": "Vendi në hartë",
+                "description": "Lëvize gjilpërën te vendi që do të monitorohet.",
+                "data": {
+                    "location": "Vendi"
+                },
+                "data_description": {
+                    "location": "Vendi duhet të jetë në Itali: buletinet e DPC mbulojnë vetëm Italinë."
+                }
+            },
+            "zone": {
+                "title": "Vendi i një zone",
+                "description": "Zgjidh një nga zonat e tua në Home Assistant.",
+                "data": {
+                    "zone": "Zona"
+                },
+                "data_description": {
+                    "zone": "Vendi i zonës kopjohet: zhvendosja e zonës më vonë nuk e zhvendos vendin."
+                }
+            },
+            "municipality": {
+                "title": "Komuna",
+                "description": "Vendi ndodhet në zonën e paralajmërimit të DPC **{zone}**. Zgjidh komunën e tij.",
+                "data": {
+                    "municipality": "Komuna"
+                },
+                "data_description": {
+                    "municipality": "Komunat e mëdha shtrihen në disa zona paralajmërimi: atëherë vendi merr paralajmërimin më të lartë nga të gjitha. Çdo komunë mund të shtohet vetëm një herë."
+                }
+            },
+            "display": {
+                "title": "Çfarë të shfaqet",
+                "description": "Mund t'i ndryshosh më vonë te opsionet.",
+                "data": {
+                    "days": "Ditët",
+                    "entities": "Entitetet"
+                },
+                "data_description": {
+                    "days": "Çdo ditë e zgjedhur merr një pajisje me paralajmërimet, reshjet, hartat dhe fenomenet e saj.",
+                    "entities": "Heqja e shenjës nga një lloj i heq entitetet e tij nga vendi dhe nga çdo ditë."
+                }
+            },
+            "alerts": {
+                "title": "Paralajmërimet",
+                "description": "Mund t'i ndryshosh më vonë te opsionet.",
+                "data": {
+                    "warning_level": "Niveli minimal i paralajmërimit",
+                    "radius": "Rrezja e fenomeneve",
+                    "scan_interval": "Intervali i përditësimit"
+                },
+                "data_description": {
+                    "warning_level": "Sensori binar i çdo rreziku ndizet nga ky nivel e lart.",
+                    "radius": "Fenomenet e motit brenda kësaj largësie nga vendi, në km (parazgjedhja 50).",
+                    "scan_interval": "Minutat ndërmjet kontrolleve për buletine të reja (parazgjedhja 30)."
+                }
+            }
+        },
+        "error": {
+            "coordinates_outside": "Koordinatat janë jashtë zonave të paralajmërimit të DPC.",
+            "cannot_connect": "Koordinatat nuk mund të verifikohen. Kontrollo lidhjen.",
+            "zone_not_found": "Zona nuk u gjet.",
+            "municipality_in_use": "{municipality} është konfiguruar tashmë: çdo komunë mund të shtohet vetëm një herë.",
+            "municipality_not_listed": "Zgjidh një komunë nga lista."
+        },
+        "abort": {
+            "single_instance_allowed": "Mbështeten disa instanca. Çdo vend mund të shtohet vetëm një herë.",
+            "already_configured": "Një hyrje për këtë vend është konfiguruar tashmë."
+        },
+        "create_entry": {
+            "default": "Për të parë paralajmërimet në një panel, shko te **Cilësimet → Panelet → Shto panel** dhe zgjidh **DPC Alert** ndër panelet e komunitetit. Nëse nuk shfaqet, ringarko faqen."
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "title": "Çfarë të ndryshohet",
+                "menu_options": {
+                    "place": "Komuna",
+                    "display": "Çfarë të shfaqet",
+                    "alerts": "Paralajmërimet"
+                }
+            },
+            "place": {
+                "title": "Komuna",
+                "data": {
+                    "municipality": "Komuna"
+                },
+                "data_description": {
+                    "municipality": "Komunat e mëdha shtrihen në disa zona paralajmërimi: atëherë vendi merr paralajmërimin më të lartë nga të gjitha. Çdo komunë mund të shtohet vetëm një herë."
+                }
+            },
+            "display": {
+                "title": "Çfarë të shfaqet",
+                "data": {
+                    "days": "Ditët",
+                    "entities": "Entitetet"
+                },
+                "data_description": {
+                    "days": "Çdo ditë e zgjedhur merr një pajisje me paralajmërimet, reshjet, hartat dhe fenomenet e saj.",
+                    "entities": "Heqja e shenjës nga një lloj i heq entitetet e tij nga vendi dhe nga çdo ditë."
+                }
+            },
+            "alerts": {
+                "title": "Paralajmërimet",
+                "data": {
+                    "warning_level": "Niveli minimal i paralajmërimit",
+                    "radius": "Rrezja e fenomeneve",
+                    "scan_interval": "Intervali i përditësimit"
+                },
+                "data_description": {
+                    "warning_level": "Sensori binar i çdo rreziku ndizet nga ky nivel e lart.",
+                    "radius": "Fenomenet e motit brenda kësaj largësie nga vendi, në km (parazgjedhja 50).",
+                    "scan_interval": "Minutat ndërmjet kontrolleve për buletine të reja (parazgjedhja 30)."
+                }
+            }
+        },
+        "error": {
+            "municipality_not_listed": "Zgjidh një komunë nga lista.",
+            "municipality_in_use": "{municipality} është konfiguruar tashmë: çdo komunë mund të shtohet vetëm një herë."
+        }
+    },
+    "selector": {
+        "days": {
+            "options": {
+                "today": "Sot",
+                "tomorrow": "Nesër",
+                "aftertomorrow": "Pasnesër"
+            }
+        },
+        "entities": {
+            "options": {
+                "binary_sensor": "Sensorët binarë të rreziqeve",
+                "sensor": "Sensorët",
+                "image": "Hartat",
+                "geo_location": "Fenomenet në hartë"
+            }
+        },
+        "warning_level": {
+            "options": {
+                "2": "Paralajmërim i verdhë",
+                "3": "Paralajmërim portokalli",
+                "4": "Paralajmërim i kuq"
+            }
+        }
+    },
+    "device": {
+        "today": {
+            "name": "{place} · Sot"
+        },
+        "tomorrow": {
+            "name": "{place} · Nesër"
+        },
+        "aftertomorrow": {
+            "name": "{place} · Pasnesër"
+        }
+    },
+    "entity": {
+        "binary_sensor": {
+            "hydraulic_risk": {
+                "name": "Rrezik hidraulik"
+            },
+            "thunderstorm_risk": {
+                "name": "Rrezik shtrëngatash"
+            },
+            "hydrogeological_risk": {
+                "name": "Rrezik hidrogjeologjik"
+            }
+        },
+        "sensor": {
+            "highest_alert": {
+                "name": "Paralajmërimi më i lartë",
+                "state": {
+                    "1": "Asnjë paralajmërim",
+                    "2": "Paralajmërim i verdhë",
+                    "3": "Paralajmërim portokalli",
+                    "4": "Paralajmërim i kuq"
+                },
+                "state_attributes": {
+                    "total_alerts": {
+                        "name": "Totali i paralajmërimeve"
+                    }
+                }
+            },
+            "highest_precipitation": {
+                "name": "Reshjet më të larta",
+                "state": {
+                    "1": "Mungojnë ose të parëndësishme",
+                    "2": "Të dobëta",
+                    "3": "Të moderuara",
+                    "4": "Të bollshme",
+                    "5": "Shumë të bollshme"
+                },
+                "state_attributes": {
+                    "total_alerts": {
+                        "name": "Totali i paralajmërimeve"
+                    }
+                }
+            },
+            "alert_zone": {
+                "name": "Zona e paralajmërimit"
+            },
+            "vigilance_zone": {
+                "name": "Zona e vigjilencës"
+            },
+            "criticality_bulletin": {
+                "name": "Buletini i kritikalitetit hidrogjeologjik dhe hidraulik",
+                "state_attributes": {
+                    "id": {
+                        "name": "ID e buletinit"
+                    },
+                    "link": {
+                        "name": "Lidhja e buletinit"
+                    },
+                    "last_check": {
+                        "name": "Kontrolli i fundit"
+                    }
+                }
+            },
+            "vigilance_bulletin": {
+                "name": "Buletini i vigjilencës meteorologjike",
+                "state_attributes": {
+                    "id": {
+                        "name": "ID e buletinit"
+                    },
+                    "link": {
+                        "name": "Lidhja e buletinit"
+                    },
+                    "last_check": {
+                        "name": "Kontrolli i fundit"
+                    }
+                }
+            },
+            "criticality_valid_until": {
+                "name": "Kritikaliteti i vlefshëm deri më"
+            },
+            "vigilance_valid_until": {
+                "name": "Vigjilenca e vlefshme deri më"
+            },
+            "alert": {
+                "name": "Paralajmërimi",
+                "state": {
+                    "green": "Asnjë paralajmërim",
+                    "yellow": "Paralajmërim i verdhë",
+                    "orange": "Paralajmërim portokalli",
+                    "red": "Paralajmërim i kuq"
+                },
+                "state_attributes": {
+                    "risks": {
+                        "name": "Rreziqet",
+                        "state": {
+                            "hydraulic": "Rrezik hidraulik",
+                            "thunderstorms": "Rrezik shtrëngatash",
+                            "hydrogeological": "Rrezik hidrogjeologjik"
+                        }
+                    }
+                }
+            },
+            "criticality": {
+                "name": "Kritikaliteti",
+                "state": {
+                    "absent": "Nuk parashikohen fenomene të rëndësishme",
+                    "ordinary_hydraulic": "Kritikalitet i zakonshëm për rrezik hidraulik",
+                    "ordinary_thunderstorms": "Kritikalitet i zakonshëm për rrezik shtrëngatash",
+                    "ordinary_hydrogeological": "Kritikalitet i zakonshëm për rrezik hidrogjeologjik",
+                    "moderate_hydraulic": "Kritikalitet i moderuar për rrezik hidraulik",
+                    "moderate_thunderstorms": "Kritikalitet i moderuar për rrezik shtrëngatash",
+                    "moderate_hydrogeological": "Kritikalitet i moderuar për rrezik hidrogjeologjik",
+                    "high_hydraulic": "Kritikalitet i lartë për rrezik hidraulik",
+                    "high_thunderstorms": "Kritikalitet i lartë për rrezik shtrëngatash",
+                    "high_hydrogeological": "Kritikalitet i lartë për rrezik hidrogjeologjik"
+                }
+            },
+            "hydraulic_risk_level": {
+                "name": "Rrezik hidraulik: niveli",
+                "state": {
+                    "green": "Asnjë paralajmërim",
+                    "yellow": "Paralajmërim i verdhë",
+                    "orange": "Paralajmërim portokalli",
+                    "red": "Paralajmërim i kuq"
+                }
+            },
+            "thunderstorm_risk_level": {
+                "name": "Rrezik shtrëngatash: niveli",
+                "state": {
+                    "green": "Asnjë paralajmërim",
+                    "yellow": "Paralajmërim i verdhë",
+                    "orange": "Paralajmërim portokalli",
+                    "red": "Paralajmërim i kuq"
+                }
+            },
+            "hydrogeological_risk_level": {
+                "name": "Rrezik hidrogjeologjik: niveli",
+                "state": {
+                    "green": "Asnjë paralajmërim",
+                    "yellow": "Paralajmërim i verdhë",
+                    "orange": "Paralajmërim portokalli",
+                    "red": "Paralajmërim i kuq"
+                }
+            },
+            "precipitation": {
+                "name": "Reshje",
+                "state": {
+                    "none": "Mungojnë ose të parëndësishme",
+                    "light": "Të dobëta",
+                    "moderate": "Të moderuara",
+                    "heavy": "Të bollshme",
+                    "very_heavy": "Shumë të bollshme"
+                }
+            },
+            "nearby_phenomena": {
+                "name": "Fenomene afër",
+                "unit_of_measurement": "fenomene"
+            }
+        },
+        "image": {
+            "criticality_map": {
+                "name": "Harta e kritikalitetit",
+                "state_attributes": {
+                    "image_url": {
+                        "name": "URL e imazhit"
+                    }
+                }
+            },
+            "vigilance_map": {
+                "name": "Harta e vigjilencës",
+                "state_attributes": {
+                    "image_url": {
+                        "name": "URL e imazhit"
+                    }
+                }
+            }
+        },
+        "geo_location": {
+            "precipitation": {
+                "name": "{phenomenon}, {distance} km {direction}",
+                "state_attributes": {
+                    "phenomenon": {
+                        "name": "Fenomeni",
+                        "state": {
+                            "scattered_rain": "Shira të shpërndara ose me ndërprerje",
+                            "widespread_rain": "Shira të përhapura dhe të vazhdueshme",
+                            "light_snow": "Reshje bore të dobëta ose të moderuara",
+                            "heavy_snow": "Reshje të bollshme bore",
+                            "isolated_thunderstorms": "Rrebeshe ose shtrëngata të izoluara",
+                            "scattered_thunderstorms": "Rrebeshe ose shtrëngata të shpërndara",
+                            "widespread_thunderstorms": "Rrebeshe ose shtrëngata të përhapura"
+                        }
+                    },
+                    "direction": {
+                        "name": "Drejtimi",
+                        "state": {
+                            "n": "V",
+                            "nne": "VVL",
+                            "ne": "VL",
+                            "ene": "LVL",
+                            "e": "L",
+                            "ese": "LJL",
+                            "se": "JL",
+                            "sse": "JJL",
+                            "s": "J",
+                            "ssw": "JJP",
+                            "sw": "JP",
+                            "wsw": "PJP",
+                            "w": "P",
+                            "wnw": "PVP",
+                            "nw": "VP",
+                            "nnw": "VVP"
+                        }
+                    }
+                }
+            },
+            "wind": {
+                "name": "{phenomenon}, {distance} km {direction}",
+                "state_attributes": {
+                    "phenomenon": {
+                        "name": "Fenomeni",
+                        "state": {
+                            "strong_wind": "Erëra të forta",
+                            "gale": "Furtunë",
+                            "storm": "Stuhi",
+                            "frequent_gusts": "Shpërthime të shpeshta ere"
+                        }
+                    },
+                    "direction": {
+                        "name": "Drejtimi",
+                        "state": {
+                            "n": "V",
+                            "nne": "VVL",
+                            "ne": "VL",
+                            "ene": "LVL",
+                            "e": "L",
+                            "ese": "LJL",
+                            "se": "JL",
+                            "sse": "JJL",
+                            "s": "J",
+                            "ssw": "JJP",
+                            "sw": "JP",
+                            "wsw": "PJP",
+                            "w": "P",
+                            "wnw": "PVP",
+                            "nw": "VP",
+                            "nnw": "VVP"
+                        }
+                    }
+                }
+            },
+            "frost": {
+                "name": "{phenomenon}, {distance} km {direction}",
+                "state_attributes": {
+                    "phenomenon": {
+                        "name": "Fenomeni",
+                        "state": {
+                            "ice_on_hills": "Akull i përhapur në tokë në zonat kodrinore",
+                            "ice_on_plains": "Akull i përhapur në tokë në zonat fushore"
+                        }
+                    },
+                    "direction": {
+                        "name": "Drejtimi",
+                        "state": {
+                            "n": "V",
+                            "nne": "VVL",
+                            "ne": "VL",
+                            "ene": "LVL",
+                            "e": "L",
+                            "ese": "LJL",
+                            "se": "JL",
+                            "sse": "JJL",
+                            "s": "J",
+                            "ssw": "JJP",
+                            "sw": "JP",
+                            "wsw": "PJP",
+                            "w": "P",
+                            "wnw": "PVP",
+                            "nw": "VP",
+                            "nnw": "VVP"
+                        }
+                    }
+                }
+            },
+            "fog": {
+                "name": "{phenomenon}, {distance} km {direction}",
+                "state_attributes": {
+                    "phenomenon": {
+                        "name": "Fenomeni",
+                        "state": {
+                            "night_fog": "Mjegull e përhapur natën dhe herët në mëngjes",
+                            "persistent_fog": "Mjegull e përhapur dhe e vazhdueshme edhe gjatë ditës"
+                        }
+                    },
+                    "direction": {
+                        "name": "Drejtimi",
+                        "state": {
+                            "n": "V",
+                            "nne": "VVL",
+                            "ne": "VL",
+                            "ene": "LVL",
+                            "e": "L",
+                            "ese": "LJL",
+                            "se": "JL",
+                            "sse": "JJL",
+                            "s": "J",
+                            "ssw": "JJP",
+                            "sw": "JP",
+                            "wsw": "PJP",
+                            "w": "P",
+                            "wnw": "PVP",
+                            "nw": "VP",
+                            "nnw": "VVP"
+                        }
+                    }
+                }
+            },
+            "sea": {
+                "name": "{phenomenon}, {distance} km {direction}",
+                "state_attributes": {
+                    "phenomenon": {
+                        "name": "Fenomeni",
+                        "state": {
+                            "moderate_sea": "Det mesatarisht i trazuar",
+                            "rough_sea": "Det i trazuar ose shumë i trazuar",
+                            "high_sea": "Det i fortë ose shumë i fortë"
+                        }
+                    },
+                    "direction": {
+                        "name": "Drejtimi",
+                        "state": {
+                            "n": "V",
+                            "nne": "VVL",
+                            "ne": "VL",
+                            "ene": "LVL",
+                            "e": "L",
+                            "ese": "LJL",
+                            "se": "JL",
+                            "sse": "JJL",
+                            "s": "J",
+                            "ssw": "JJP",
+                            "sw": "JP",
+                            "wsw": "PJP",
+                            "w": "P",
+                            "wnw": "PVP",
+                            "nw": "VP",
+                            "nnw": "VVP"
+                        }
+                    }
+                }
+            },
+            "wave_motion": {
+                "name": "{phenomenon}, {distance} km {direction}",
+                "state_attributes": {
+                    "phenomenon": {
+                        "name": "Fenomeni",
+                        "state": {
+                            "rising_waves": "Dallgëzim në rritje",
+                            "falling_waves": "Dallgëzim në rënie"
+                        }
+                    },
+                    "direction": {
+                        "name": "Drejtimi",
+                        "state": {
+                            "n": "V",
+                            "nne": "VVL",
+                            "ne": "VL",
+                            "ene": "LVL",
+                            "e": "L",
+                            "ese": "LJL",
+                            "se": "JL",
+                            "sse": "JJL",
+                            "s": "J",
+                            "ssw": "JJP",
+                            "sw": "JP",
+                            "wsw": "PJP",
+                            "w": "P",
+                            "wnw": "PVP",
+                            "nw": "VP",
+                            "nnw": "VVP"
+                        }
+                    }
+                }
+            },
+            "temperature": {
+                "name": "{phenomenon}, {distance} km {direction}",
+                "state_attributes": {
+                    "phenomenon": {
+                        "name": "Fenomeni",
+                        "state": {
+                            "high_temperatures": "Temperatura të larta ose në rritje të ndjeshme",
+                            "very_high_temperatures": "Temperatura shumë të larta ose në rritje të fortë",
+                            "low_temperatures": "Temperatura të ulëta ose në rënie të ndjeshme",
+                            "very_low_temperatures": "Temperatura shumë të ulëta ose në rënie të fortë"
+                        }
+                    },
+                    "direction": {
+                        "name": "Drejtimi",
+                        "state": {
+                            "n": "V",
+                            "nne": "VVL",
+                            "ne": "VL",
+                            "ene": "LVL",
+                            "e": "L",
+                            "ese": "LJL",
+                            "se": "JL",
+                            "sse": "JJL",
+                            "s": "J",
+                            "ssw": "JJP",
+                            "sw": "JP",
+                            "wsw": "PJP",
+                            "w": "P",
+                            "wnw": "PVP",
+                            "nw": "VP",
+                            "nnw": "VVP"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "exceptions": {
+        "update_failed": {
+            "message": "Nuk u mor asnjë buletin i DPC: {error}"
+        },
+        "outside_alert_zones": {
+            "message": "{place} nuk ndodhet në asnjë zonë paralajmërimi të DPC."
+        }
+    }
+}

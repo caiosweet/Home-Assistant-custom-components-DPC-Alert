@@ -134,8 +134,13 @@ Users' automations and dashboards depend on what the integration exposes.
 ## Home Assistant conventions
 
 - `strings.json` is the source of the texts and `translations/en.json` is
-  identical to it. Every key exists in the six languages: en, it, pt-BR, fr,
-  de, es. The top-level `title` is the translated name of the integration.
+  identical to it. Every key exists in each language of aiodpc, with the tag
+  Home Assistant names its file with: en, it, pt-BR, fr, de, es, zh-Hans, ro,
+  ar, uk, sq, bn, hi. The top-level `title` is the translated name of the
+  integration, and the dashboard (`TEXTS` in `frontend/dpc-dashboard.js`) has
+  the same languages, with that name. A new language of aiodpc needs its file
+  here, the risk level template of `scripts/translations.py`, and its texts
+  in the dashboard.
 - Data is an entity, not an attribute: a level, a zone, a bulletin is an
   entity of the place or of its day. Attributes are left for what is not an
   entity of its own (`risks`, `total_alerts`, `image_url`, the `id` of a

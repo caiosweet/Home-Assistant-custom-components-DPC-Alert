@@ -436,6 +436,9 @@ describe("helpers", () => {
     assert.equal(textsIn("pt").bulletins, "Boletins");
     assert.equal(textsIn("ja").bulletins, "Bulletins");
     assert.equal(textsIn(undefined).bulletins, "Bulletins");
+    // Chinese in any script or region: the simplified texts
+    assert.equal(textsIn("zh-Hant").bulletins, "公报");
+    assert.equal(textsIn("uk").bulletins, "Бюлетені");
   });
 
   it("localizes the dashboard creation suggestion", () => {
@@ -451,6 +454,8 @@ describe("helpers", () => {
     assert.deepEqual(dashboardSuggestion("de").title, "Zivilschutzabteilung");
     assert.deepEqual(dashboardSuggestion("es").title, "Departamento de Protección Civil");
     assert.deepEqual(dashboardSuggestion("en").title, "Civil Protection Department");
+    assert.deepEqual(dashboardSuggestion("ar").title, "إدارة الحماية المدنية");
+    assert.deepEqual(dashboardSuggestion("hi").title, "नागरिक सुरक्षा विभाग");
   });
 
   it("makes URL paths of names", () => {

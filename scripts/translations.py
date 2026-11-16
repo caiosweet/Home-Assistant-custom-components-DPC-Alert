@@ -55,6 +55,15 @@ RISK_LEVEL_NAMES: Final = {
     Language.FRENCH: "Niveau de {risk}",
     Language.GERMAN: "Warnstufe {risk}",
     Language.SPANISH: "Nivel de {risk}",
+    Language.SIMPLIFIED_CHINESE: "{risk}级别",
+    Language.ROMANIAN: "Nivel de {risk}",
+    Language.ARABIC: "مستوى {risk}",
+    # Without declining the risk, which aiodpc writes in the nominative
+    Language.UKRAINIAN: "{risk}: рівень",
+    Language.ALBANIAN: "{risk}: niveli",
+    # Each risk ends with ঝুঁকি, which takes the possessive ending র
+    Language.BENGALI: "{risk}র মাত্রা",
+    Language.HINDI: "{risk} का स्तर",
 }
 """The name of the level of a risk, around the risk as aiodpc writes it within a
 sentence ("hydraulic risk")."""

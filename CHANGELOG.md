@@ -65,6 +65,9 @@ that followed them.
   colors of the DPC maps. All with the cards of Home Assistant; what has no
   data, such as the maps of tomorrow after midnight, is hidden. Adding a place
   now ends with a pointer to it.
+- Seven languages: Simplified Chinese, Romanian, Arabic, Ukrainian, Albanian,
+  Bengali and Hindi, for the setup, the options, the entities and the
+  dashboard, with the texts of aiodpc for the levels, risks and phenomena.
 - The options can turn off the maps and the phenomena, like the sensors.
   Turning off a kind of entities removes them, instead of leaving them
   unavailable.
@@ -98,7 +101,7 @@ that followed them.
 - The `attribution` of the entities is the one the CC BY 4.0 license of the
   DPC data asks for: "Dipartimento della Protezione Civile – Presidenza del
   Consiglio dei Ministri".
-- Requires aiodpc 0.7.0.
+- Requires aiodpc 0.8.0.
 
 ### Fixed
 
