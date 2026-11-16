@@ -8,7 +8,7 @@ from typing import Any
 from aiodpc import AlertLevel, CriticalityDay, Precipitation, Risk, VigilanceDay
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE, CONF_NAME
+from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE, CONF_NAME, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -41,11 +41,16 @@ async def async_setup_entry(
         [
             DpcSensorCriticality(coordinator, entry),
             DpcSensorVigilance(coordinator, entry),
+            # Only the vigilance bulletin covers the day after tomorrow
             *(
                 DpcAlertDaySensor(coordinator, entry, day)
-                for day in (PlaceDay.TODAY, PlaceDay.TOMORROW)
+                for day in coordinator.days
+                if day is not PlaceDay.AFTER_TOMORROW
             ),
-            *(DpcPrecipitationDaySensor(coordinator, entry, day) for day in PlaceDay),
+            *(
+                DpcPrecipitationDaySensor(coordinator, entry, day)
+                for day in coordinator.days
+            ),
         ]
     )
 
@@ -68,12 +73,13 @@ class DpcSensorCriticality(DpcEntity, SensorEntity):
     def __init__(
         self, coordinator: DpcDataUpdateCoordinator, entry: ConfigEntry
     ) -> None:
-        """Initialize Entities."""
+        """Initialize the highest alert of the place."""
         super().__init__(coordinator, entry)
         self._attr_unique_id = (
             f"{entry.data.get(CONF_NAME)}_criticality_"
             f"{entry.data.get(CONF_LATITUDE)}_{entry.data.get(CONF_LONGITUDE)}"
         )
+        self.suggest_entity_id(Platform.SENSOR, "criticality")
 
     @property
     def available(self) -> bool:
@@ -120,12 +126,13 @@ class DpcSensorVigilance(DpcEntity, SensorEntity):
     def __init__(
         self, coordinator: DpcDataUpdateCoordinator, entry: ConfigEntry
     ) -> None:
-        """Initialize Entities."""
+        """Initialize the highest precipitation of the place."""
         super().__init__(coordinator, entry)
         self._attr_unique_id = (
             f"{entry.data.get(CONF_NAME)}_vigilance_"
             f"{entry.data.get(CONF_LATITUDE)}_{entry.data.get(CONF_LONGITUDE)}"
         )
+        self.suggest_entity_id(Platform.SENSOR, "vigilance")
 
     @property
     def available(self) -> bool:
@@ -190,11 +197,11 @@ class DpcDaySensor(DpcEntity, SensorEntity):
         day: PlaceDay,
     ) -> None:
         """Initialize the sensor of a level ("alert") on a day ("today")."""
-        super().__init__(coordinator, entry)
-        key = f"{level}_{day}"
+        super().__init__(coordinator, entry, day)
         self._day = day
-        self._attr_translation_key = key
-        self._attr_unique_id = f"{entry.unique_id}-{key}"
+        self._attr_translation_key = level
+        self._attr_unique_id = f"{entry.unique_id}-{level}_{day}"
+        self.suggest_entity_id(Platform.SENSOR, level)
 
 
 class DpcAlertDaySensor(DpcDaySensor):

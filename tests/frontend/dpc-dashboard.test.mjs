@@ -13,42 +13,47 @@ import {
   textsIn,
 } from "../../custom_components/dpc/frontend/dpc-dashboard.js";
 
-/** Return the registry entries of the entities of a DPC place. */
+/** The days of a place, as the identifiers of their devices end and in entity IDs. */
+const DAY_IDS = { today: "today", tomorrow: "tomorrow", aftertomorrow: "after_tomorrow" };
+
+/** Return the devices of a DPC place: the place, and its days linked to it. */
+function placeDevices(id, name) {
+  return Object.fromEntries([
+    [id, { id, name, identifiers: [["dpc", 41.9, 12.5]] }],
+    ...Object.keys(DAY_IDS).map((day) => [
+      `${id}-${day}`,
+      {
+        id: `${id}-${day}`,
+        name: `${name} ${day}`,
+        identifiers: [["dpc", `41.900000_12.500000-${day}`]],
+        via_device_id: id,
+      },
+    ]),
+  ]);
+}
+
+/** Return the registry entries of the entities of a DPC place and of its days. */
 function placeEntities(device, prefix, phenomena = []) {
-  const keys = {
-    sensor: [
-      "criticality",
-      "vigilance",
-      "alert_today",
-      "alert_tomorrow",
-      "precipitation_today",
-      "precipitation_tomorrow",
-      "precipitation_aftertomorrow",
-    ],
-    binary_sensor: [
-      "idraulico_oggi",
-      "temporali_oggi",
-      "idrogeologico_oggi",
-      "idraulico_domani",
-      "temporali_domani",
-      "idrogeologico_domani",
-    ],
-    image: [
-      "criticality_map_today",
-      "criticality_map_tomorrow",
-      "vigilance_map_today",
-      "vigilance_map_tomorrow",
-    ],
-    geo_location: phenomena,
-  };
-  return Object.entries(keys).flatMap(([domain, translationKeys]) =>
-    translationKeys.map((key) => ({
-      entity_id: `${domain}.${prefix}_${key}`,
-      platform: "dpc",
-      device_id: device,
-      translation_key: key,
-    })),
-  );
+  const entity = (domain, key, day = null) => ({
+    entity_id: day ? `${domain}.${prefix}_${DAY_IDS[day]}_${key}` : `${domain}.${prefix}_${key}`,
+    platform: "dpc",
+    device_id: day ? `${device}-${day}` : device,
+    translation_key: key,
+  });
+  return [
+    entity("sensor", "criticality"),
+    entity("sensor", "vigilance"),
+    ...["today", "tomorrow"].flatMap((day) => [
+      entity("sensor", "alert", day),
+      ...["hydraulic_risk", "thunderstorm_risk", "hydrogeological_risk"].map((key) =>
+        entity("binary_sensor", key, day),
+      ),
+      entity("image", "criticality_map", day),
+      entity("image", "vigilance_map", day),
+    ]),
+    ...Object.keys(DAY_IDS).map((day) => entity("sensor", "precipitation", day)),
+    ...phenomena.map((category) => entity("geo_location", category, "today")),
+  ];
 }
 
 /** Return a Home Assistant with the places Roma (with 2 phenomena) and Portula. */
@@ -60,13 +65,12 @@ function homeAssistant({ version = "2026.11.0", language = "en", entities = [] }
     { entity_id: "sensor.other", platform: "other", device_id: "roma" },
     ...entities,
   ];
+  const portula = placeDevices("portula", "Portula");
+  portula.portula.name_by_user = null;
   return {
     config: { version },
     locale: { language },
-    devices: {
-      roma: { id: "roma", name: "Roma" },
-      portula: { id: "portula", name: "Portula", name_by_user: null },
-    },
+    devices: { ...placeDevices("roma", "Roma"), ...portula },
     entities: Object.fromEntries(all.map((entry) => [entry.entity_id, entry])),
   };
 }
@@ -95,7 +99,7 @@ describe("dashboard", () => {
   it("gives places of the same name different paths", () => {
     const hass = homeAssistant({ entities: placeEntities("peglio2", "dpc_peglio_2") });
     hass.devices.portula.name_by_user = "Peglio";
-    hass.devices.peglio2 = { id: "peglio2", name: "Peglio" };
+    Object.assign(hass.devices, placeDevices("peglio2", "Peglio"));
 
     const paths = generateDashboard(hass).views.map((view) => view.path);
 
@@ -123,26 +127,48 @@ describe("dashboard", () => {
       ["Portula", "Roma"],
     );
   });
+
+  it("finds the entities of a place on the devices of its days", () => {
+    const [, roma] = findPlaces(homeAssistant());
+
+    assert.equal(roma.entity("sensor", "criticality"), "sensor.dpc_roma_criticality");
+    assert.equal(roma.entity("sensor", "alert", "tomorrow"), "sensor.dpc_roma_tomorrow_alert");
+    assert.equal(roma.entity("sensor", "alert"), undefined);
+    assert.equal(
+      roma.entity("sensor", "precipitation", "aftertomorrow"),
+      "sensor.dpc_roma_after_tomorrow_precipitation",
+    );
+  });
+
+  it("leaves out a day whose place is gone", () => {
+    const hass = homeAssistant();
+    delete hass.devices.portula;
+
+    assert.deepEqual(
+      findPlaces(hass).map((place) => place.name),
+      ["Roma"],
+    );
+  });
 });
 
 describe("view of a place", () => {
   it("shows the alert of each day in the color of its level", () => {
     const view = generateView({ device_id: "roma" }, homeAssistant());
-    const today = cardsOf(view).filter((card) => card.entity === "sensor.dpc_roma_alert_today");
+    const today = cardsOf(view).filter((card) => card.entity === "sensor.dpc_roma_today_alert");
 
     assert.deepEqual(
       today.map((card) => [card.color, card.visibility]),
       [
-        ["green", [{ condition: "state", entity: "sensor.dpc_roma_alert_today", state: "green" }]],
-        ["yellow", [{ condition: "state", entity: "sensor.dpc_roma_alert_today", state: "yellow" }]],
-        ["orange", [{ condition: "state", entity: "sensor.dpc_roma_alert_today", state: "orange" }]],
-        ["red", [{ condition: "state", entity: "sensor.dpc_roma_alert_today", state: "red" }]],
+        ["green", [{ condition: "state", entity: "sensor.dpc_roma_today_alert", state: "green" }]],
+        ["yellow", [{ condition: "state", entity: "sensor.dpc_roma_today_alert", state: "yellow" }]],
+        ["orange", [{ condition: "state", entity: "sensor.dpc_roma_today_alert", state: "orange" }]],
+        ["red", [{ condition: "state", entity: "sensor.dpc_roma_today_alert", state: "red" }]],
         [
           undefined,
           [
             {
               condition: "state",
-              entity: "sensor.dpc_roma_alert_today",
+              entity: "sensor.dpc_roma_today_alert",
               state_not: ["green", "yellow", "orange", "red", "unknown", "unavailable"],
             },
           ],
@@ -156,7 +182,7 @@ describe("view of a place", () => {
   it("shows a banner per risk on, in the color of its level", () => {
     const view = generateView({ device_id: "roma" }, homeAssistant());
     const banners = cardsOf(view).filter(
-      (card) => card.entity === "binary_sensor.dpc_roma_idrogeologico_domani",
+      (card) => card.entity === "binary_sensor.dpc_roma_tomorrow_hydrogeological_risk",
     );
 
     assert.deepEqual(
@@ -166,7 +192,7 @@ describe("view of a place", () => {
         ["green", "yellow", "orange", "red"][index],
         {
           condition: "numeric_state",
-          entity: "binary_sensor.dpc_roma_idrogeologico_domani",
+          entity: "binary_sensor.dpc_roma_tomorrow_hydrogeological_risk",
           attribute: "level",
           above: level - 1,
           below: level + 1,
@@ -176,7 +202,7 @@ describe("view of a place", () => {
     for (const banner of banners) {
       assert.deepEqual(banner.visibility[0], {
         condition: "state",
-        entity: "binary_sensor.dpc_roma_idrogeologico_domani",
+        entity: "binary_sensor.dpc_roma_tomorrow_hydrogeological_risk",
         state: "on",
       });
       assert.equal(banner.hide_state, true);
@@ -202,7 +228,7 @@ describe("view of a place", () => {
     const [, vigilance] = view.sections;
 
     const precipitation = vigilance.cards.filter(
-      (card) => card.entity === "sensor.dpc_roma_precipitation_aftertomorrow",
+      (card) => card.entity === "sensor.dpc_roma_after_tomorrow_precipitation",
     );
     assert.deepEqual(
       precipitation.map((card) => card.color),
@@ -210,18 +236,18 @@ describe("view of a place", () => {
     );
     const map = vigilance.cards.find((card) => card.type === "map");
     assert.deepEqual(map.entities, [
-      { entity: "geo_location.dpc_roma_precipitation" },
-      { entity: "geo_location.dpc_roma_sea" },
+      { entity: "geo_location.dpc_roma_today_precipitation" },
+      { entity: "geo_location.dpc_roma_today_sea" },
     ]);
     assert.deepEqual(
       vigilance.cards.filter((card) => card.type === "picture-entity").map((card) => card.entity),
-      ["image.dpc_roma_vigilance_map_today", "image.dpc_roma_vigilance_map_tomorrow"],
+      ["image.dpc_roma_today_vigilance_map", "image.dpc_roma_tomorrow_vigilance_map"],
     );
     assert.deepEqual(
       vigilance.cards.filter((card) => card.type === "picture-entity").map((card) => card.visibility),
       [
-        [{ condition: "state", entity: "image.dpc_roma_vigilance_map_today", state_not: ["unknown", "unavailable"] }],
-        [{ condition: "state", entity: "image.dpc_roma_vigilance_map_tomorrow", state_not: ["unknown", "unavailable"] }],
+        [{ condition: "state", entity: "image.dpc_roma_today_vigilance_map", state_not: ["unknown", "unavailable"] }],
+        [{ condition: "state", entity: "image.dpc_roma_tomorrow_vigilance_map", state_not: ["unknown", "unavailable"] }],
       ],
     );
   });

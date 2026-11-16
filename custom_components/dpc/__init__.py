@@ -29,6 +29,7 @@ from .const import (
 )
 from .coordinator import DpcConfigEntry, DpcDataUpdateCoordinator
 from .dashboard import async_offer_the_dashboard
+from .entity import async_set_up_the_devices
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
@@ -56,6 +57,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: DpcConfigEntry) -> bool:
     coordinator = DpcDataUpdateCoordinator(hass, entry, bulletins)
     await coordinator.async_config_entry_first_refresh()
     entry.runtime_data = coordinator
+    coordinator.place_device = async_set_up_the_devices(hass, entry, coordinator.days)
 
     coordinator.platforms = [
         platform for platform in PLATFORMS if entry.options.get(platform, True)

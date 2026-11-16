@@ -8,13 +8,14 @@ from aiodpc import Phenomenon
 from freezegun.api import FrozenDateTimeFactory
 from homeassistant.const import STATE_UNAVAILABLE, Platform, UnitOfLength
 from homeassistant.core import HomeAssistant, State
-from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers import device_registry as dr, entity_registry as er
+import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 from pytest_homeassistant_custom_component.test_util.aiohttp import (
     AiohttpClientMocker,
 )
 
-from custom_components.dpc.const import DOMAIN
+from custom_components.dpc.const import CONF_DAYS, DOMAIN
 
 from . import UNIQUE_ID, mock_dpc_responses, rome, setup_integration
 
@@ -22,8 +23,8 @@ from . import UNIQUE_ID, mock_dpc_responses, rome, setup_integration
 # the day, and the key of the phenomenon (its code and position)
 SHOWERS = "5@41.573134169859415,12.674774846264892"
 ROUGH_SEA = "40@41.75,12.3"
-SHOWERS_TODAY = f"{UNIQUE_ID}-2026-11-14-{SHOWERS}"
-ROUGH_SEA_TOMORROW = f"{UNIQUE_ID}-2026-11-15-{ROUGH_SEA}"
+SHOWERS_TODAY = f"{UNIQUE_ID}-today-{SHOWERS}"
+ROUGH_SEA_TOMORROW = f"{UNIQUE_ID}-tomorrow-{ROUGH_SEA}"
 
 
 def phenomena(hass: HomeAssistant, entry: MockConfigEntry) -> dict[str, State | None]:
@@ -52,8 +53,9 @@ async def test_phenomena_near_the_place(
 
     showers = nearby[SHOWERS_TODAY]
     assert showers is not None
-    assert showers.entity_id == "geo_location.dpc_nearby_precipitation"
-    assert showers.attributes["friendly_name"] == "DPC Nearby precipitation"
+    # The type and the direction of the phenomenon, on the device of its day
+    assert showers.entity_id == "geo_location.dpc_today_isolated_thunderstorms_sse"
+    assert showers.attributes["friendly_name"] == "DPC Today Nearby precipitation"
     assert float(showers.state) < 50
     assert showers.attributes["unit_of_measurement"] == UnitOfLength.KILOMETERS
     assert showers.attributes["source"] == DOMAIN
@@ -71,7 +73,7 @@ async def test_phenomena_near_the_place(
 
     rough_sea = nearby[ROUGH_SEA_TOMORROW]
     assert rough_sea is not None
-    assert rough_sea.entity_id == "geo_location.dpc_nearby_sea_state"
+    assert rough_sea.entity_id == "geo_location.dpc_tomorrow_moderate_sea_sw"
     assert rough_sea.attributes["phenomenon"] == "moderate_sea"
     assert rough_sea.attributes["day"] == "tomorrow"
 
@@ -79,25 +81,28 @@ async def test_phenomena_near_the_place(
 async def test_phenomena_follow_the_days(
     hass: HomeAssistant,
     init_integration: MockConfigEntry,
+    device_registry: dr.DeviceRegistry,
     freezer: FrozenDateTimeFactory,
 ) -> None:
     """Test that after midnight the phenomena of yesterday are removed.
 
-    Those of tomorrow are the same entities, now today.
+    Those of tomorrow move to the device of today, with the IDs of today.
     """
-    rough_sea = phenomena(hass, init_integration)[ROUGH_SEA_TOMORROW]
-    assert rough_sea is not None
-
     freezer.move_to("2026-11-15 00:10:00+01:00")
     await update(hass, init_integration)
 
+    rough_sea_today = f"{UNIQUE_ID}-today-{ROUGH_SEA}"
     nearby = phenomena(hass, init_integration)
-    assert nearby.keys() == {ROUGH_SEA_TOMORROW}
-    assert hass.states.get("geo_location.dpc_precipitation") is None
-    still_rough = nearby[ROUGH_SEA_TOMORROW]
+    assert nearby.keys() == {rough_sea_today}
+    still_rough = nearby[rough_sea_today]
     assert still_rough is not None
-    assert still_rough.entity_id == rough_sea.entity_id
+    assert still_rough.entity_id == "geo_location.dpc_today_moderate_sea_sw"
     assert still_rough.attributes["day"] == "today"
+    registry_entry = er.async_get(hass).async_get(still_rough.entity_id)
+    assert registry_entry is not None
+    device = device_registry.async_get(registry_entry.device_id or "")
+    assert device is not None
+    assert device.identifiers == {(DOMAIN, f"{UNIQUE_ID}-today")}
 
 
 async def test_phenomena_of_the_next_bulletin(
@@ -106,20 +111,27 @@ async def test_phenomena_of_the_next_bulletin(
     aioclient_mock: AiohttpClientMocker,
     freezer: FrozenDateTimeFactory,
 ) -> None:
-    """Test that the next bulletin replaces the phenomena of the previous one."""
+    """Test that a phenomenon of the next bulletin, on the same day, is the same."""
+    entity_ids = {
+        unique_id: state.entity_id
+        for unique_id, state in phenomena(hass, init_integration).items()
+        if state is not None
+    }
     aioclient_mock.clear_requests()
     mock_dpc_responses(aioclient_mock, crit_id="20261115_1500", vigi_id="20261115")
     freezer.move_to("2026-11-15 15:30:00+01:00")
 
     await update(hass, init_integration)
 
+    # The same fixtures, one day later: the same phenomena on the same days
     nearby = phenomena(hass, init_integration)
-    # The same fixtures, one day later
-    assert nearby.keys() == {
-        f"{UNIQUE_ID}-2026-11-15-{SHOWERS}",
-        f"{UNIQUE_ID}-2026-11-16-{ROUGH_SEA}",
-    }
-    assert all(state is not None for state in nearby.values())
+    assert {
+        unique_id: state.entity_id
+        for unique_id, state in nearby.items()
+        if state is not None
+    } == entity_ids
+    assert nearby[SHOWERS_TODAY] is not None
+    assert nearby[SHOWERS_TODAY].attributes["valid_until"] == rome(2026, 11, 16)
     assert len(hass.states.async_all(Platform.GEO_LOCATION)) == 2
 
 
@@ -129,12 +141,15 @@ async def test_phenomena_of_a_previous_run_are_removed(
     mock_config_entry: MockConfigEntry,
     mock_dpc: AiohttpClientMocker,
 ) -> None:
-    """Test that a phenomenon registered before the restart, now gone, is removed."""
+    """Test that a phenomenon registered before the restart, now gone, is removed.
+
+    The betas of 2026.11.1 had the date in the unique IDs of the phenomena.
+    """
     mock_config_entry.add_to_hass(hass)
     gone = entity_registry.async_get_or_create(
         Platform.GEO_LOCATION,
         DOMAIN,
-        f"{UNIQUE_ID}-2026-11-13-11@41.0,12.0",
+        f"{UNIQUE_ID}-2026-11-14-{SHOWERS}",
         config_entry=mock_config_entry,
     )
     # Phenomena are not the only registered entities: the others stay
@@ -205,3 +220,11 @@ async def test_phenomena_of_unknown_codes_are_left_out(
         SHOWERS_TODAY,
         ROUGH_SEA_TOMORROW,
     }
+
+
+@pytest.mark.parametrize("entry_options", [{CONF_DAYS: ["tomorrow"]}])
+async def test_phenomena_of_the_days_of_the_place(
+    hass: HomeAssistant, init_integration: MockConfigEntry
+) -> None:
+    """Test that only the phenomena of the days the place shows have entities."""
+    assert phenomena(hass, init_integration).keys() == {ROUGH_SEA_TOMORROW}

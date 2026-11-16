@@ -257,11 +257,13 @@ async def test_options_update_reloads_entry(
     ("name", "municipality", "device_name", "place"),
     [
         # Since 2026.11, a place is named after its alert zone
-        ("Bacini di Roma", "Roma", "Roma", "roma"),
+        ("Bacini di Roma", "Roma", "Roma", "dpc_roma"),
         # Before, it had any name and no municipality, or the name DPC
-        ("Casa", "", "Casa", "casa"),
-        ("DPC", "Portula", "Portula", "portula"),
+        ("Casa", "", "Casa", "dpc_casa"),
+        ("DPC", "Portula", "Portula", "dpc_portula"),
+        # Every ID starts with dpc, once
         ("DPC", "", "DPC", "dpc"),
+        ("DPC Casa", "", "DPC Casa", "dpc_casa"),
     ],
 )
 async def test_device_and_entity_ids_of_a_place(
@@ -274,10 +276,10 @@ async def test_device_and_entity_ids_of_a_place(
     device_name: str,
     place: str,
 ) -> None:
-    """Test that a place names its device after its municipality, or itself.
+    """Test that a place names its devices after its municipality, or itself.
 
-    Home Assistant builds the entity IDs from the device and the English names,
-    in any language: <municipality>_<name>, or <name of the place>_<name>.
+    The entity IDs are made of the place, the day and the key of the entity,
+    in English whatever the language: dpc_<place>[_<day>]_<key>.
     """
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -290,20 +292,126 @@ async def test_device_and_entity_ids_of_a_place(
 
     await setup_integration(hass, entry)
 
-    (device,) = dr.async_entries_for_config_entry(device_registry, entry.entry_id)
-    assert device.name == device_name
+    devices = dr.async_entries_for_config_entry(device_registry, entry.entry_id)
+    assert sorted(device.name for device in devices) == [
+        device_name,
+        f"{device_name} Today",
+        f"{device_name} Tomorrow",
+    ]
     entity_ids = {
         item.entity_id
         for item in er.async_entries_for_config_entry(entity_registry, entry.entry_id)
     }
     assert {
-        f"sensor.{place}_alert",
-        f"sensor.{place}_alert_tomorrow",
+        f"sensor.{place}_criticality",
         f"sensor.{place}_vigilance",
-        f"binary_sensor.{place}_hydraulic_risk_today",
-        f"image.{place}_criticality_map_today",
-        f"geo_location.{place}_nearby_precipitation",
+        f"sensor.{place}_today_alert",
+        f"sensor.{place}_tomorrow_alert",
+        f"binary_sensor.{place}_today_hydraulic_risk",
+        f"image.{place}_today_criticality_map",
+        f"geo_location.{place}_today_isolated_thunderstorms_sse",
     } <= entity_ids
+
+
+@pytest.mark.usefixtures("init_integration")
+async def test_devices_of_the_days(
+    hass: HomeAssistant,
+    device_registry: dr.DeviceRegistry,
+    entity_registry: er.EntityRegistry,
+    mock_config_entry: MockConfigEntry,
+) -> None:
+    """Test a device for each day the place shows, part of the device of the place."""
+    devices = dr.async_entries_for_config_entry(
+        device_registry, mock_config_entry.entry_id
+    )
+    (place,) = (device for device in devices if device.via_device_id is None)
+    days = {
+        device.name: device for device in devices if device.via_device_id == place.id
+    }
+    assert place.name == "DPC"
+    assert days.keys() == {"DPC Today", "DPC Tomorrow", "DPC Day after tomorrow"}
+
+    today = days["DPC Today"]
+    assert today.identifiers == {(DOMAIN, f"{UNIQUE_ID}-today")}
+    assert today.entry_type is dr.DeviceEntryType.SERVICE
+    assert today.configuration_url == CRITICALITY_PAGE_URL
+    # Only the vigilance bulletin covers the day after tomorrow
+    after_tomorrow = days["DPC Day after tomorrow"]
+    assert after_tomorrow.configuration_url == VIGILANCE_PAGE_URL
+
+    def entity_ids(device: dr.DeviceEntry) -> set[str]:
+        return {
+            item.entity_id
+            for item in er.async_entries_for_device(entity_registry, device.id)
+        }
+
+    assert entity_ids(place) == {"sensor.dpc_criticality", "sensor.dpc_vigilance"}
+    assert entity_ids(today) == {
+        "binary_sensor.dpc_today_hydraulic_risk",
+        "binary_sensor.dpc_today_thunderstorm_risk",
+        "binary_sensor.dpc_today_hydrogeological_risk",
+        "sensor.dpc_today_alert",
+        "sensor.dpc_today_precipitation",
+        "image.dpc_today_criticality_map",
+        "image.dpc_today_vigilance_map",
+        "geo_location.dpc_today_isolated_thunderstorms_sse",
+    }
+    assert entity_ids(after_tomorrow) == {"sensor.dpc_after_tomorrow_precipitation"}
+
+
+async def test_days_no_longer_shown_are_removed(
+    hass: HomeAssistant,
+    device_registry: dr.DeviceRegistry,
+    entity_registry: er.EntityRegistry,
+    init_integration: MockConfigEntry,
+) -> None:
+    """Test that a day taken out of the options goes, with its entities."""
+    entry = init_integration
+    tomorrow = entity_registry.async_get("sensor.dpc_tomorrow_alert")
+    assert tomorrow is not None
+
+    hass.config_entries.async_update_entry(
+        entry, options={**entry.options, CONF_DAYS: ["today"]}
+    )
+    await hass.async_block_till_done()
+
+    assert entry.state is ConfigEntryState.LOADED
+    assert sorted(
+        device.name
+        for device in dr.async_entries_for_config_entry(device_registry, entry.entry_id)
+    ) == ["DPC", "DPC Today"]
+    assert entity_registry.async_get(tomorrow.entity_id) is None
+    assert hass.states.get(tomorrow.entity_id) is None
+    assert hass.states.get("sensor.dpc_today_alert") is not None
+
+
+async def test_days_follow_the_name_of_the_place(
+    hass: HomeAssistant,
+    device_registry: dr.DeviceRegistry,
+    entity_registry: er.EntityRegistry,
+    init_integration: MockConfigEntry,
+) -> None:
+    """Test that renaming the place renames its days, and the IDs to recreate."""
+    entry = init_integration
+    devices = {
+        device.name: device
+        for device in dr.async_entries_for_config_entry(device_registry, entry.entry_id)
+    }
+
+    device_registry.async_update_device(devices["DPC"].id, name_by_user="Casa")
+    await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+
+    today = device_registry.async_get(devices["DPC Today"].id)
+    assert today is not None
+    assert today.name == "Casa Today"
+    # The entities keep their IDs; Recreate entity IDs proposes the new ones
+    registered = entity_registry.async_get("binary_sensor.dpc_today_hydraulic_risk")
+    assert registered is not None
+    assert (
+        entity_registry.async_regenerate_entity_id(registered)
+        == "binary_sensor.dpc_casa_today_hydraulic_risk"
+    )
 
 
 async def test_entity_ids_registered_before_are_kept(
@@ -330,7 +438,7 @@ async def test_entity_ids_registered_before_are_kept(
     # What Settings → Entities → Recreate entity IDs proposes
     assert (
         entity_registry.async_regenerate_entity_id(entry)
-        == "binary_sensor.dpc_hydraulic_risk_today"
+        == "binary_sensor.dpc_today_hydraulic_risk"
     )
 
 
@@ -363,7 +471,8 @@ async def test_places_with_the_same_name(
         }
         for entry in entries
     ]
-    # Milan has no phenomenon within 50 km in the bulletin, Rome has 2
-    assert [len(ids) for ids in entity_ids] == [19, 17]
+    # Today and tomorrow, the days of the places of 2026.11.0. Milan has no
+    # phenomenon within 50 km in the bulletin, Rome has 2
+    assert [len(ids) for ids in entity_ids] == [18, 16]
     assert not entity_ids[0] & entity_ids[1]
-    assert "sensor.dpc_alert_2" in entity_ids[1]
+    assert "sensor.dpc_today_alert_2" in entity_ids[1]

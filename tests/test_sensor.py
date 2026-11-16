@@ -108,7 +108,7 @@ async def test_sensors_with_higher_warning_level(hass: HomeAssistant) -> None:
 async def test_alert_of_each_day(hass: HomeAssistant) -> None:
     """Test the alert level of today and tomorrow, and the risks at that level."""
     today = day_state(hass, "alert_today")
-    assert today.entity_id == "sensor.dpc_alert_today"
+    assert today.entity_id == "sensor.dpc_today_alert"
     assert today.state == "yellow"
     assert today.attributes["options"] == ["green", "yellow", "orange", "red"]
     assert today.attributes["risks"] == ["thunderstorms", "hydrogeological"]
@@ -143,7 +143,10 @@ async def test_precipitation_of_each_day(hass: HomeAssistant) -> None:
         "tomorrow": "moderate",
         "aftertomorrow": "none",
     }
-    assert states["today"].entity_id == "sensor.dpc_precipitation_today"
+    assert states["today"].entity_id == "sensor.dpc_today_precipitation"
+    assert (
+        states["aftertomorrow"].entity_id == "sensor.dpc_after_tomorrow_precipitation"
+    )
     assert states["today"].attributes["options"] == [
         "none",
         "light",

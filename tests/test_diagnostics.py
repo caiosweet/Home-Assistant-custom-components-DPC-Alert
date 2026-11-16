@@ -44,9 +44,11 @@ async def test_diagnostics(
     assert coordinator["data"]["criticality"]["bulletin"]["id"] == CRIT_ID
     assert coordinator["data"]["vigilance"]["bulletin"]["id"] == VIGI_ID
 
-    (device,) = diagnostics["devices"]
-    assert device["device"]["identifiers"] == REDACTED
-    assert len(device["entities"]) == 19
+    # The place and its three days
+    devices = diagnostics["devices"]
+    assert len(devices) == 4
+    assert all(device["device"]["identifiers"] == REDACTED for device in devices)
+    assert sum(len(device["entities"]) for device in devices) == 19
 
 
 async def test_diagnostics_hide_where_the_place_is(
@@ -85,7 +87,19 @@ async def test_diagnostics_hide_where_the_place_is(
     ][0]["phenomena"]
     assert phenomenon["latitude"] == phenomenon["longitude"] == REDACTED
     assert phenomenon["distance_km"] == phenomenon["direction"] == REDACTED
-    for entity in diagnostics["devices"][0]["entities"]:
-        if entity["entry"]["domain"] == "geo_location":
-            assert entity["state"]["state"] == REDACTED
-            assert entity["state"]["attributes"]["direction"] == REDACTED
+    # The ID and the name of a phenomenon say its direction from the place
+    assert "_sse" not in text
+    phenomena = [
+        entity
+        for device in diagnostics["devices"]
+        for entity in device["entities"]
+        if entity["entry"]["domain"] == "geo_location"
+    ]
+    assert len(phenomena) == 2
+    for entity in phenomena:
+        assert entity["state"]["state"] == REDACTED
+        assert entity["state"]["attributes"]["direction"] == REDACTED
+        assert entity["state"]["entity_id"] == REDACTED
+        assert entity["state"]["attributes"]["friendly_name"] == REDACTED
+        assert entity["entry"]["entity_id"] == REDACTED
+        assert entity["entry"]["original_name"] == REDACTED

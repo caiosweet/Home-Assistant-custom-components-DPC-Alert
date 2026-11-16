@@ -30,6 +30,17 @@ TO_REDACT = {
     "degrees",
 }
 
+PHENOMENON_TO_REDACT = {
+    # The entity ID and the name of a phenomenon say its direction from the place
+    "entity_id",
+    "suggested_object_id",
+    "object_id_base",
+    "name",
+    "original_name",
+    "original_name_unprefixed",
+    "friendly_name",
+}
+
 
 def _without_coordinates(data: Any, coordinates: str) -> Any:
     """Return data with lists for tuples, and the coordinates text redacted.
@@ -73,6 +84,7 @@ async def async_get_config_entry_diagnostics(
         )
 
         for entity in registry_entities:
+            entry_dict: dict[str, Any] = asdict(entity)
             state_dict = None
             if state := hass.states.get(entity.entity_id):
                 state_dict = dict(state.as_dict())
@@ -80,8 +92,11 @@ async def async_get_config_entry_diagnostics(
                 if entity.domain == Platform.GEO_LOCATION:
                     # The state of a phenomenon is its distance from the place
                     state_dict["state"] = REDACTED
+                    state_dict = async_redact_data(state_dict, PHENOMENON_TO_REDACT)
+            if entity.domain == Platform.GEO_LOCATION:
+                entry_dict = async_redact_data(entry_dict, PHENOMENON_TO_REDACT)
 
-            entities.append({"entry": asdict(entity), "state": state_dict})
+            entities.append({"entry": entry_dict, "state": state_dict})
 
         devices.append({"device": asdict(device), "entities": entities})
 

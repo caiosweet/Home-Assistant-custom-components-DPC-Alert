@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from aiodpc import CriticalityDay, Day, RiskType
+from aiodpc import CriticalityDay, RiskType
 from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
     BinarySensorEntityDescription,
@@ -16,40 +16,48 @@ from homeassistant.components.binary_sensor import (  # type: ignore[attr-define
     BinarySensorDeviceClass,
 )
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .attributes import criticality_attributes, risk_day_attributes
+from .const import PlaceDay
 from .coordinator import DpcConfigEntry, DpcDataUpdateCoordinator
 from .entity import DpcEntity
 
 # The coordinator updates the entities: nothing to limit
 PARALLEL_UPDATES = 0
 
-# The keys are the Italian names the sensors have always had: their unique IDs,
-# entity IDs and translations are built from them.
+# The unique IDs keep the Italian names the sensors have always had
 RISK_KEYS = {
     RiskType.HYDRAULIC: "idraulico",
     RiskType.THUNDERSTORMS: "temporali",
     RiskType.HYDROGEOLOGICAL: "idrogeologico",
 }
-# The days of the criticality bulletin: Day also has the day after tomorrow,
-# which only the vigilance bulletin covers
-DAY_KEYS = {Day.TODAY: "oggi", Day.TOMORROW: "domani"}
+# The days of the criticality bulletin: only the vigilance bulletin covers the
+# day after tomorrow
+DAY_KEYS = {PlaceDay.TODAY: "oggi", PlaceDay.TOMORROW: "domani"}
+# The names, on the device of their day
+TRANSLATION_KEYS = {
+    RiskType.HYDRAULIC: "hydraulic_risk",
+    RiskType.THUNDERSTORMS: "thunderstorm_risk",
+    RiskType.HYDROGEOLOGICAL: "hydrogeological_risk",
+}
 
 
 @dataclass(frozen=True, kw_only=True)
 class DpcRiskEntityDescription(BinarySensorEntityDescription):
     """Description of the binary sensor of a risk type on a day."""
 
+    translation_key: str
     risk: RiskType
-    day: Day
+    day: PlaceDay
 
 
 RISK_DESCRIPTIONS = tuple(
     DpcRiskEntityDescription(
         key=f"{RISK_KEYS[risk]}_{DAY_KEYS[day]}",
-        translation_key=f"{RISK_KEYS[risk]}_{DAY_KEYS[day]}",
+        translation_key=TRANSLATION_KEYS[risk],
         device_class=BinarySensorDeviceClass.SAFETY,
         risk=risk,
         day=day,
@@ -67,6 +75,7 @@ async def async_setup_entry(
     async_add_entities(
         DpcRiskBinarySensor(coordinator, entry, description)
         for description in RISK_DESCRIPTIONS
+        if description.day in coordinator.days
     )
 
 
@@ -81,10 +90,11 @@ class DpcRiskBinarySensor(DpcEntity, BinarySensorEntity):
         entry: ConfigEntry,
         description: DpcRiskEntityDescription,
     ) -> None:
-        """Initialize Entities."""
-        super().__init__(coordinator, entry)
+        """Initialize the binary sensor of a risk on a day."""
+        super().__init__(coordinator, entry, description.day)
         self.entity_description = description
         self._attr_unique_id = f"{entry.unique_id}-{description.key}"
+        self.suggest_entity_id(Platform.BINARY_SENSOR, description.translation_key)
 
     @property
     def available(self) -> bool:
@@ -95,7 +105,7 @@ class DpcRiskBinarySensor(DpcEntity, BinarySensorEntity):
     def _day(self) -> CriticalityDay | None:
         """Return the assessment of the day, if the bulletin covers it."""
         latest = self.coordinator.data.criticality
-        return latest.bulletin.on(self.entity_description.day) if latest else None
+        return latest.bulletin.on(self.entity_description.day.day) if latest else None
 
     @property
     def is_on(self) -> bool | None:

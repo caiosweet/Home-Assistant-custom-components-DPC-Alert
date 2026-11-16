@@ -6,11 +6,12 @@ entity of the source ``dpc``, so the map card shows them with
 
 An entity is named after the category of its phenomenon ("Nearby wind"), and
 its type ("Gale") is translated by Home Assistant; the DPC legend stays, in
-Italian, in its description.
+Italian, in its description. It belongs to the device of its day.
 """
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
@@ -52,20 +53,26 @@ class NearbyPhenomenon:
     phenomenon: Phenomenon
 
 
-def nearby_phenomena(entry: ConfigEntry, data: DpcData) -> dict[str, NearbyPhenomenon]:
-    """Return the phenomena near the place, by the unique ID of their entity.
+def nearby_phenomena(
+    entry: ConfigEntry, data: DpcData, days: Iterable[PlaceDay]
+) -> dict[str, NearbyPhenomenon]:
+    """Return the phenomena of the days near the place, by the unique ID of their entity.
 
-    The ID is made of the place, the date and the key of the phenomenon (its code
-    and position), so it stays the same when, after midnight, tomorrow becomes
-    today, and when the next bulletin has the same phenomenon.
+    The ID is made of the place, the day and the key of the phenomenon (its code
+    and position), so it stays the same when the next bulletin has the same
+    phenomenon. After midnight, a phenomenon of tomorrow is another entity, on
+    the device of today.
     """
     phenomena: dict[str, NearbyPhenomenon] = {}
+    shown = set(days)
     for name, day in data.vigilance_days.items():
+        if name not in shown:
+            continue
         for phenomenon in day.phenomena:
             # Codes unknown to aiodpc have no category nor type, nothing to show
             if phenomenon.category is None or phenomenon.type is None:
                 continue
-            unique_id = f"{entry.unique_id}-{day.date.isoformat()}-{phenomenon.key}"
+            unique_id = f"{entry.unique_id}-{name}-{phenomenon.key}"
             phenomena[unique_id] = NearbyPhenomenon(
                 day=name,
                 valid_until=day.valid_until,
@@ -90,7 +97,7 @@ async def async_setup_entry(
         The entity registry, not only the entities of this run, tells which are
         gone: the phenomena of a previous run stay registered until the next one.
         """
-        nearby = nearby_phenomena(entry, coordinator.data)
+        nearby = nearby_phenomena(entry, coordinator.data, coordinator.days)
         registry = er.async_get(hass)
         for registry_entry in er.async_entries_for_config_entry(
             registry, entry.entry_id
@@ -130,9 +137,12 @@ class DpcPhenomenonEvent(DpcEntity, GeolocationEvent):
         nearby: NearbyPhenomenon,
     ) -> None:
         """Initialize the entity of a phenomenon near the place."""
-        super().__init__(coordinator, entry)
+        super().__init__(coordinator, entry, nearby.day)
         self._attr_unique_id = unique_id
         self._attr_translation_key = str(nearby.category)
+        # e.g. geo_location.dpc_portula_today_scattered_rain_wnw
+        direction = nearby.phenomenon.direction.lower()
+        self.suggest_entity_id(Platform.GEO_LOCATION, f"{nearby.type}_{direction}")
         self._nearby: NearbyPhenomenon | None = None
         self._show(nearby)
 
@@ -144,7 +154,9 @@ class DpcPhenomenonEvent(DpcEntity, GeolocationEvent):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Follow the phenomenon in the latest bulletin."""
-        nearby = nearby_phenomena(self.config_entry, self.coordinator.data)
+        nearby = nearby_phenomena(
+            self.config_entry, self.coordinator.data, self.coordinator.days
+        )
         self._show(nearby.get(self.unique_id or ""))
         super()._handle_coordinator_update()
 

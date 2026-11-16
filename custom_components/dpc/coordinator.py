@@ -25,7 +25,15 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from homeassistant.util import dt as dt_util
 
 from .bulletins import DpcBulletins
-from .const import DEFAULT_SCAN_INTERVAL, DOMAIN, LOGGER, RETRY_INTERVAL, PlaceDay
+from .const import (
+    CONF_DAYS,
+    DEFAULT_DAYS,
+    DEFAULT_SCAN_INTERVAL,
+    DOMAIN,
+    LOGGER,
+    RETRY_INTERVAL,
+    PlaceDay,
+)
 
 
 @dataclass(frozen=True)
@@ -77,6 +85,17 @@ def _covered[DayT](days: dict[PlaceDay, DayT | None]) -> dict[PlaceDay, DayT]:
     return {name: day for name, day in days.items() if day is not None}
 
 
+@dataclass(frozen=True, slots=True)
+class PlaceDevice:
+    """The device of a place, which the devices of its days belong to."""
+
+    id: str
+    """ID of the device in the device registry."""
+    name: str
+    """Name of the place, as the user sees it: their own name for the device,
+    or the one the integration gives it."""
+
+
 class DpcDataUpdateCoordinator(DataUpdateCoordinator[DpcData]):
     """Keep the latest DPC bulletins of the place of a config entry.
 
@@ -87,6 +106,8 @@ class DpcDataUpdateCoordinator(DataUpdateCoordinator[DpcData]):
     """
 
     config_entry: DpcConfigEntry
+    place_device: PlaceDevice
+    """The device of the place, registered by the setup before the entities."""
 
     def __init__(
         self, hass: HomeAssistant, entry: ConfigEntry, bulletins: DpcBulletins
@@ -96,6 +117,11 @@ class DpcDataUpdateCoordinator(DataUpdateCoordinator[DpcData]):
             minutes=entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
         )
         self.platforms: list[str] = []
+        chosen = entry.options.get(CONF_DAYS, DEFAULT_DAYS)
+        self.days: tuple[PlaceDay, ...] = tuple(
+            day for day in PlaceDay if day in chosen
+        )
+        """The days the place shows, each with its device, in order."""
         self._criticality = _BulletinTracker(
             entry.title,
             BulletinKind.CRITICALITY,

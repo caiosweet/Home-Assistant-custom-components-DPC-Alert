@@ -7,6 +7,7 @@ from dataclasses import dataclass
 
 from homeassistant.components.image import ImageEntity, ImageEntityDescription
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import dt as dt_util
@@ -23,6 +24,8 @@ PARALLEL_UPDATES = 0
 class DpcMapEntityDescription(ImageEntityDescription):
     """Description of the map of a bulletin on a day."""
 
+    translation_key: str
+    day: PlaceDay
     url_fn: Callable[[DpcData], str | None]
     """Return the URL of the preview of the map, None when there is none."""
 
@@ -52,7 +55,8 @@ MAP_DESCRIPTIONS = (
     *(
         DpcMapEntityDescription(
             key=f"criticality_map_{day}",
-            translation_key=f"criticality_map_{day}",
+            translation_key="criticality_map",
+            day=day,
             url_fn=_criticality_map(day),
         )
         for day in (PlaceDay.TODAY, PlaceDay.TOMORROW)
@@ -60,7 +64,8 @@ MAP_DESCRIPTIONS = (
     *(
         DpcMapEntityDescription(
             key=f"vigilance_map_{day}",
-            translation_key=f"vigilance_map_{day}",
+            translation_key="vigilance_map",
+            day=day,
             url_fn=_vigilance_map(day),
         )
         for day in (PlaceDay.TODAY, PlaceDay.TOMORROW)
@@ -76,6 +81,7 @@ async def async_setup_entry(
     async_add_entities(
         DpcMapImage(hass, coordinator, entry, description)
         for description in MAP_DESCRIPTIONS
+        if description.day in coordinator.days
     )
 
 
@@ -96,10 +102,11 @@ class DpcMapImage(DpcEntity, ImageEntity):
         description: DpcMapEntityDescription,
     ) -> None:
         """Initialize the map of a bulletin on a day."""
-        DpcEntity.__init__(self, coordinator, entry)
+        DpcEntity.__init__(self, coordinator, entry, description.day)
         ImageEntity.__init__(self, hass)
         self.entity_description = description
         self._attr_unique_id = f"{entry.unique_id}-{description.key}"
+        self.suggest_entity_id(Platform.IMAGE, description.translation_key)
         self._show_the_map_of_the_day()
 
     @callback

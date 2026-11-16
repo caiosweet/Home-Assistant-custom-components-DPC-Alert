@@ -87,12 +87,16 @@ Users' automations and dashboards depend on what the integration exposes.
   sensors `"{entry.unique_id}-{key}"`.
 - Never rename attributes or change their values. A change that users must
   act on goes under "Breaking changes" in the changelog, with what to do.
-- Never set `entity_id`: Home Assistant builds the ID of a new entity from
-  the device and the English name (`binary_sensor.portula_hydraulic_risk_today`),
-  keeps the IDs of existing entities in its registry (such as
+- Entities suggest their ID with `DpcEntity.suggest_entity_id()`:
+  `<platform>.dpc_<place>[_<day>]_<key>` (`place_entity_id()`), with the
+  translation key as `<key>`, so IDs are English whatever the language
+  (`binary_sensor.dpc_portula_today_hydraulic_risk`). Home Assistant keeps
+  the IDs of existing entities in its registry (such as
   `binary_sensor.dpc_portula_idraulico_oggi`, from before), adds `_2` to a
-  repeated ID, and lets users recreate the IDs. A suggested ID would block
-  that.
+  repeated ID, and **Recreate entity IDs** gives users the suggested one.
+- A place is a device; each day it shows is a device linked to it
+  (`via_device_id` from Home Assistant 2026.8, `via_device` before; see
+  `VIA_DEVICE_ID_VERSION`), identified by `"{entry.unique_id}-{day}"`.
 - Changing the shape of config entry data or options needs a new
   `ConfigFlow.VERSION` and a step in `async_migrate_entry`.
 - Supported Home Assistant: from the `homeassistant` version in `hacs.json`

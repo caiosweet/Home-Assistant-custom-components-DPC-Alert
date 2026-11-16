@@ -19,17 +19,23 @@ that followed them.
 
   | Before | Now |
   | --- | --- |
-  | `state_attr('sensor.<place>_alert', 'today').level` | `states('sensor.<place>_alert_today')`: green, yellow, orange or red |
-  | `….today.info`, `….today.expires` | the `description` and `valid_until` of `sensor.<place>_alert_today` |
-  | `events_today`, `events_tomorrow` | the binary sensors of the risks, or the `risks` of `sensor.<place>_alert_today` |
-  | `….today.image_url` | `image.<place>_criticality_map_today` |
-  | `state_attr('sensor.<place>_vigilance', 'today').precipitation` | `states('sensor.<place>_precipitation_today')` |
-  | `….today.phenomena` | the entities `geo_location.<place>_nearby_…` |
+  | `state_attr('sensor.<place>_alert', 'today').level` | `states('sensor.dpc_<place>_today_alert')`: green, yellow, orange or red |
+  | `….today.info`, `….today.expires` | the `description` and `valid_until` of `sensor.dpc_<place>_today_alert` |
+  | `events_today`, `events_tomorrow` | the binary sensors of the risks, or the `risks` of `sensor.dpc_<place>_today_alert` |
+  | `….today.image_url` | `image.dpc_<place>_today_criticality_map` |
+  | `state_attr('sensor.<place>_vigilance', 'today').precipitation` | `states('sensor.dpc_<place>_today_precipitation')` |
+  | `….today.phenomena` | the entities `geo_location.dpc_<place>_today_…` |
 
   The binary sensors of the risks keep all their attributes.
 
 ### Added
 
+- **A device for each day** (Portula Today, Portula Tomorrow, Portula Day
+  after tomorrow), part of the device of the place, with the entities of that
+  day, named without the day: **Portula Today Hydraulic risk**. The new
+  **Days** option chooses them: a new place shows today; the places added
+  before show today and tomorrow, as their binary sensors did. Unchecking a day
+  removes its device and its entities.
 - **The DPC Alert dashboard**: in **Settings → Dashboards → Add dashboard**,
   under Community dashboards. It has a tab for each place, with the alert of
   each day, a banner for each risk at or above the warning level, the expected
@@ -39,26 +45,27 @@ that followed them.
   to it.
 - Sensors of each day, translated by Home Assistant, which dashboards show
   without templates: the alert of today and tomorrow
-  (`sensor.<place>_alert_today`: no alert, yellow, orange or red), with the
+  (`sensor.dpc_<place>_today_alert`: no alert, yellow, orange or red), with the
   risks at that level in `risks` and the summary of DPC in `description`, and
   the expected precipitation of today, tomorrow and the day after
-  (`sensor.<place>_precipitation_today`: none to very heavy).
+  (`sensor.dpc_<place>_today_precipitation`: none to very heavy).
 - The criticality and vigilance maps of today and tomorrow as images
-  (`image.<place>_criticality_map_today` and so on), for a picture card
+  (`image.dpc_<place>_today_criticality_map` and so on), for a picture card
   instead of an iframe. A map is unavailable while its day has none.
 - The weather phenomena within the radius as geolocation entities of the
-  source `dpc`, such as `geo_location.<place>_nearby_wind`: the map card shows
-  them with `geo_location_sources: [dpc]`. Their `phenomenon` (gale, light
-  snowfall...) is translated, next to the legend of DPC in `description`.
+  source `dpc`, such as `geo_location.dpc_<place>_today_gale_nw`: the map card
+  shows them with `geo_location_sources: [dpc]`. Their `phenomenon` (gale,
+  light snowfall...) is translated, next to the legend of DPC in
+  `description`.
 - The options can turn off the maps and the phenomena, like the sensors.
 
 ### Changed
 
-- **Entity IDs of new places** are made by Home Assistant from the device and
-  the English names, as for other integrations: `sensor.portula_alert`,
-  `binary_sensor.portula_hydraulic_risk_today`. Existing entities keep their
-  IDs, such as `binary_sensor.dpc_portula_idraulico_oggi`; **Recreate entity
-  IDs**, in **Settings → Entities**, now gives them the new ones.
+- **Entity IDs of new places** start with `dpc_`, then the place, the day and
+  the entity, in English whatever the language:
+  `binary_sensor.dpc_portula_today_hydraulic_risk`. Existing entities keep
+  their IDs, such as `binary_sensor.dpc_portula_idraulico_oggi`; **Recreate
+  entity IDs**, in **Settings → Entities**, now gives them the new ones.
 - The README shows the dashboard and the cards of Home Assistant, instead of
   layouts that needed other cards (card-mod, auto-entities,
   config-template-card, card-templater), and its automation examples use the

@@ -6,7 +6,7 @@ from enum import StrEnum
 import logging
 from typing import Final
 
-from aiodpc import AlertLevel, Precipitation, RiskType
+from aiodpc import AlertLevel, Day, Precipitation, RiskType
 from homeassistant.const import Platform
 
 from .version import __version__
@@ -48,6 +48,16 @@ class PlaceDay(StrEnum):
     TOMORROW = "tomorrow"
     AFTER_TOMORROW = "aftertomorrow"
 
+    @property
+    def day(self) -> Day:
+        """Return the day as aiodpc names it."""
+        return Day[self.name]
+
+    @property
+    def object_id(self) -> str:
+        """Return the day in entity IDs: today, tomorrow or after_tomorrow."""
+        return self.name.lower()
+
 
 # Defaults
 DEFAULT_NAME = "DPC"
@@ -70,6 +80,14 @@ SAME_MUNICIPALITY_KM: Final = 80.0
 A few municipalities have the same name, far apart: Peglio is in Lombardy and
 in the Marche. Two places in Rome, the largest municipality, are less than
 60 km apart, while the nearest homonyms, the two Livo, are about 130 km apart.
+"""
+
+VIA_DEVICE_ID_VERSION: Final = (2026, 8)
+"""First Home Assistant version whose devices link to their parent by its ID.
+
+Home Assistant 2026.8 added ``via_device_id`` to the device info and
+deprecated ``via_device``, the identifier of the parent: 2026.10 no longer
+declares it, and 2027.8 removes it. Before 2026.8, only ``via_device`` exists.
 """
 
 RETRY_INTERVAL: Final = timedelta(minutes=10)

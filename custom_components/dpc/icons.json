@@ -1,22 +1,13 @@
 {
     "entity": {
         "binary_sensor": {
-            "idraulico_oggi": {
+            "hydraulic_risk": {
                 "default": "mdi:home-flood"
             },
-            "temporali_oggi": {
+            "thunderstorm_risk": {
                 "default": "mdi:weather-lightning"
             },
-            "idrogeologico_oggi": {
-                "default": "mdi:waves"
-            },
-            "idraulico_domani": {
-                "default": "mdi:home-flood"
-            },
-            "temporali_domani": {
-                "default": "mdi:weather-lightning"
-            },
-            "idrogeologico_domani": {
+            "hydrogeological_risk": {
                 "default": "mdi:waves"
             }
         },
@@ -35,7 +26,7 @@
                     "2": "mdi:hazard-lights"
                 }
             },
-            "alert_today": {
+            "alert": {
                 "default": "mdi:shield-check",
                 "state": {
                     "green": "mdi:shield-check",
@@ -44,36 +35,7 @@
                     "red": "mdi:alert-octagon"
                 }
             },
-            "alert_tomorrow": {
-                "default": "mdi:shield-check",
-                "state": {
-                    "green": "mdi:shield-check",
-                    "yellow": "mdi:alert-outline",
-                    "orange": "mdi:alert",
-                    "red": "mdi:alert-octagon"
-                }
-            },
-            "precipitation_today": {
-                "default": "mdi:weather-cloudy",
-                "state": {
-                    "none": "mdi:weather-cloudy",
-                    "light": "mdi:weather-partly-rainy",
-                    "moderate": "mdi:weather-rainy",
-                    "heavy": "mdi:weather-pouring",
-                    "very_heavy": "mdi:weather-lightning-rainy"
-                }
-            },
-            "precipitation_tomorrow": {
-                "default": "mdi:weather-cloudy",
-                "state": {
-                    "none": "mdi:weather-cloudy",
-                    "light": "mdi:weather-partly-rainy",
-                    "moderate": "mdi:weather-rainy",
-                    "heavy": "mdi:weather-pouring",
-                    "very_heavy": "mdi:weather-lightning-rainy"
-                }
-            },
-            "precipitation_aftertomorrow": {
+            "precipitation": {
                 "default": "mdi:weather-cloudy",
                 "state": {
                     "none": "mdi:weather-cloudy",
@@ -85,16 +47,10 @@
             }
         },
         "image": {
-            "criticality_map_today": {
+            "criticality_map": {
                 "default": "mdi:map-marker-alert"
             },
-            "criticality_map_tomorrow": {
-                "default": "mdi:map-marker-alert"
-            },
-            "vigilance_map_today": {
-                "default": "mdi:map-legend"
-            },
-            "vigilance_map_tomorrow": {
+            "vigilance_map": {
                 "default": "mdi:map-legend"
             }
         },

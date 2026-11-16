@@ -93,10 +93,21 @@
             }
         }
     },
+    "device": {
+        "today": {
+            "name": "{place} Oggi"
+        },
+        "tomorrow": {
+            "name": "{place} Domani"
+        },
+        "aftertomorrow": {
+            "name": "{place} Dopodomani"
+        }
+    },
     "entity": {
         "binary_sensor": {
-            "idraulico_oggi": {
-                "name": "Rischio idraulico oggi",
+            "hydraulic_risk": {
+                "name": "Rischio idraulico",
                 "state_attributes": {
                     "integration": {
                         "name": "Integrazione"
@@ -136,8 +147,8 @@
                     }
                 }
             },
-            "temporali_oggi": {
-                "name": "Rischio temporali oggi",
+            "thunderstorm_risk": {
+                "name": "Rischio temporali",
                 "state_attributes": {
                     "integration": {
                         "name": "Integrazione"
@@ -177,131 +188,8 @@
                     }
                 }
             },
-            "idrogeologico_oggi": {
-                "name": "Rischio idrogeologico oggi",
-                "state_attributes": {
-                    "integration": {
-                        "name": "Integrazione"
-                    },
-                    "id": {
-                        "name": "ID bollettino"
-                    },
-                    "publication_date": {
-                        "name": "Data di pubblicazione"
-                    },
-                    "expires": {
-                        "name": "Scadenza"
-                    },
-                    "last_update": {
-                        "name": "Ultimo aggiornamento"
-                    },
-                    "risk": {
-                        "name": "Rischio"
-                    },
-                    "info": {
-                        "name": "Criticità"
-                    },
-                    "alert": {
-                        "name": "Allerta"
-                    },
-                    "level": {
-                        "name": "Livello di allerta"
-                    },
-                    "zone_name": {
-                        "name": "Zona di allerta"
-                    },
-                    "image_url": {
-                        "name": "URL immagine"
-                    },
-                    "link": {
-                        "name": "Link al bollettino"
-                    }
-                }
-            },
-            "idraulico_domani": {
-                "name": "Rischio idraulico domani",
-                "state_attributes": {
-                    "integration": {
-                        "name": "Integrazione"
-                    },
-                    "id": {
-                        "name": "ID bollettino"
-                    },
-                    "publication_date": {
-                        "name": "Data di pubblicazione"
-                    },
-                    "expires": {
-                        "name": "Scadenza"
-                    },
-                    "last_update": {
-                        "name": "Ultimo aggiornamento"
-                    },
-                    "risk": {
-                        "name": "Rischio"
-                    },
-                    "info": {
-                        "name": "Criticità"
-                    },
-                    "alert": {
-                        "name": "Allerta"
-                    },
-                    "level": {
-                        "name": "Livello di allerta"
-                    },
-                    "zone_name": {
-                        "name": "Zona di allerta"
-                    },
-                    "image_url": {
-                        "name": "URL immagine"
-                    },
-                    "link": {
-                        "name": "Link al bollettino"
-                    }
-                }
-            },
-            "temporali_domani": {
-                "name": "Rischio temporali domani",
-                "state_attributes": {
-                    "integration": {
-                        "name": "Integrazione"
-                    },
-                    "id": {
-                        "name": "ID bollettino"
-                    },
-                    "publication_date": {
-                        "name": "Data di pubblicazione"
-                    },
-                    "expires": {
-                        "name": "Scadenza"
-                    },
-                    "last_update": {
-                        "name": "Ultimo aggiornamento"
-                    },
-                    "risk": {
-                        "name": "Rischio"
-                    },
-                    "info": {
-                        "name": "Criticità"
-                    },
-                    "alert": {
-                        "name": "Allerta"
-                    },
-                    "level": {
-                        "name": "Livello di allerta"
-                    },
-                    "zone_name": {
-                        "name": "Zona di allerta"
-                    },
-                    "image_url": {
-                        "name": "URL immagine"
-                    },
-                    "link": {
-                        "name": "Link al bollettino"
-                    }
-                }
-            },
-            "idrogeologico_domani": {
-                "name": "Rischio idrogeologico domani",
+            "hydrogeological_risk": {
+                "name": "Rischio idrogeologico",
                 "state_attributes": {
                     "integration": {
                         "name": "Integrazione"
@@ -404,8 +292,8 @@
                     }
                 }
             },
-            "alert_today": {
-                "name": "Allerta oggi",
+            "alert": {
+                "name": "Allerta",
                 "state": {
                     "green": "Nessuna allerta",
                     "yellow": "Allerta gialla",
@@ -432,72 +320,8 @@
                     }
                 }
             },
-            "alert_tomorrow": {
-                "name": "Allerta domani",
-                "state": {
-                    "green": "Nessuna allerta",
-                    "yellow": "Allerta gialla",
-                    "orange": "Allerta arancione",
-                    "red": "Allerta rossa"
-                },
-                "state_attributes": {
-                    "integration": {
-                        "name": "Integrazione"
-                    },
-                    "risks": {
-                        "name": "Rischi",
-                        "state": {
-                            "hydraulic": "Rischio idraulico",
-                            "thunderstorms": "Rischio temporali",
-                            "hydrogeological": "Rischio idrogeologico"
-                        }
-                    },
-                    "valid_until": {
-                        "name": "Valido fino a"
-                    },
-                    "description": {
-                        "name": "Descrizione DPC"
-                    }
-                }
-            },
-            "precipitation_today": {
-                "name": "Precipitazioni oggi",
-                "state": {
-                    "none": "Assenti o non rilevanti",
-                    "light": "Deboli",
-                    "moderate": "Moderate",
-                    "heavy": "Elevate",
-                    "very_heavy": "Molto elevate"
-                },
-                "state_attributes": {
-                    "integration": {
-                        "name": "Integrazione"
-                    },
-                    "valid_until": {
-                        "name": "Valido fino a"
-                    }
-                }
-            },
-            "precipitation_tomorrow": {
-                "name": "Precipitazioni domani",
-                "state": {
-                    "none": "Assenti o non rilevanti",
-                    "light": "Deboli",
-                    "moderate": "Moderate",
-                    "heavy": "Elevate",
-                    "very_heavy": "Molto elevate"
-                },
-                "state_attributes": {
-                    "integration": {
-                        "name": "Integrazione"
-                    },
-                    "valid_until": {
-                        "name": "Valido fino a"
-                    }
-                }
-            },
-            "precipitation_aftertomorrow": {
-                "name": "Precipitazioni dopodomani",
+            "precipitation": {
+                "name": "Precipitazioni",
                 "state": {
                     "none": "Assenti o non rilevanti",
                     "light": "Deboli",
@@ -516,32 +340,16 @@
             }
         },
         "image": {
-            "criticality_map_today": {
-                "name": "Mappa di criticità oggi",
+            "criticality_map": {
+                "name": "Mappa di criticità",
                 "state_attributes": {
                     "integration": {
                         "name": "Integrazione"
                     }
                 }
             },
-            "criticality_map_tomorrow": {
-                "name": "Mappa di criticità domani",
-                "state_attributes": {
-                    "integration": {
-                        "name": "Integrazione"
-                    }
-                }
-            },
-            "vigilance_map_today": {
-                "name": "Mappa di vigilanza oggi",
-                "state_attributes": {
-                    "integration": {
-                        "name": "Integrazione"
-                    }
-                }
-            },
-            "vigilance_map_tomorrow": {
-                "name": "Mappa di vigilanza domani",
+            "vigilance_map": {
+                "name": "Mappa di vigilanza",
                 "state_attributes": {
                     "integration": {
                         "name": "Integrazione"

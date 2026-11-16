@@ -15,6 +15,8 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from pytest_homeassistant_custom_component.typing import ClientSessionGenerator
 import respx
 
+from custom_components.dpc.const import CONF_DAYS
+
 from . import CRIT_ID, UNIQUE_ID, VIGI_ID, get_entity_id
 
 PNG = b"\x89PNG\r\n\x1a\n map"
@@ -45,7 +47,7 @@ async def test_maps_of_the_days(hass: HomeAssistant) -> None:
         "vigilance_map_today": vigilance_preview_url(VIGI_ID, 0),
         "vigilance_map_tomorrow": vigilance_preview_url(VIGI_ID, 1),
     }
-    today = hass.states.get("image.dpc_criticality_map_today")
+    today = hass.states.get("image.dpc_today_criticality_map")
     assert today is not None
     # The state is when the map shown last changed: at the setup
     assert today.state == "2026-11-14T14:00:00+00:00"
@@ -66,7 +68,7 @@ async def test_map_is_downloaded_when_shown(
     client = await hass_client()
 
     for _ in range(2):
-        response = await client.get("/api/image_proxy/image.dpc_criticality_map_today")
+        response = await client.get("/api/image_proxy/image.dpc_today_criticality_map")
         assert response.status == HTTPStatus.OK
         assert await response.read() == PNG
 
@@ -94,13 +96,13 @@ async def test_map_changes_at_midnight(
     assert today.image_url == criticality_preview_url(CRIT_ID, 1)
     # The map of the previous day is forgotten
     assert today._cached_image is None
-    state = hass.states.get("image.dpc_criticality_map_today")
+    state = hass.states.get("image.dpc_today_criticality_map")
     assert state is not None
     assert state.state == "2026-11-14T23:10:00+00:00"
     # Until the next bulletin there is no map of tomorrow: unavailable, without
     # the access token the frontend would request a broken image with
     assert map_entity(hass, "criticality_map_tomorrow").image_url is None
-    tomorrow = hass.states.get("image.dpc_criticality_map_tomorrow")
+    tomorrow = hass.states.get("image.dpc_tomorrow_criticality_map")
     assert tomorrow is not None
     assert tomorrow.state == STATE_UNAVAILABLE
     assert "access_token" not in tomorrow.attributes
@@ -124,6 +126,16 @@ async def test_map_is_kept_while_the_day_does_not_change(
     await hass.async_block_till_done()
 
     assert today._cached_image is not None
-    state = hass.states.get("image.dpc_criticality_map_today")
+    state = hass.states.get("image.dpc_today_criticality_map")
     assert state is not None
     assert state.state == "2026-11-14T14:00:00+00:00"
+
+
+@pytest.mark.parametrize("entry_options", [{CONF_DAYS: ["tomorrow"]}])
+@pytest.mark.usefixtures("init_integration")
+async def test_maps_of_the_days_of_the_place(hass: HomeAssistant) -> None:
+    """Test that only the days the place shows have maps."""
+    assert {state.entity_id for state in hass.states.async_all(Platform.IMAGE)} == {
+        "image.dpc_tomorrow_criticality_map",
+        "image.dpc_tomorrow_vigilance_map",
+    }

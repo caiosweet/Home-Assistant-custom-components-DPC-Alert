@@ -9,8 +9,9 @@
  * dashboard → Community dashboards. The integration serves this file and has
  * the frontend load it (custom_components/dpc/dashboard.py).
  *
- * The entities are found by their translation key, never by their entity ID,
- * which users can rename.
+ * The entities are found by their translation key and the day of their
+ * device, never by their entity ID, which users can rename. A place is a
+ * device; each of its days is a device linked to it (`via_device_id`).
  */
 
 /**
@@ -21,10 +22,16 @@
  * @property {string | null} [translation_key]
  * @property {boolean} [hidden]
  *
- * @typedef {object} DeviceEntry The registry entry of a device: a DPC place.
+ * @typedef {object} DeviceEntry The registry entry of a device: a DPC place or a day of it.
  * @property {string} id
  * @property {string | null} [name]
  * @property {string | null} [name_by_user]
+ * @property {Array<Array<string | number>>} [identifiers] e.g. [["dpc", "41.9_12.5-today"]]
+ * @property {string | null} [via_device_id] The place of a day.
+ *
+ * @typedef {object} PlaceEntity An entity of a place, and its day.
+ * @property {EntityEntry} entry
+ * @property {string | null} day "today", "tomorrow" or "aftertomorrow"; null for the place.
  *
  * @typedef {object} Hass The parts of the Home Assistant object the strategy reads.
  * @property {Record<string, EntityEntry>} entities
@@ -45,15 +52,14 @@ export const STRATEGY = "dpc-alert";
 
 const ICON = "mdi:shield-alert";
 
-/** The binary sensors of the risks of today and tomorrow, by translation key. */
-export const RISK_SENSORS = [
-  "idraulico_oggi",
-  "temporali_oggi",
-  "idrogeologico_oggi",
-  "idraulico_domani",
-  "temporali_domani",
-  "idrogeologico_domani",
-];
+/** The days of the bulletins, as the identifiers of the devices of the days end. */
+export const DAYS = ["today", "tomorrow", "aftertomorrow"];
+
+/** The days of the criticality bulletin: the vigilance bulletin has a third. */
+const CRITICALITY_DAYS = ["today", "tomorrow"];
+
+/** The binary sensors of the risks of a day, by translation key. */
+export const RISK_SENSORS = ["hydraulic_risk", "thunderstorm_risk", "hydrogeological_risk"];
 
 /** Color of each state of the alert sensors of a day. */
 export const ALERT_COLORS = {
@@ -175,11 +181,11 @@ export function isAtLeast(hass, [year, month]) {
   return major > year || (major === year && minor >= month);
 }
 
-/** A DPC place: its device and its entities, by domain and translation key. */
+/** A DPC place: its device and its entities, by domain, translation key and day. */
 export class Place {
   /**
    * @param {DeviceEntry} device
-   * @param {EntityEntry[]} entities
+   * @param {PlaceEntity[]} entities
    */
   constructor(device, entities) {
     this.device = device;
@@ -192,17 +198,19 @@ export class Place {
   }
 
   /**
-   * Return the entity ID of an entity of the place, if it is enabled.
+   * Return the entity ID of an entity of the place or of a day, if it is enabled.
    *
    * @param {string} domain e.g. "sensor"
-   * @param {string} translationKey e.g. "alert_today"
+   * @param {string} translationKey e.g. "alert"
+   * @param {string | null} [day] e.g. "today"; none for an entity of the place
    */
-  entity(domain, translationKey) {
+  entity(domain, translationKey, day = null) {
     return this.entries.find(
-      (entry) =>
+      ({ entry, day: dayOfEntry }) =>
         entry.entity_id.startsWith(`${domain}.`) &&
-        entry.translation_key === translationKey,
-    )?.entity_id;
+        entry.translation_key === translationKey &&
+        dayOfEntry === day,
+    )?.entry.entity_id;
   }
 
   /**
@@ -212,10 +220,25 @@ export class Place {
    */
   entitiesOf(domain) {
     return this.entries
-      .filter((entry) => entry.entity_id.startsWith(`${domain}.`))
-      .map((entry) => entry.entity_id)
+      .filter(({ entry }) => entry.entity_id.startsWith(`${domain}.`))
+      .map(({ entry }) => entry.entity_id)
       .sort();
   }
+}
+
+/**
+ * Return the day of the device of a day, from its identifier; null for a place.
+ *
+ * @param {DeviceEntry} device
+ */
+export function dayOf(device) {
+  for (const [domain, id] of device.identifiers ?? []) {
+    const day = DAYS.find((candidate) => String(id).endsWith(`-${candidate}`));
+    if (domain === PLATFORM && day) {
+      return day;
+    }
+  }
+  return null;
 }
 
 /**
@@ -225,19 +248,23 @@ export class Place {
  * @returns {Place[]}
  */
 export function findPlaces(hass) {
-  /** @type {Map<string, EntityEntry[]>} */
-  const entitiesByDevice = new Map();
+  /** @type {Map<string, PlaceEntity[]>} */
+  const entitiesByPlace = new Map();
   for (const entry of Object.values(hass.entities)) {
-    if (entry.platform !== PLATFORM || !entry.device_id || entry.hidden) {
+    const device = entry.device_id ? hass.devices[entry.device_id] : undefined;
+    if (entry.platform !== PLATFORM || !device || entry.hidden) {
       continue;
     }
-    const entities = entitiesByDevice.get(entry.device_id) ?? [];
-    entities.push(entry);
-    entitiesByDevice.set(entry.device_id, entities);
+    // The entities of a day belong to the place of its device
+    const day = dayOf(device);
+    const placeId = (day && device.via_device_id) || device.id;
+    const entities = entitiesByPlace.get(placeId) ?? [];
+    entities.push({ entry, day });
+    entitiesByPlace.set(placeId, entities);
   }
-  return [...entitiesByDevice]
-    .filter(([deviceId]) => hass.devices[deviceId])
-    .map(([deviceId, entities]) => new Place(hass.devices[deviceId], entities))
+  return [...entitiesByPlace]
+    .filter(([placeId]) => hass.devices[placeId])
+    .map(([placeId, entities]) => new Place(hass.devices[placeId], entities))
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
@@ -361,15 +388,15 @@ function mapPicture(entity) {
  */
 export function criticalitySection(hass, place) {
   const texts = textsIn(hass.locale?.language ?? hass.language);
-  const days = ["alert_today", "alert_tomorrow"]
-    .map((key) => place.entity("sensor", key))
-    .filter((entity) => entity !== undefined);
-  const risks = RISK_SENSORS.map((key) => place.entity("binary_sensor", key)).filter(
+  const days = CRITICALITY_DAYS.map((day) => place.entity("sensor", "alert", day)).filter(
     (entity) => entity !== undefined,
   );
-  const maps = ["criticality_map_today", "criticality_map_tomorrow"]
-    .map((key) => place.entity("image", key))
-    .filter((entity) => entity !== undefined);
+  const risks = CRITICALITY_DAYS.flatMap((day) =>
+    RISK_SENSORS.map((key) => place.entity("binary_sensor", key, day)),
+  ).filter((entity) => entity !== undefined);
+  const maps = CRITICALITY_DAYS.map((day) => place.entity("image", "criticality_map", day)).filter(
+    (entity) => entity !== undefined,
+  );
   return {
     type: "grid",
     cards: [
@@ -397,13 +424,14 @@ export function criticalitySection(hass, place) {
  */
 export function vigilanceSection(hass, place) {
   const texts = textsIn(hass.locale?.language ?? hass.language);
-  const days = ["precipitation_today", "precipitation_tomorrow", "precipitation_aftertomorrow"]
-    .map((key) => place.entity("sensor", key))
-    .filter((entity) => entity !== undefined);
+  const days = DAYS.map((day) => place.entity("sensor", "precipitation", day)).filter(
+    (entity) => entity !== undefined,
+  );
   const phenomena = place.entitiesOf("geo_location");
-  const maps = ["vigilance_map_today", "vigilance_map_tomorrow"]
-    .map((key) => place.entity("image", key))
-    .filter((entity) => entity !== undefined);
+  // DPC publishes no vigilance map for the day after tomorrow
+  const maps = CRITICALITY_DAYS.map((day) => place.entity("image", "vigilance_map", day)).filter(
+    (entity) => entity !== undefined,
+  );
   return {
     type: "grid",
     cards: [

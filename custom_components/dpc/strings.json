@@ -93,10 +93,21 @@
             }
         }
     },
+    "device": {
+        "today": {
+            "name": "{place} Today"
+        },
+        "tomorrow": {
+            "name": "{place} Tomorrow"
+        },
+        "aftertomorrow": {
+            "name": "{place} Day after tomorrow"
+        }
+    },
     "entity": {
         "binary_sensor": {
-            "idraulico_oggi": {
-                "name": "Hydraulic risk today",
+            "hydraulic_risk": {
+                "name": "Hydraulic risk",
                 "state_attributes": {
                     "integration": {
                         "name": "Integration"
@@ -136,8 +147,8 @@
                     }
                 }
             },
-            "temporali_oggi": {
-                "name": "Thunderstorm risk today",
+            "thunderstorm_risk": {
+                "name": "Thunderstorm risk",
                 "state_attributes": {
                     "integration": {
                         "name": "Integration"
@@ -177,131 +188,8 @@
                     }
                 }
             },
-            "idrogeologico_oggi": {
-                "name": "Hydrogeological risk today",
-                "state_attributes": {
-                    "integration": {
-                        "name": "Integration"
-                    },
-                    "id": {
-                        "name": "Bulletin ID"
-                    },
-                    "publication_date": {
-                        "name": "Publication date"
-                    },
-                    "expires": {
-                        "name": "Expires"
-                    },
-                    "last_update": {
-                        "name": "Last update"
-                    },
-                    "risk": {
-                        "name": "Risk"
-                    },
-                    "info": {
-                        "name": "Criticality"
-                    },
-                    "alert": {
-                        "name": "Alert"
-                    },
-                    "level": {
-                        "name": "Alert level"
-                    },
-                    "zone_name": {
-                        "name": "Alert zone"
-                    },
-                    "image_url": {
-                        "name": "Image URL"
-                    },
-                    "link": {
-                        "name": "Bulletin link"
-                    }
-                }
-            },
-            "idraulico_domani": {
-                "name": "Hydraulic risk tomorrow",
-                "state_attributes": {
-                    "integration": {
-                        "name": "Integration"
-                    },
-                    "id": {
-                        "name": "Bulletin ID"
-                    },
-                    "publication_date": {
-                        "name": "Publication date"
-                    },
-                    "expires": {
-                        "name": "Expires"
-                    },
-                    "last_update": {
-                        "name": "Last update"
-                    },
-                    "risk": {
-                        "name": "Risk"
-                    },
-                    "info": {
-                        "name": "Criticality"
-                    },
-                    "alert": {
-                        "name": "Alert"
-                    },
-                    "level": {
-                        "name": "Alert level"
-                    },
-                    "zone_name": {
-                        "name": "Alert zone"
-                    },
-                    "image_url": {
-                        "name": "Image URL"
-                    },
-                    "link": {
-                        "name": "Bulletin link"
-                    }
-                }
-            },
-            "temporali_domani": {
-                "name": "Thunderstorm risk tomorrow",
-                "state_attributes": {
-                    "integration": {
-                        "name": "Integration"
-                    },
-                    "id": {
-                        "name": "Bulletin ID"
-                    },
-                    "publication_date": {
-                        "name": "Publication date"
-                    },
-                    "expires": {
-                        "name": "Expires"
-                    },
-                    "last_update": {
-                        "name": "Last update"
-                    },
-                    "risk": {
-                        "name": "Risk"
-                    },
-                    "info": {
-                        "name": "Criticality"
-                    },
-                    "alert": {
-                        "name": "Alert"
-                    },
-                    "level": {
-                        "name": "Alert level"
-                    },
-                    "zone_name": {
-                        "name": "Alert zone"
-                    },
-                    "image_url": {
-                        "name": "Image URL"
-                    },
-                    "link": {
-                        "name": "Bulletin link"
-                    }
-                }
-            },
-            "idrogeologico_domani": {
-                "name": "Hydrogeological risk tomorrow",
+            "hydrogeological_risk": {
+                "name": "Hydrogeological risk",
                 "state_attributes": {
                     "integration": {
                         "name": "Integration"
@@ -404,8 +292,8 @@
                     }
                 }
             },
-            "alert_today": {
-                "name": "Alert today",
+            "alert": {
+                "name": "Alert",
                 "state": {
                     "green": "No alert",
                     "yellow": "Yellow alert",
@@ -432,72 +320,8 @@
                     }
                 }
             },
-            "alert_tomorrow": {
-                "name": "Alert tomorrow",
-                "state": {
-                    "green": "No alert",
-                    "yellow": "Yellow alert",
-                    "orange": "Orange alert",
-                    "red": "Red alert"
-                },
-                "state_attributes": {
-                    "integration": {
-                        "name": "Integration"
-                    },
-                    "risks": {
-                        "name": "Risks",
-                        "state": {
-                            "hydraulic": "Hydraulic risk",
-                            "thunderstorms": "Thunderstorm risk",
-                            "hydrogeological": "Hydrogeological risk"
-                        }
-                    },
-                    "valid_until": {
-                        "name": "Valid until"
-                    },
-                    "description": {
-                        "name": "DPC description"
-                    }
-                }
-            },
-            "precipitation_today": {
-                "name": "Precipitation today",
-                "state": {
-                    "none": "None or not significant",
-                    "light": "Light",
-                    "moderate": "Moderate",
-                    "heavy": "Heavy",
-                    "very_heavy": "Very heavy"
-                },
-                "state_attributes": {
-                    "integration": {
-                        "name": "Integration"
-                    },
-                    "valid_until": {
-                        "name": "Valid until"
-                    }
-                }
-            },
-            "precipitation_tomorrow": {
-                "name": "Precipitation tomorrow",
-                "state": {
-                    "none": "None or not significant",
-                    "light": "Light",
-                    "moderate": "Moderate",
-                    "heavy": "Heavy",
-                    "very_heavy": "Very heavy"
-                },
-                "state_attributes": {
-                    "integration": {
-                        "name": "Integration"
-                    },
-                    "valid_until": {
-                        "name": "Valid until"
-                    }
-                }
-            },
-            "precipitation_aftertomorrow": {
-                "name": "Precipitation day after tomorrow",
+            "precipitation": {
+                "name": "Precipitation",
                 "state": {
                     "none": "None or not significant",
                     "light": "Light",
@@ -516,32 +340,16 @@
             }
         },
         "image": {
-            "criticality_map_today": {
-                "name": "Criticality map today",
+            "criticality_map": {
+                "name": "Criticality map",
                 "state_attributes": {
                     "integration": {
                         "name": "Integration"
                     }
                 }
             },
-            "criticality_map_tomorrow": {
-                "name": "Criticality map tomorrow",
-                "state_attributes": {
-                    "integration": {
-                        "name": "Integration"
-                    }
-                }
-            },
-            "vigilance_map_today": {
-                "name": "Vigilance map today",
-                "state_attributes": {
-                    "integration": {
-                        "name": "Integration"
-                    }
-                }
-            },
-            "vigilance_map_tomorrow": {
-                "name": "Vigilance map tomorrow",
+            "vigilance_map": {
+                "name": "Vigilance map",
                 "state_attributes": {
                     "integration": {
                         "name": "Integration"
