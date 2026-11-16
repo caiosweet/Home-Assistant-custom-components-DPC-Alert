@@ -23,6 +23,7 @@ How the alert system works: [_Civil Protection Department_](https://rischi.prote
 - **The place**: its highest alert and highest precipitation, its DPC zones and its bulletins.
 - **Maps** of the criticality and vigilance bulletins, today and tomorrow, as images.
 - **A dashboard** of every place, made of the cards of Home Assistant, in the colors of the DPC alerts: see [Dashboard](#dashboard).
+- **Three cards** for your own dashboards, with a visual editor: the alert and the precipitation of each day, the bulletins, and the maps: see [Cards](#cards).
 - **Several places**, picked on a map or from a zone, each with its municipality. Each bulletin is downloaded once for all of them.
 - **Thirteen languages**: English, Italian, French, German, Spanish and Brazilian Portuguese, and those of some of the largest foreign communities in Italy: Romanian, Albanian, Arabic, Simplified Chinese, Ukrainian, Bengali and Hindi. The texts of the levels, risks, phenomena and directions are those of the [aiodpc](https://github.com/webysther/aiodpc) library; in Italian, the levels, risks and phenomena are those DPC writes.
 - **Official data**: the criticality and weather vigilance bulletins that DPC publishes every day.
@@ -32,7 +33,7 @@ Requires Home Assistant 2025.2 or newer. See the [changelog](https://github.com/
 ## Use cases
 
 - Get a notification when DPC issues a yellow, orange or red alert for your place, today or tomorrow, with the risk and its level.
-- See the alerts of each day, the expected precipitation and the maps of the bulletins on the DPC Alert dashboard, or on your own with the cards of Home Assistant.
+- See the alerts of each day, the expected precipitation and the maps of the bulletins on the DPC Alert dashboard, or on your own with the DPC Alert cards or the cards of Home Assistant.
 - See the weather phenomena near your places on a map.
 - Announce the alerts of the day on a speaker in the morning.
 - Close the shutters or bring in the garden furniture when strong wind or thunderstorms are expected nearby, from the weather phenomena near the place.
@@ -115,7 +116,40 @@ views:
 
 The binary sensors of the risks are safety sensors: the **Security** dashboard of Home Assistant (2025.11 or newer) lists them too.
 
-### Cards for your own dashboards
+## Cards
+
+The integration comes with three cards for your own dashboards, in the card picker as soon as it is installed: search for **DPC Alert**. Each is a single card made of the cards of Home Assistant, in the colors of the DPC alerts and in the language of each user, and finds the entities of the place even after you rename them.
+
+- **DPC Alert** (`custom:dpc-card`): the highest alert and precipitation of the place, then the alert and the precipitation of each day; the day after tomorrow has its precipitation only.
+- **DPC Alert · Bulletins** (`custom:dpc-bulletin-card`): the criticality bulletin and, beside it, the vigilance bulletin: their zones, when they were published and until when they cover.
+- **DPC Alert · Maps** (`custom:dpc-map-card`): the map of a day and, beside it, a list as high as the map: a block for each day with a map, the zone of the map and the number of phenomena near the place. With two days, a click on a block shows its map.
+
+The visual editor chooses what each card shows. In YAML, an option left out shows everything:
+
+| Option | Cards | Without it |
+| --- | --- | --- |
+| `device_id` | all | The first place. The ID of the device of the place, the end of the address of its device page. |
+| `show_title: false` | all | The name of the place, above the rest. Without it, the highest levels move to the start. |
+| `show_highest_alert: false` | DPC Alert, Maps (criticality) | The highest alert of the place, beside its name. |
+| `show_highest_precipitation: false` | DPC Alert, Maps (vigilance) | The highest precipitation of the place, beside its name. |
+| `days` | DPC Alert, Maps | All the days of the place: `today`, `tomorrow`, `aftertomorrow`; the maps, today and tomorrow. |
+| `items` | Bulletins | All six: `alert_zone`, `criticality_bulletin`, `criticality_valid_until`, `vigilance_zone`, `vigilance_bulletin`, `vigilance_valid_until`. |
+| `columns: 1` | DPC Alert, Bulletins | Two columns: the alert beside the precipitation, the criticality bulletin beside the vigilance bulletin. |
+| `map: vigilance` | Maps | The criticality map. |
+| `show_zone: false` | Maps | The zone of the map, beside it. |
+| `show_nearby_phenomena: false` | Maps | The number of phenomena near the place on the day of the map, beside it. |
+
+```yaml
+# The vigilance map of today, without the name of the place
+type: custom:dpc-map-card
+device_id: 0123456789abcdef0123456789abcdef
+map: vigilance
+show_title: false
+days:
+  - today
+```
+
+### With the cards of Home Assistant
 
 The entities fit the cards of Home Assistant without templates. For a place in Milan:
 
@@ -194,7 +228,7 @@ geo_location_sources:
 - **After an update, texts in English or names such as `municipality_in_use` in the forms**: Home Assistant and the browser keep the texts of the previous version. Restart Home Assistant, then reload the page, clearing its cache (Ctrl+F5).
 - **Entity and device names in another language**: Home Assistant names entities and devices in the language of the system, not of your profile: **Settings → System → General → Language**. So are the names of the phenomena. The states and the translated values of the attributes follow your profile, and so do the names in the DPC Alert dashboard and cards.
 - **Entity IDs such as `binary_sensor.dpc_milano_idraulico_oggi`**: the entities of places added with an earlier version keep their IDs, so that automations keep working. To give them the IDs of new places, such as `binary_sensor.dpc_milano_today_hydraulic_risk` (Home Assistant 2025.6 or newer): on the page of each device, choose **⋮ → Recreate entity IDs**, or select the entities in **Settings → Entities** and choose **Recreate entity IDs of selected**. Then update the automations and dashboards that use them. The same gives the new IDs after you rename a place.
-- **DPC Alert is not among the community dashboards**: the browser loads it when it opens Home Assistant. Reload the page after installing or updating the integration.
+- **DPC Alert is not among the community dashboards, or its cards are not in the card picker**: the browser loads them when it opens Home Assistant. Reload the page after installing or updating the integration.
 - **A place added before 2026.11 has no municipality**: it uses the alert zone of its coordinates, and its device is named after its entry. Choose its municipality in its options, under **Municipality**, among those of its alert zone.
 - **Reporting a problem**: on the integration, choose **Enable debug logging** in the **⋮** menu, reproduce the problem, then disable it to download the log. Add the diagnostics (**⋮ → Download diagnostics**) to an [issue](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/issues). They leave out the coordinates of the place and the positions, distances and directions of the phenomena, but not the municipality and the DPC zones of the place, which the names of its devices and entities show: remove them from the file before posting it if you prefer to keep them private.
 

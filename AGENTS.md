@@ -15,7 +15,10 @@ through HACS. It turns the bulletins of the Italian Civil Protection Department
 - for dashboards, translated without templates: a sensor of the alert or the
   precipitation of each day, the maps of the bulletins (`image`), and the
   phenomena within the radius (`geo_location`, source `dpc`);
-- the DPC Alert dashboard, a strategy listed under Community dashboards.
+- the DPC Alert dashboard, a strategy listed under Community dashboards;
+- the DPC Alert cards, in the card picker with a visual editor: the alert and
+  the precipitation of each day (`custom:dpc-card`), the bulletins
+  (`custom:dpc-bulletin-card`) and the maps (`custom:dpc-map-card`).
 
 Everything that talks to DPC or parses its files lives in
 [aiodpc](https://github.com/webysther/aiodpc) (PyPI `aiodpc`), maintained
@@ -53,14 +56,14 @@ custom_components/dpc/
                      bulletins) and each day (alert, criticality, risk levels,
                      precipitation, nearby phenomena)
   binary_sensor.py, image.py, geo_location.py
-  dashboard.py       serves frontend/dpc-dashboard.js and has the frontend load it
-  frontend/          the dashboard strategy: plain JavaScript, no build, native
-                     cards only
+  dashboard.py       serves frontend/ and has the frontend load its modules
+  frontend/          the dashboard strategy (dpc-dashboard.js) and the cards
+                     (dpc-card.js): plain JavaScript, no build, native cards only
   diagnostics.py     redacts everything that locates a place
   const.py, icons.json, strings.json, translations/, quality_scale.yaml
   manifest.json, version.py
 tests/               pytest-homeassistant-custom-component, DPC mocked with fixtures
-tests/frontend/      node:test tests of the dashboard strategy
+tests/frontend/      node:test tests of the dashboard strategy and the cards
 scripts/translations.py  writes the texts of aiodpc into the translations
 release.sh           releases, run by the maintainer
 ```
@@ -77,10 +80,10 @@ ruff format custom_components tests scripts
 ruff check custom_components tests scripts
 mypy                                   # strict, configured in pyproject.toml
 pytest --cov --cov-report=term-missing
-node --test "tests/frontend/*.test.mjs"   # the dashboard strategy
+node --test "tests/frontend/*.test.mjs"   # the dashboard strategy and the cards
 ```
 
-CI runs mypy, pytest and the tests of the dashboard strategy (`tests.yaml`),
+CI runs mypy, pytest and the tests of the frontend (`tests.yaml`),
 hassfest and the HACS action (`validate.yaml`). Keep the coverage of `custom_components/dpc` at 100%.
 
 ## Compatibility
@@ -126,6 +129,9 @@ Users' automations and dashboards depend on what the integration exposes.
   "Bolzano/Bozen"). Places with the same municipality name more than
   `SAME_MUNICIPALITY_KM` apart are homonyms (Peglio in Lombardy and in the
   Marche) and are both allowed.
+- A place shows at least one entity: the setup and the options check the days
+  and the kinds of entities chosen (`shows_entities` in `const.py`). Without
+  days, only the sensors of the place give it entities.
 - Every scan interval (30 minutes by default) only the IDs of the latest
   bulletins are checked; a new bulletin (about 18 MB) is downloaded once for
   all places. Never block the event loop: reading a bulletin at each place
@@ -137,10 +143,10 @@ Users' automations and dashboards depend on what the integration exposes.
   identical to it. Every key exists in each language of aiodpc, with the tag
   Home Assistant names its file with: en, it, pt-BR, fr, de, es, zh-Hans, ro,
   ar, uk, sq, bn, hi. The top-level `title` is the translated name of the
-  integration, and the dashboard (`TEXTS` in `frontend/dpc-dashboard.js`) has
-  the same languages, with that name. A new language of aiodpc needs its file
-  here, the risk level template of `scripts/translations.py`, and its texts
-  in the dashboard.
+  integration, and the dashboard and the cards (`TEXTS` in
+  `frontend/dpc-dashboard.js`) have the same languages, with that name. A new
+  language of aiodpc needs its file here, the risk level template of
+  `scripts/translations.py`, and its texts in `TEXTS`.
 - Data is an entity, not an attribute: a level, a zone, a bulletin is an
   entity of the place or of its day. Attributes are left for what is not an
   entity of its own (`risks`, `total_alerts`, `image_url`, the `id` of a
@@ -160,10 +166,22 @@ Users' automations and dashboards depend on what the integration exposes.
   `options.error`, `exceptions`.
 - Every entity has an icon in `icons.json`; the levels have `state` icons.
   `tests/test_icons.py` checks it.
-- The dashboard colors the levels and the precipitation by state, with the
-  colors of the DPC maps (`ALERT_COLORS`, `PRECIPITATION_COLORS` in
-  `frontend/dpc-dashboard.js`), and finds the entities by translation key and
-  the day of their device.
+- The dashboard and the cards color the levels by state with the colors of the
+  DPC alert map (`ALERT_COLORS` in `frontend/dpc-dashboard.js`), and the
+  precipitation in the same scale, light to very heavy, none in the blue of
+  the icons of the theme (`PRECIPITATION_COLORS`). They find the entities by
+  translation key and the day of their device, never by entity ID, and name
+  them and the days in the language of the user with the texts of the
+  integration (`withTexts`): Home Assistant names them in the language of the
+  server.
+- The cards draw nothing of their own: an `ha-card` with native cards inside,
+  created with `loadCardHelpers`, without their own background. Their visual
+  editor is an `ha-form`, which the frontend defines only with the editor of
+  one of its cards: the cards load the editor of a tile first. The editor
+  writes only the options that differ from what a card shows without them.
+- The frontend is served at `/dpc/frontend/<version>/` (`FRONTEND_URL`), so
+  that browsers load it again after an update, and its modules import each
+  other by relative path. A new module goes in `FRONTEND_MODULES`.
 - Diagnostics must not reveal where a place is: coordinates, positions,
   distances and directions of phenomena, the entity IDs and names of the
   phenomena (they carry the direction), and entity IDs made of coordinates
