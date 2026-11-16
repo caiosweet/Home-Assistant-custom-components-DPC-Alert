@@ -96,6 +96,8 @@ that followed them.
 - The diagnostics leave out the distances and directions of the phenomena,
   and the IDs and names that carry them: with their positions, public in the
   bulletins, they located the place.
+- The README gives the license of the DPC data as DPC publishes it, CC BY
+  4.0, instead of CC BY-SA 4.0.
 
 ## [2026.11.0] - 2026-11-15
 

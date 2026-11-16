@@ -18,26 +18,24 @@ How the alert system works: [_Civil Protection Department_](https://rischi.prote
 
 ## Features
 
-- **Six binary sensors**: hydraulic, hydrogeological and thunderstorm risk, for today and tomorrow. Each one is on when its risk reaches the alert level you choose (1 green to 4 red).
-- **Alert sensor**: the highest alert level of today and tomorrow, with the assessment of each risk in its attributes.
-- **Vigilance sensor**: the expected precipitation of the next three days, and the weather phenomena within the radius you choose: rain, snow, thunderstorms, wind, frost, fog, rough sea and temperature.
-- **Sensors of each day**: the alert of today and tomorrow (no alert, yellow, orange, red) with the risks at that level, and the expected precipitation of the next three days, translated, ready for the cards of Home Assistant.
+- **A device for each day**: Portula · Today, Portula · Tomorrow and Portula · Day after tomorrow, part of the device of the place. The options choose the days.
+- **Each day**: the alert (no alert, yellow, orange or red) with the risks at that level; the criticality DPC states for the zone, such as "Moderate criticality for hydrogeological risk"; the level of the hydraulic, hydrogeological and thunderstorm risk, and a binary sensor of each, on when it reaches the alert level you choose; the expected precipitation; and the weather phenomena within the radius you choose, on a map. The criticality bulletin covers today and tomorrow, the vigilance bulletin the day after too.
+- **The place**: its highest alert and highest precipitation, its DPC zones and its bulletins.
 - **Maps** of the criticality and vigilance bulletins, today and tomorrow, as images.
-- **Weather phenomena on a map**: each phenomenon within the radius is a geolocation entity.
-- **A dashboard** of the alerts and the weather vigilance of every place, made of the cards of Home Assistant: see [Dashboard](#dashboard).
+- **A dashboard** of every place, made of the cards of Home Assistant, in the colors of the DPC maps: see [Dashboard](#dashboard).
 - **Several places**, picked on a map or from a zone, each with its municipality. Each bulletin is downloaded once for all of them.
-- **Six languages**: English, Italian, French, German, Spanish and Brazilian Portuguese.
+- **Six languages**: English, Italian, French, German, Spanish and Brazilian Portuguese. The texts of the levels, risks, phenomena and directions are those of the [aiodpc](https://pypi.org/project/aiodpc/) library; in Italian, those DPC writes.
 - **Official data**: the criticality and weather vigilance bulletins that DPC publishes every day.
 
 Requires Home Assistant 2025.2 or newer. See the [changelog](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/CHANGELOG.md) for what changed in each version.
 
 ## Use cases
 
-- Get a notification when DPC issues a yellow, orange or red alert for your place, today or tomorrow, with the risk and the link to the bulletin.
-- See the alerts of today and tomorrow, the expected precipitation and the maps of the bulletins on the DPC Alert dashboard, or on your own with the cards of Home Assistant.
+- Get a notification when DPC issues a yellow, orange or red alert for your place, today or tomorrow, with the risk and its level.
+- See the alerts of each day, the expected precipitation and the maps of the bulletins on the DPC Alert dashboard, or on your own with the cards of Home Assistant.
 - See the weather phenomena near your places on a map.
 - Announce the alerts of the day on a speaker in the morning.
-- Close the shutters or bring in the garden furniture when strong wind or thunderstorms are expected nearby, from the weather phenomena of the vigilance sensor.
+- Close the shutters or bring in the garden furniture when strong wind or thunderstorms are expected nearby, from the weather phenomena near the place.
 - Before a trip, add the place you are going to and follow its alerts.
 
 ## Installation
@@ -63,7 +61,7 @@ Requires Home Assistant 2025.2 or newer. See the [changelog](https://github.com/
 
 Add as many places as you want, each with its own municipality: two places in the same municipality would get the same bulletins. The places share the downloads: each bulletin is downloaded once for all of them.
 
-A place is named after its alert zone, and its device after its municipality: for Portula, in the alert zone Val Sesia, Cervo e Chiusella, the device is Portula. Home Assistant gives its entities IDs made of the device and the English names, as for other integrations: `sensor.portula_alert`, `binary_sensor.portula_hydraulic_risk_today` and so on. See [Entities](#entities) for all of them.
+A place is named after its alert zone, and its device after its municipality: for Portula, in the alert zone Val Sesia, Cervo e Chiusella, the device is Portula, and the device of today is Portula · Today. A new place shows today; the **Days** option adds tomorrow and the day after tomorrow. The entity IDs start with `dpc_`, then the place, the day and the entity, in English whatever the language: `sensor.dpc_portula_highest_alert`, `binary_sensor.dpc_portula_today_hydraulic_risk`. See [Entities](#entities) for all of them.
 
 ### Options
 
@@ -71,9 +69,10 @@ A place is named after its alert zone, and its device after its municipality: fo
 
 1. Binary sensors, sensors, maps (image) and phenomena (geolocation) enabled
 2. Municipality, among those of the alert zone of the place
-3. Update interval (minutes, default 30)
-4. Minimum level of warning (1 green to 4 red, default 2): when the binary sensors turn on
-5. Radius of the weather phenomena (km, default 50)
+3. Days: today, tomorrow and the day after tomorrow, each a device with its entities. Unchecking a day removes its device and entities; the place keeps its highest alert and precipitation and its bulletins
+4. Update interval (minutes, default 30)
+5. Minimum level of warning (1 green to 4 red, default 2): when the binary sensors turn on
+6. Radius of the weather phenomena (km, default 50)
 
 ### Removal
 
@@ -88,12 +87,13 @@ The integration comes with a dashboard made of the cards of Home Assistant, in t
 1. Go to **Settings → Dashboards → Add dashboard**.
 2. Under **Community dashboards**, choose **DPC Alert**. If it is not listed, reload the page.
 
-It has a tab for each place:
+It has a tab for each place, with the levels and the precipitation in the colors of the DPC maps:
 
-- **Alerts**: the alert of today and tomorrow, in the color of its level and with the risks at that level; a banner for each risk at or above the warning level; the criticality maps.
-- **Weather vigilance**: the expected precipitation of the next three days; the weather phenomena within the radius on a map; the vigilance maps.
+- **The place**: its highest alert and highest precipitation.
+- **Each day** it shows: a banner for each risk at or above the warning level, in the color of its level; the alert, with the risks at that level; the criticality; the level of each risk; the expected precipitation and the number of phenomena; the phenomena of the day on a map; the maps of the bulletins.
+- **Bulletins**: the zones of the place, when each bulletin was published and until when it covers.
 
-The dashboard follows your places: it changes by itself when you add one, and when a bulletin brings other phenomena. What has no data is hidden, such as the alert and the maps of tomorrow after midnight, until DPC publishes the next bulletin. The colored banners of the risks need Home Assistant 2026.9 or newer; before, the risks are shown as tiles.
+The dashboard follows your places: it changes by itself when you add one, check or uncheck a day, and when a bulletin brings other phenomena. What has no data is hidden, such as the alert and the maps of tomorrow after midnight, until DPC publishes the next bulletin. The colored banners of the risks need Home Assistant 2026.9 or newer; before, the risks are shown as tiles.
 
 To show a place in another dashboard, add a view with the strategy of the dashboard and the ID of the device of the place, the end of the address of its device page:
 
@@ -114,24 +114,43 @@ The entities fit the cards of Home Assistant without templates. For a place in P
 ```yaml
 # The alert of tomorrow and the risks at its level: "Orange alert · Hydrogeological risk"
 type: tile
-entity: sensor.portula_alert_tomorrow
+entity: sensor.dpc_portula_tomorrow_alert
 state_content:
   - state
   - risks
 ```
 
 ```yaml
+# The same tile in the orange of the DPC map, while the alert is orange; add one
+# for each level: green #90c985, yellow #f8f865, orange #f0bf01, red #fd6767
+type: tile
+entity: sensor.dpc_portula_tomorrow_alert
+color: "#f0bf01"
+visibility:
+  - condition: state
+    entity: sensor.dpc_portula_tomorrow_alert
+    state: orange
+```
+
+```yaml
 # A banner while the hydrogeological risk of tomorrow is at or above the warning
-# level (Home Assistant 2026.9 or newer)
+# level and orange (Home Assistant 2026.9 or newer)
 type: alert
-entity: binary_sensor.portula_hydrogeological_risk_tomorrow
-alert_color: orange
+entity: binary_sensor.dpc_portula_tomorrow_hydrogeological_risk
+alert_color: "#f0bf01"
+visibility:
+  - condition: state
+    entity: binary_sensor.dpc_portula_tomorrow_hydrogeological_risk
+    state: "on"
+  - condition: state
+    entity: sensor.dpc_portula_tomorrow_hydrogeological_risk_level
+    state: orange
 ```
 
 ```yaml
 # The criticality map of today
 type: picture-entity
-entity: image.portula_criticality_map_today
+entity: image.dpc_portula_today_criticality_map
 show_state: false
 ```
 
@@ -153,152 +172,102 @@ geo_location_sources:
 ## Known limitations
 
 - DPC covers Italy only. San Marino and Vatican City are in no DPC alert zone.
-- The criticality bulletin covers today and tomorrow; the vigilance bulletin, three days.
-- Each municipality can be added once: two places in it would get the same bulletins. Municipalities of the same name far apart, such as Peglio, in Lombardy and in the Marche, are different ones: the entity IDs of the second end in `_2`, e.g. `sensor.peglio_alert_2`.
-- Home Assistant translates the states and attributes of the sensors of each day and of the phenomena. The texts of DPC stay, in Italian, next to them: the `description` of the alert of a day and of a phenomenon. The binary sensors of the risks keep their attributes in Italian (`risk`, `info`, `alert`), so that existing automations keep working.
+- The criticality bulletin covers today and tomorrow; the vigilance bulletin, three days. The highest alert of a place is of today and tomorrow, even when it shows only today.
+- Each municipality can be added once: two places in it would get the same bulletins. Municipalities of the same name far apart, such as Peglio, in Lombardy and in the Marche, are different ones: the entity IDs of the second end in `_2`, e.g. `sensor.dpc_peglio_highest_alert_2`.
+- The texts of the levels, risks, criticalities, phenomena and directions come from the aiodpc library; in Italian, they are those DPC writes. Places, zones and municipalities keep the names DPC gives them, in Italian; in South Tyrol, the German names of the municipalities work too.
 - In templates and notifications, `state_translated()` gives the translated state; `state_attr_translated()` (Home Assistant 2026.4 or newer) a translated attribute, such as the `phenomenon` of a phenomenon. Lists, such as the `risks` of the alert of a day, are translated by the dashboards only.
-- Municipalities are named as DPC writes them, in Italian; in South Tyrol, the German names work too.
+- No precipitation is white, as on the DPC map: on a light theme, its tile is barely colored.
 
 ## Troubleshooting
 
 - **The integration shows "Retrying setup"**: DPC cannot be reached. Home Assistant retries on its own; check that it can reach `mappe.protezionecivile.gov.it` and `raw.githubusercontent.com`.
 - **"… is not inside any DPC alert zone"**: the place is outside Italy, or in San Marino or Vatican City. Delete it and add a place in Italy.
+- **The entities of a day are missing**: check the **Days** option of the place. The places added before this version show today and tomorrow.
+- **An automation reads an attribute that is gone**, such as `level`, `info`, `zone_name` or `expires`: the data of the bulletins became entities. The [changelog](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/CHANGELOG.md) lists where each attribute is now.
 - **After an update, texts in English or names such as `municipality_in_use` in the forms**: the browser keeps the texts of the previous version. Reload the page, clearing its cache (Ctrl+F5).
-- **Entity names in another language**: Home Assistant names entities in the language of the system, not of your profile: **Settings → System → General → Language**. The labels and the translated values of the attributes follow your profile.
-- **Entity IDs such as `binary_sensor.dpc_portula_idraulico_oggi`**: the entities of places added with an earlier version keep their IDs, so that automations keep working. To give them the IDs of new places, select them in **Settings → Entities**, then **⋮ → Recreate entity IDs**, and update the automations and dashboards that use them.
+- **Entity and device names in another language**: Home Assistant names entities and devices in the language of the system, not of your profile: **Settings → System → General → Language**. So are the names of the phenomena. The states and the translated values of the attributes follow your profile.
+- **Entity IDs such as `binary_sensor.dpc_portula_idraulico_oggi`**: the entities of places added with an earlier version keep their IDs, so that automations keep working. To give them the IDs of new places, such as `binary_sensor.dpc_portula_today_hydraulic_risk`, select them in **Settings → Entities**, then **⋮ → Recreate entity IDs**, and update the automations and dashboards that use them. The same gives the new IDs after you rename a place.
 - **DPC Alert is not among the community dashboards**: the browser loads it when it opens Home Assistant. Reload the page after installing or updating the integration.
 - **A place added before 2026.11 asks for its municipality** when you open its options: the municipality has become required. Choose it in the list of its alert zone.
 - **Reporting a problem**: on the integration, choose **Enable debug logging** in the **⋮** menu, reproduce the problem, then disable it to download the log. Add the diagnostics (**⋮ → Download diagnostics**: they leave out where the place is) to an [issue](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/issues).
 
 ## Entities
 
-For a place in Portula, with Home Assistant in English:
+For a place in Portula, with Home Assistant in English. The device of the place, **Portula**:
 
 | Entity | State |
 | --- | --- |
-| `binary_sensor.portula_hydraulic_risk_today`, `…_thunderstorm_risk_today`, `…_hydrogeological_risk_today`, and the same `…_tomorrow` | On when the risk reaches the minimum level of warning of the options |
-| `sensor.portula_alert_today`, `sensor.portula_alert_tomorrow` | The alert of the day: no alert, yellow, orange or red |
-| `sensor.portula_precipitation_today`, `…_tomorrow`, `…_aftertomorrow` | The expected precipitation of the day: none to very heavy |
-| `image.portula_criticality_map_today`, `…_tomorrow`, `image.portula_vigilance_map_today`, `…_tomorrow` | The national map of the bulletin, as DPC previews it |
-| `geo_location.portula_nearby_wind` and so on | A weather phenomenon within the radius: its distance, in km |
-| `sensor.portula_alert` | The highest alert level of today and tomorrow, 1 (green) to 4 (red) |
-| `sensor.portula_vigilance` | The highest expected precipitation of the next three days, 1 (none) to 5 (very heavy) |
+| `sensor.dpc_portula_highest_alert` | The highest alert level of today and tomorrow: 1 (no alert) to 4 (red), shown as the alert, such as "Orange alert" |
+| `sensor.dpc_portula_highest_precipitation` | The highest expected precipitation of the next three days: 1 (none) to 5 (very heavy), shown as the precipitation |
+| `sensor.dpc_portula_alert_zone`, `…_vigilance_zone` | The DPC zones of the place, for its diagnostics |
+| `sensor.dpc_portula_criticality_bulletin`, `…_vigilance_bulletin` | When the latest bulletin was published, for its diagnostics |
+| `sensor.dpc_portula_criticality_valid_until`, `…_vigilance_valid_until` | The end of the last day the bulletin covers, for its diagnostics |
 
-Home Assistant translates the states, and the values of the attributes in the dashboards. Templates and automations see the values below.
+The devices of the days, **Portula · Today** and **Portula · Tomorrow** (`today` and `tomorrow` in the IDs):
 
-<details>
-<summary>Binary sensors of the risks</summary>
+| Entity | State |
+| --- | --- |
+| `sensor.dpc_portula_today_alert` | The alert of the day: no alert, yellow, orange or red |
+| `sensor.dpc_portula_today_criticality` | The criticality DPC states for the zone, and the risk its map shows: "Moderate criticality for hydrogeological risk" (`moderate_hydrogeological`), or "No significant phenomena expected" (`absent`) |
+| `binary_sensor.dpc_portula_today_hydraulic_risk`, `…_thunderstorm_risk`, `…_hydrogeological_risk` | On when the risk reaches the minimum level of warning of the options |
+| `sensor.dpc_portula_today_hydraulic_risk_level`, `…_thunderstorm_risk_level`, `…_hydrogeological_risk_level` | The level of the risk: no alert, yellow, orange or red |
+| `sensor.dpc_portula_today_precipitation` | The expected precipitation of the day: none to very heavy |
+| `sensor.dpc_portula_today_nearby_phenomena` | The number of weather phenomena within the radius |
+| `image.dpc_portula_today_criticality_map`, `…_vigilance_map` | The national map of the bulletin, as DPC previews it |
+| `geo_location.dpc_portula_today_gale_nw` and so on | A weather phenomenon within the radius, named after its type, distance and direction ("Gale, 12.4 km NW"): its distance, in km |
 
-```yaml
-# binary_sensor.portula_hydrogeological_risk_tomorrow
-state: 'on'
-attribution: Dipartimento della Protezione Civile – Presidenza del Consiglio dei Ministri
-integration: dpc
-id: '20261114_1430'
-publication_date: '2026-11-14T14:30:00+01:00'
-last_update: '2026-11-14T15:00:00+01:00'
-link: https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-criticita/
-risk: Idrogeologico
-info: Moderata
-alert: ALLERTA ARANCIONE
-level: 3
-image_url: https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Criticita-Idrogeologica-Idraulica/master/files/preview/20261114_1430_domani.png
-expires: '2026-11-16T00:00:00+01:00'
-zone_name: Val Sesia, Cervo e Chiusella
-device_class: safety
-friendly_name: Portula Hydrogeological risk tomorrow
-```
+The device of the day after tomorrow, **Portula · Day after tomorrow** (`after_tomorrow` in the IDs), has the precipitation, the number of phenomena and the phenomena: the criticality bulletin covers two days.
 
-`risk`, `info` and `alert` are in Italian, as DPC writes them: these attributes are as they have always been, for existing automations.
+The alert and the levels of a day are those of the bulletin, whatever the minimum level of warning of the options. After midnight, until DPC publishes the next bulletin, the entities of tomorrow are unknown, and its maps unavailable.
 
-</details>
+Home Assistant translates the states, and the values of the attributes in the dashboards. Templates and automations see the values below; every entity also has the `attribution` of the DPC data.
 
 <details>
-<summary>Sensors of each day</summary>
+<summary>Attributes</summary>
 
 ```yaml
-# sensor.portula_alert_tomorrow
+# sensor.dpc_portula_tomorrow_alert
 state: orange # green (no alert), yellow, orange or red
 risks: # the risks at that level, none when green
   - hydrogeological # hydraulic, thunderstorms or hydrogeological
-valid_until: '2026-11-16T00:00:00+01:00'
-description: Moderata per rischio idrogeologico # as DPC writes it
 ```
 
 ```yaml
-# sensor.portula_precipitation_today, _tomorrow and _aftertomorrow
-state: light # none, light, moderate, heavy or very_heavy
-valid_until: '2026-11-15T00:00:00+01:00'
+# sensor.dpc_portula_highest_alert, and the same for the highest precipitation
+state: 3
+total_alerts: 3 # the risks (the days, for the precipitation) at or above the minimum level of warning
 ```
 
-The alert of a day is the level of the bulletin, whatever the minimum level of warning of the options. After midnight, until DPC publishes the next bulletin, the alert of tomorrow is unknown.
-
-</details>
-
-<details>
-<summary>Maps</summary>
-
-Each map shows the national map of its bulletin and day, as DPC previews it. After midnight, until DPC publishes the next bulletin, the maps of tomorrow are unavailable: the dashboards hide them. DPC publishes no vigilance map for the day after tomorrow.
-
-</details>
-
-<details>
-<summary>Weather phenomena</summary>
-
-Each phenomenon within the radius is an entity of the source `dpc`, named after its category: nearby precipitation, wind, frost, fog, sea state, waves or temperature. They come and go with the bulletins.
+```yaml
+# sensor.dpc_portula_criticality_bulletin, and the same for the vigilance bulletin
+state: '2026-11-14T13:30:00+00:00' # when it was published
+id: '20261114_1430'
+link: https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-criticita/
+last_check: '2026-11-14T15:00:00+01:00' # when DPC last confirmed it is the latest
+```
 
 ```yaml
-# geo_location.portula_nearby_precipitation
+# image.dpc_portula_today_criticality_map
+image_url: https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Criticita-Idrogeologica-Idraulica/master/files/preview/20261114_1430_oggi.png
+```
+
+```yaml
+# geo_location.dpc_portula_tomorrow_light_snow_nne
 state: 44.3 # the distance from the place, in km
 source: dpc
 latitude: 46.07
 longitude: 8.3
 phenomenon: light_snow # shown as "Light or moderate snowfall"
-day: tomorrow # today, tomorrow or aftertomorrow
-valid_until: '2026-11-17T00:00:00+01:00'
-direction: NNE # from the place
-description: nevicate deboli o moderate # as DPC writes it
+direction: nne # from the place, shown as "NNE"
 ```
 
-</details>
-
-<details>
-<summary>Alert and vigilance sensors</summary>
-
-```yaml
-# sensor.portula_alert
-state: 3
-attribution: Dipartimento della Protezione Civile – Presidenza del Consiglio dei Ministri
-integration: dpc
-id: '20261114_1430'
-publication_date: '2026-11-14T14:30:00+01:00'
-last_update: '2026-11-14T15:00:00+01:00'
-link: https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-criticita/
-max_level: 3
-total_alerts: 3 # the risks at or above the minimum level of warning
-zone_name: Val Sesia, Cervo e Chiusella
-```
-
-```yaml
-# sensor.portula_vigilance
-state: 3
-attribution: Dipartimento della Protezione Civile – Presidenza del Consiglio dei Ministri
-integration: dpc
-id: '20261114'
-publication_date: '2026-11-14T00:00:00+01:00'
-last_update: '2026-11-14T15:00:00+01:00'
-link: https://mappe.protezionecivile.gov.it/it/mappe-rischi/bollettino-di-vigilanza/
-total_phenomena: 2
-max_level: 3
-total_alerts: 2 # the days at or above the minimum level of warning
-zone_name: Novarese, vercellese, biellese
-```
+Weather phenomena come and go with the bulletins, each on the device of its day.
 
 </details>
 
 ## Automation examples
 
-The examples use Portula: replace `portula` with the start of the entity IDs of your place, and `notify.mobile_app_your_phone` with your notification. Paste an example into the YAML editor of a new automation. The messages are in the language of Home Assistant.
+The examples use Portula: replace `portula` with the place in the entity IDs of yours, and `notify.mobile_app_your_phone` with your notification. Paste an example into the YAML editor of a new automation. The messages are in the language of Home Assistant.
 
 <details>
 <summary>Notify the alert of today or tomorrow</summary>
@@ -308,8 +277,8 @@ alias: DPC alert
 triggers:
   - trigger: state
     entity_id:
-      - sensor.portula_alert_today
-      - sensor.portula_alert_tomorrow
+      - sensor.dpc_portula_today_alert
+      - sensor.dpc_portula_tomorrow_alert
     to:
       - yellow
       - orange
@@ -322,7 +291,7 @@ actions:
 mode: queued
 ```
 
-For example *Portula Alert tomorrow: Orange alert*, when the alert of a day becomes yellow, orange or red, or changes between them.
+For example *Portula · Tomorrow Alert: Orange alert*, when the alert of a day becomes yellow, orange or red, or changes between them.
 
 </details>
 
@@ -334,22 +303,25 @@ alias: DPC risks
 triggers:
   - trigger: state
     entity_id:
-      - binary_sensor.portula_hydraulic_risk_today
-      - binary_sensor.portula_thunderstorm_risk_today
-      - binary_sensor.portula_hydrogeological_risk_today
-      - binary_sensor.portula_hydraulic_risk_tomorrow
-      - binary_sensor.portula_thunderstorm_risk_tomorrow
-      - binary_sensor.portula_hydrogeological_risk_tomorrow
+      - binary_sensor.dpc_portula_today_hydraulic_risk
+      - binary_sensor.dpc_portula_today_thunderstorm_risk
+      - binary_sensor.dpc_portula_today_hydrogeological_risk
+      - binary_sensor.dpc_portula_tomorrow_hydraulic_risk
+      - binary_sensor.dpc_portula_tomorrow_thunderstorm_risk
+      - binary_sensor.dpc_portula_tomorrow_hydrogeological_risk
     to: "on"
 actions:
   - action: notify.mobile_app_your_phone
     data:
       title: "{{ state_attr(trigger.entity_id, 'friendly_name') }}"
-      message: "Level {{ state_attr(trigger.entity_id, 'level') }} of 4"
+      # The level of the same risk and day: binary_sensor.…_risk → sensor.…_risk_level
+      message: >-
+        {{ state_translated(trigger.entity_id | replace('binary_sensor.', 'sensor.')
+        ~ '_level') }}
 mode: queued
 ```
 
-The binary sensors turn on at the minimum level of warning of the options, one risk at a time.
+For example *Portula · Tomorrow Hydrogeological risk: Orange alert*. The binary sensors turn on at the minimum level of warning of the options, one risk at a time.
 
 </details>
 
@@ -361,9 +333,9 @@ alias: DPC precipitation
 triggers:
   - trigger: state
     entity_id:
-      - sensor.portula_precipitation_today
-      - sensor.portula_precipitation_tomorrow
-      - sensor.portula_precipitation_aftertomorrow
+      - sensor.dpc_portula_today_precipitation
+      - sensor.dpc_portula_tomorrow_precipitation
+      - sensor.dpc_portula_after_tomorrow_precipitation
     to:
       - moderate
       - heavy
@@ -391,23 +363,20 @@ triggers:
 actions:
   - action: notify.mobile_app_your_phone
     data:
-      title: "{{ state_attr(trigger.to_state.entity_id, 'friendly_name') }}"
-      message: >-
-        {{ state_attr_translated(trigger.to_state.entity_id, 'phenomenon') }},
-        {{ trigger.to_state.state }} km
-        {{ state_attr(trigger.to_state.entity_id, 'direction') }}
+      title: DPC
+      message: "{{ state_attr(trigger.to_state.entity_id, 'friendly_name') }}"
 mode: queued
 ```
 
-`zone.around_home` is a zone you create around home, with the radius you care about, such as 20 km, in **Settings → Areas, labels & zones → Zones**: the zone Home is usually too small. The automation runs when a phenomenon of the bulletin is inside it, for example *Portula Nearby precipitation: Light or moderate snowfall, 44.3 km NNE*. `state_attr_translated` needs Home Assistant 2026.4 or newer.
+`zone.around_home` is a zone you create around home, with the radius you care about, such as 20 km, in **Settings → Areas, labels & zones → Zones**: the zone Home is usually too small. The automation runs when a phenomenon of the bulletin is inside it, for example *Portula · Tomorrow Light or moderate snowfall, 44.3 km NNE*: its day, type, distance and direction from the place.
 
 </details>
 
 ## License
 
-_Information provided by [_Department of Civil Protection - Presidency of the Council of Ministers_](https://www.protezionecivile.gov.it/en/) Creative Commons Licenses [_CC-BY-SA 4.0._](https://creativecommons.org/licenses/by-sa/4.0/)_
+_Information provided by [_Department of Civil Protection - Presidency of the Council of Ministers_](https://www.protezionecivile.gov.it/en/) Creative Commons License [_CC BY 4.0._](https://creativecommons.org/licenses/by/4.0/)_
 
-_Dati forniti dal servizio [_Dipartimento della Protezione Civile-Presidenza del Consiglio dei Ministri_](https://www.protezionecivile.gov.it/it/) Licenza Creative Commons [_CC-BY-SA 4.0._](https://creativecommons.org/licenses/by-sa/4.0/deed.it)_
+_Dati forniti dal servizio [_Dipartimento della Protezione Civile-Presidenza del Consiglio dei Ministri_](https://www.protezionecivile.gov.it/it/) Licenza Creative Commons [_CC BY 4.0._](https://creativecommons.org/licenses/by/4.0/deed.it)_
 
 ## Contributions are welcome
 

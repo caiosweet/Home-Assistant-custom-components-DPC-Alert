@@ -104,8 +104,11 @@ Users' automations and dashboards depend on what the integration exposes.
 - A place is a device; each day it shows is a device linked to it
   (`via_device_id` from Home Assistant 2026.8, `via_device` before; see
   `VIA_DEVICE_ID_VERSION`), identified by `"{entry.unique_id}-{day}"`.
-- Changing the shape of config entry data or options needs a new
-  `ConfigFlow.VERSION` and a step in `async_migrate_entry`.
+- Changing the shape of config entry data or options needs a step in
+  `async_migrate_entry`. A change that older versions can still load bumps
+  `ConfigFlow.MINOR_VERSION` (the days of a place, 2.2); only one they cannot
+  bumps `VERSION`: since Home Assistant 2026.7, an entry of a higher major
+  version fails to load, so going back to an older release would break it.
 - Supported Home Assistant: from the `homeassistant` version in `hacs.json`
   (2025.2.0) to the latest. Use APIs available in that whole range, or import
   both ways with a comment, like the validation library:
@@ -151,6 +154,10 @@ Users' automations and dashboards depend on what the integration exposes.
   `options.error`, `exceptions`.
 - Every entity has an icon in `icons.json`; the levels have `state` icons.
   `tests/test_icons.py` checks it.
+- The dashboard colors the levels and the precipitation by state, with the
+  colors of the DPC maps (`ALERT_COLORS`, `PRECIPITATION_COLORS` in
+  `frontend/dpc-dashboard.js`), and finds the entities by translation key and
+  the day of their device.
 - Diagnostics must not reveal where a place is: coordinates, positions,
   distances and directions of phenomena, the entity IDs and names of the
   phenomena (they carry the direction), and entity IDs made of coordinates
