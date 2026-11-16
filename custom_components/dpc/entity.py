@@ -4,19 +4,13 @@ from __future__ import annotations
 
 from typing import Any
 
-from aiodpc import CRITICALITY_PAGE_URL
+from aiodpc import ATTRIBUTION, CRITICALITY_PAGE_URL
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (
-    ATTR_ATTRIBUTION,
-    CONF_LATITUDE,
-    CONF_LONGITUDE,
-    CONF_NAME,
-)
+from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE, CONF_NAME
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
-    ATTRIBUTION,
     CONF_MUNICIPALITY,
     CONF_WARNING_LEVEL,
     DEFAULT_NAME,
@@ -38,6 +32,8 @@ class DpcEntity(CoordinatorEntity[DpcDataUpdateCoordinator]):
     recreates it.
     """
 
+    # The attribution the CC BY 4.0 license of the DPC data requires
+    _attr_attribution = ATTRIBUTION
     _attr_has_entity_name = True
 
     def __init__(
@@ -79,4 +75,4 @@ class DpcEntity(CoordinatorEntity[DpcDataUpdateCoordinator]):
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
-        return {ATTR_ATTRIBUTION: ATTRIBUTION, "integration": DOMAIN}
+        return {"integration": DOMAIN}

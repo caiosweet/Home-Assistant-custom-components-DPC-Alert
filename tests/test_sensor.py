@@ -6,6 +6,7 @@ from dataclasses import replace
 from datetime import datetime
 
 from aiodpc import (
+    ATTRIBUTION,
     CRITICALITY_PAGE_URL,
     VIGILANCE_PAGE_URL,
     AlertLevel,
@@ -52,7 +53,7 @@ async def test_criticality_sensor(hass: HomeAssistant) -> None:
     # Highest level of the zone: moderate (orange) hydrogeological risk tomorrow
     assert state.state == "3"
     assert dict(state.attributes) == {
-        "attribution": "Data provided by Civil Protection Department",
+        "attribution": ATTRIBUTION,
         "integration": "dpc",
         "id": CRIT_ID,
         "publication_date": rome(2026, 11, 14, 14, 30),
@@ -76,7 +77,7 @@ async def test_vigilance_sensor(hass: HomeAssistant) -> None:
 
     assert state.state == "3"
     assert dict(state.attributes) == {
-        "attribution": "Data provided by Civil Protection Department",
+        "attribution": ATTRIBUTION,
         "integration": "dpc",
         "id": VIGI_ID,
         "publication_date": rome(2026, 11, 14),

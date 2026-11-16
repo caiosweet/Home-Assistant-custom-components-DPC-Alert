@@ -192,7 +192,7 @@ Home Assistant translates the states, and the values of the attributes in the da
 ```yaml
 # binary_sensor.portula_hydrogeological_risk_tomorrow
 state: 'on'
-attribution: Data provided by Civil Protection Department
+attribution: Dipartimento della Protezione Civile – Presidenza del Consiglio dei Ministri
 integration: dpc
 id: '20261114_1430'
 publication_date: '2026-11-14T14:30:00+01:00'
@@ -268,7 +268,7 @@ description: nevicate deboli o moderate # as DPC writes it
 ```yaml
 # sensor.portula_alert
 state: 3
-attribution: Data provided by Civil Protection Department
+attribution: Dipartimento della Protezione Civile – Presidenza del Consiglio dei Ministri
 integration: dpc
 id: '20261114_1430'
 publication_date: '2026-11-14T14:30:00+01:00'
@@ -282,7 +282,7 @@ zone_name: Val Sesia, Cervo e Chiusella
 ```yaml
 # sensor.portula_vigilance
 state: 3
-attribution: Data provided by Civil Protection Department
+attribution: Dipartimento della Protezione Civile – Presidenza del Consiglio dei Ministri
 integration: dpc
 id: '20261114'
 publication_date: '2026-11-14T00:00:00+01:00'

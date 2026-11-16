@@ -23,7 +23,6 @@ PLATFORMS: Final[list[str]] = [
 ]
 
 # Base component constants
-ATTRIBUTION = "Data provided by Civil Protection Department"
 DOMAIN = "dpc"
 ISSUE_URL = (
     "https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/issues"

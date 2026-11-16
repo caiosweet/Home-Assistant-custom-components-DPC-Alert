@@ -63,7 +63,10 @@ that followed them.
   layouts that needed other cards (card-mod, auto-entities,
   config-template-card, card-templater), and its automation examples use the
   translated states.
-- Requires aiodpc 0.6.0.
+- The `attribution` of the entities is the one the CC BY 4.0 license of the
+  DPC data asks for: "Dipartimento della Protezione Civile – Presidenza del
+  Consiglio dei Ministri".
+- Requires aiodpc 0.7.0.
 
 ### Fixed
 
