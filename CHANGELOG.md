@@ -8,6 +8,15 @@ that followed them.
 
 ## [Unreleased]
 
+### Added
+
+- **A DPC Alert card** for your own dashboards, in the card picker as soon as
+  the integration is installed: the alert and the precipitation of each day of
+  a place, with its highest alert and precipitation, in one card made of the
+  cards of Home Assistant, in the colors of the DPC maps. It finds the entities
+  of the place even after they are renamed: `type: custom:dpc-card`, with the
+  `device_id` of the place (the first place without it).
+
 ### Fixed
 
 - The README: installing and uninstalling with the Marketplace of Home

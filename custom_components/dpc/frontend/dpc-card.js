@@ -13,8 +13,9 @@
  * of each day, without their own background, so that the whole place is one
  * card, like a tile with its features, and follows the theme. What it adds is
  * finding the entities of the place, by their translation key and the day of
- * their device, so it keeps working when users rename them, and the colors of
- * their states, which native cards cannot change by state.
+ * their device, so it keeps working when users rename them; the colors of
+ * their states, which native cards cannot change by state; and names in the
+ * language of the user, rather than in the language of the server.
  */
 
 import {
@@ -23,6 +24,7 @@ import {
   HIGHEST_ALERT_COLORS,
   HIGHEST_PRECIPITATION_COLORS,
   ICON,
+  PLATFORM,
   PRECIPITATION_COLORS,
   findPlaces,
   textsIn,
@@ -38,19 +40,23 @@ import {
  * @property {string} entity_id
  * @property {string} state
  *
- * @typedef {Hass & { states: Record<string, StateObject> }} CardHass
- *   The parts of the Home Assistant object the card reads.
+ * @typedef {Hass & {
+ *   states: Record<string, StateObject>,
+ *   localize?: (key: string, values?: Record<string, string>) => string,
+ *   loadBackendTranslation?: (category: string, integration: string) => Promise<unknown>,
+ * }} CardHass The parts of the Home Assistant object the card reads.
  *
  * @typedef {object} CardConfig
  * @property {string} [device_id] The device of the place; the first place without it.
  *
  * @typedef {object} Swatch An entity and the color of its state.
  * @property {string} entity
- * @property {string | undefined} color None without data or for an unknown state.
+ * @property {string | undefined} color None without data, for an unknown
+ *   state, or for a state the theme colors better.
  *
  * @typedef {object} DayModel What the card shows of a day.
  * @property {string} day e.g. "today"
- * @property {string} name The name of the day, as its device says it.
+ * @property {string} name The name of the day, in the language of the user.
  * @property {Swatch | undefined} alert None for the day after tomorrow,
  *   which only the vigilance bulletin covers.
  * @property {Swatch | undefined} precipitation
@@ -61,14 +67,35 @@ import {
  * @property {Swatch | undefined} highestPrecipitation
  * @property {DayModel[]} days
  *
- * @typedef {object} Layout The native cards inside the card.
- * @property {Card | undefined} heading
- * @property {Card[][]} rows The cards of each row: the alert and the
- *   precipitation of a day, or a single card, as wide as the row.
+ * @typedef {"all" | "alert" | "precipitation"} Column Where a card goes: the
+ *   whole width, the column of the alerts, or the wider one of the precipitation.
+ *
+ * @typedef {object} Placed A native card, and where it goes in the card.
+ * @property {Card} card
+ * @property {Column} column
  */
 
 /** The name of the card, `custom:dpc-card` in a dashboard. */
 export const CARD = "dpc-card";
+
+/**
+ * Return the colors of states without white: the DPC maps draw no
+ * precipitation in white, which a light theme does not show, so those states
+ * keep the color of the theme.
+ *
+ * @param {Record<string, string>} colors
+ */
+function withoutWhite(colors) {
+  return Object.fromEntries(
+    Object.entries(colors).filter(([, color]) => color.toUpperCase() !== "#FFFFFF"),
+  );
+}
+
+/** Color of each state of the precipitation of a day, on a card. */
+const DAY_PRECIPITATION_COLORS = withoutWhite(PRECIPITATION_COLORS);
+
+/** Color of each state of the highest precipitation of a place, on a card. */
+const PLACE_PRECIPITATION_COLORS = withoutWhite(HIGHEST_PRECIPITATION_COLORS);
 
 /**
  * Return the place a card shows: the place of its device, or the first place.
@@ -99,30 +126,64 @@ export function swatch(states, entity, colors) {
 }
 
 /**
+ * Return a text of the integration in the language of the user, if the
+ * frontend has it.
+ *
+ * @param {CardHass} hass
+ * @param {string} key e.g. "entity.sensor.precipitation.name"
+ * @param {Record<string, string>} [values]
+ */
+export function translated(hass, key, values) {
+  return hass.localize?.(`component.${PLATFORM}.${key}`, values) || undefined;
+}
+
+/**
+ * Return the name of a day of a place in the language of the user: the name
+ * the user gave its device, or the name of the days of the integration
+ * ("Hoje"), or else the name of its device, in the language of the server.
+ *
+ * @param {CardHass} hass
+ * @param {Place} place
+ * @param {string} day
+ */
+export function dayName(hass, place, day) {
+  if (place.days.get(day)?.name_by_user) {
+    return place.dayName(day);
+  }
+  const name = translated(hass, `device.${day}.name`, { place: place.name });
+  const prefix = `${place.name} · `;
+  if (!name) {
+    return place.dayName(day);
+  }
+  return name.startsWith(prefix) ? name.slice(prefix.length) : name;
+}
+
+/**
  * Return what the card shows of a place: its highest alert and precipitation,
  * and the alert and the precipitation of each of its days.
  *
+ * @param {CardHass} hass
  * @param {Place} place
- * @param {Record<string, StateObject>} states
  * @returns {CardModel}
  */
-export function cardModel(place, states) {
+export function cardModel(hass, place) {
+  const { states } = hass;
   return {
     name: place.name,
     highestAlert: swatch(states, place.entity("sensor", "highest_alert"), HIGHEST_ALERT_COLORS),
     highestPrecipitation: swatch(
       states,
       place.entity("sensor", "highest_precipitation"),
-      HIGHEST_PRECIPITATION_COLORS,
+      PLACE_PRECIPITATION_COLORS,
     ),
     days: DAYS.filter((day) => place.days.has(day)).map((day) => ({
       day,
-      name: place.dayName(day),
+      name: dayName(hass, place, day),
       alert: swatch(states, place.entity("sensor", "alert", day), ALERT_COLORS),
       precipitation: swatch(
         states,
         place.entity("sensor", "precipitation", day),
-        PRECIPITATION_COLORS,
+        DAY_PRECIPITATION_COLORS,
       ),
     })),
   };
@@ -148,43 +209,58 @@ function badge(item) {
 }
 
 /**
- * Return the row of a day: its alert, named after the day, and its
- * precipitation; without an alert, its precipitation, named after the day.
+ * Return the tiles of a day: its alert, named after the day, and its
+ * precipitation, named in the language of the user. Without an alert, the
+ * precipitation keeps its column, named after the day.
  *
- * @param {Hass} hass
+ * @param {CardHass} hass
  * @param {DayModel} day
- * @returns {Card[]}
+ * @returns {Placed[]}
  */
-function dayRow(hass, day) {
-  const main = day.alert ?? day.precipitation;
-  /** @type {Card[]} */
-  const cards = main
-    ? [{ type: "tile", entity: main.entity, name: day.name, ...colorOf(main) }]
-    : [];
-  if (day.alert && day.precipitation) {
-    cards.push(tile(hass, day.precipitation.entity, colorOf(day.precipitation)));
+function dayTiles(hass, day) {
+  const { alert, precipitation } = day;
+  /** @type {Placed[]} */
+  const tiles = [];
+  if (alert) {
+    tiles.push({
+      card: { type: "tile", entity: alert.entity, name: day.name, ...colorOf(alert) },
+      column: "alert",
+    });
   }
-  return cards;
+  if (precipitation) {
+    const name = alert ? translated(hass, "entity.sensor.precipitation.name") : day.name;
+    const options = colorOf(precipitation);
+    tiles.push({
+      card: name
+        ? { type: "tile", entity: precipitation.entity, name, ...options }
+        : tile(hass, precipitation.entity, options),
+      column: "precipitation",
+    });
+  }
+  return tiles;
 }
 
 /**
  * Return the native cards that show a place: a heading with its highest alert
- * and precipitation, and a row for each day.
+ * and precipitation, and the tiles of each day.
  *
- * @param {Hass} hass
+ * @param {CardHass} hass
  * @param {CardModel} model
- * @returns {Layout}
+ * @returns {Placed[]}
  */
 export function placeLayout(hass, model) {
-  return {
-    heading: {
-      type: "heading",
-      heading: model.name,
-      icon: ICON,
-      badges: [...badge(model.highestAlert), ...badge(model.highestPrecipitation)],
+  return [
+    {
+      card: {
+        type: "heading",
+        heading: model.name,
+        icon: ICON,
+        badges: [...badge(model.highestAlert), ...badge(model.highestPrecipitation)],
+      },
+      column: "all",
     },
-    rows: model.days.map((day) => dayRow(hass, day)).filter((row) => row.length),
-  };
+    ...model.days.flatMap((day) => dayTiles(hass, day)),
+  ];
 }
 
 /**
@@ -193,39 +269,49 @@ export function placeLayout(hass, model) {
  * @param {CardHass} hass
  * @param {Place[]} places
  * @param {CardConfig} config
- * @returns {Layout}
+ * @returns {Placed[]}
  */
 export function cardLayout(hass, places, config) {
   const place = placeOf(places, config);
   if (!place) {
     const texts = textsIn(hass.locale?.language ?? hass.language);
-    return { heading: undefined, rows: [[{ type: "markdown", content: texts.no_places }]] };
+    return [{ card: { type: "markdown", content: texts.no_places }, column: "all" }];
   }
-  return placeLayout(hass, cardModel(place, hass.states));
+  return placeLayout(hass, cardModel(hass, place));
 }
 
 /**
  * The style of the card. The native cards inside lose their own background,
  * border and shadow, so that the card is one surface, as the theme draws it.
  * The alert of a day is narrower than its precipitation, whose texts are longer.
+ *
+ * The heading lines up with the tiles: the center of its 18px icon, 4px from
+ * its edge, with the center of their 36px icons, 10px from theirs (15px), and
+ * its badges, 4px from its edge, with their 10px padding (6px).
  */
 const STYLE = `
   ha-card {
     overflow: hidden;
   }
-  /* Inside the card, which keeps its own surface */
   .content {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    padding-block-end: 4px;
     --ha-card-background: transparent;
     --ha-card-border-width: 0px;
     --ha-card-box-shadow: none;
   }
-  .rows {
-    display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
-    padding-block-end: 4px;
-  }
-  .wide {
+  .all {
     grid-column: 1 / -1;
+  }
+  .alert {
+    grid-column: 1;
+  }
+  .precipitation {
+    grid-column: 2;
+  }
+  .heading {
+    padding-inline: 15px 6px;
   }
 `;
 
@@ -241,11 +327,16 @@ if (globalThis.customElements && globalThis.HTMLElement) {
     /** @type {{ entities: unknown, devices: unknown, places: Place[] } | undefined} */
     #places;
 
-    /** The native cards inside, and the layout they were created from. */
+    /** The native cards inside. */
     /** @type {any[]} */
     #cards = [];
 
+    /** The layout the native cards were created from. */
     #shown = "";
+
+    /** The language whose names of the days were asked for. */
+    /** @type {string | undefined} */
+    #language;
 
     /** @type {number} */
     #size = 1;
@@ -267,6 +358,7 @@ if (globalThis.customElements && globalThis.HTMLElement) {
     /** @param {CardHass} hass */
     set hass(hass) {
       this.#hass = hass;
+      this.#loadTranslations(hass);
       this.#update();
     }
 
@@ -282,6 +374,21 @@ if (globalThis.customElements && globalThis.HTMLElement) {
     static getStubConfig(hass) {
       const place = findPlaces(hass)[0];
       return place ? { device_id: place.device.id } : {};
+    }
+
+    /**
+     * Have the frontend load the names of the days in the language of the
+     * user: it has the names of the entities, not those of the devices. With
+     * them, it gives the card a new Home Assistant object, which renders it.
+     *
+     * @param {CardHass} hass
+     */
+    #loadTranslations(hass) {
+      const language = hass.locale?.language ?? hass.language;
+      if (language !== this.#language) {
+        this.#language = language;
+        hass.loadBackendTranslation?.("device", PLATFORM);
+      }
     }
 
     /** Return the places, from the registries of the last time they changed. */
@@ -323,9 +430,9 @@ if (globalThis.customElements && globalThis.HTMLElement) {
     }
 
     /**
-     * Put the native cards of a layout in the card.
+     * Put the native cards of a layout in the card, each in its column.
      *
-     * @param {Layout} layout
+     * @param {Placed[]} layout
      * @param {(config: Card) => any} createCardElement
      */
     #render(layout, createCardElement) {
@@ -335,28 +442,19 @@ if (globalThis.customElements && globalThis.HTMLElement) {
       const card = document.createElement("ha-card");
       const content = document.createElement("div");
       content.className = "content";
-      const rows = document.createElement("div");
-      rows.className = "rows";
-      this.#cards = [];
-      if (layout.heading) {
-        const heading = createCardElement(layout.heading);
-        this.#cards.push(heading);
-        content.append(heading);
-      }
-      for (const row of layout.rows) {
-        for (const config of row) {
-          const element = createCardElement(config);
-          if (row.length === 1) {
-            element.classList.add("wide");
-          }
-          this.#cards.push(element);
-          rows.append(element);
+      this.#cards = layout.map(({ card: config, column }) => {
+        const element = createCardElement(config);
+        element.classList.add(column);
+        if (config.type === "heading") {
+          element.classList.add("heading");
         }
-      }
-      content.append(rows);
+        content.append(element);
+        return element;
+      });
       card.append(content);
       root.replaceChildren(style, card);
-      this.#size = 1 + layout.rows.length;
+      // About a row for the heading, and one for each day of two tiles
+      this.#size = 1 + Math.ceil((layout.length - 1) / 2);
     }
   }
 
