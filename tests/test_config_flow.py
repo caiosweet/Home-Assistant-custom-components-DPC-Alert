@@ -37,6 +37,7 @@ from custom_components.dpc.const import (
     CONF_MUNICIPALITY,
     CONF_WARNING_LEVEL,
     DOMAIN,
+    shows_entities,
 )
 
 from . import LATITUDE, LONGITUDE, PUBLICATION_DAY, UNIQUE_ID, mock_dpc_responses
@@ -496,6 +497,83 @@ async def test_options_what_to_show(
         "image": True,
         "geo_location": True,
     }
+
+
+async def test_flow_asks_for_something_to_show(
+    hass: HomeAssistant, mock_setup_entry: AsyncMock
+) -> None:
+    """Test that a place must show something: without days, only its sensors."""
+    result = await to_municipality(hass)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_MUNICIPALITY: "Roma"}
+    )
+
+    # The phenomena are those of the days: without days, none
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_DAYS: [], CONF_ENTITIES: ["geo_location"]}
+    )
+
+    assert result["step_id"] == "display"
+    assert result["errors"] == {"base": "nothing_shown"}
+    # What was chosen is kept
+    assert schema_key(result, CONF_DAYS).default() == []
+    assert schema_key(result, CONF_ENTITIES).default() == ["geo_location"]
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_DAYS: [], CONF_ENTITIES: ["sensor"]}
+    )
+
+    assert result["step_id"] == "alerts"
+
+
+async def test_options_ask_for_something_to_show(
+    hass: HomeAssistant, mock_config_entry: MockConfigEntry
+) -> None:
+    """Test that the options keep a place that shows something."""
+    mock_config_entry.add_to_hass(hass)
+    options = dict(mock_config_entry.options)
+    result = await open_options(hass, mock_config_entry, "display")
+
+    # The day after tomorrow has no risks nor maps
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {CONF_DAYS: ["aftertomorrow"], CONF_ENTITIES: ["binary_sensor", "image"]},
+    )
+
+    assert result["step_id"] == "display"
+    assert result["errors"] == {"base": "nothing_shown"}
+    assert schema_key(result, CONF_DAYS).default() == ["aftertomorrow"]
+    assert schema_key(result, CONF_ENTITIES).default() == ["binary_sensor", "image"]
+    assert mock_config_entry.options == options
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {CONF_DAYS: ["today"], CONF_ENTITIES: []}
+    )
+
+    assert result["errors"] == {"base": "nothing_shown"}
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {CONF_DAYS: ["today"], CONF_ENTITIES: ["binary_sensor"]}
+    )
+
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+
+
+@pytest.mark.parametrize(
+    ("days", "platforms", "shown"),
+    [
+        ([], [], False),
+        ([], ["binary_sensor", "geo_location", "image"], False),
+        ([], ["sensor"], True),
+        (["today"], [], False),
+        (["today"], ["binary_sensor"], True),
+        (["aftertomorrow"], ["binary_sensor", "image"], False),
+        (["aftertomorrow"], ["geo_location"], True),
+    ],
+)
+def test_shows_entities(days: list[str], platforms: list[str], shown: bool) -> None:
+    """Test which days and kinds of entities give a place entities."""
+    assert shows_entities(days, platforms) is shown
 
 
 async def test_options_alerts(

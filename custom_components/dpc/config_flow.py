@@ -54,6 +54,7 @@ from .const import (
     WARNING_LEVELS,
     PlaceDay,
     platform_shown,
+    shows_entities,
 )
 
 ZONE_DOMAIN = "zone"
@@ -169,6 +170,13 @@ def display_schema(options: Mapping[str, Any]) -> vol.Schema:
             ),
         }
     )
+
+
+def display_errors(user_input: Mapping[str, Any]) -> dict[str, str]:
+    """Return the errors of the form of what a place shows: it shows nothing."""
+    if shows_entities(user_input[CONF_DAYS], user_input[CONF_ENTITIES]):
+        return {}
+    return {"base": "nothing_shown"}
 
 
 def display_options(user_input: Mapping[str, Any]) -> dict[str, Any]:
@@ -350,11 +358,20 @@ class DpcFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Choose what the place shows: its days and kinds of entities."""
+        errors: dict[str, str] = {}
         if user_input is not None:
-            self._options |= display_options(user_input)
-            return await self.async_step_alerts()
+            errors = display_errors(user_input)
+            if not errors:
+                self._options |= display_options(user_input)
+                return await self.async_step_alerts()
         return self.async_show_form(
-            step_id="display", data_schema=display_schema({}), last_step=False
+            step_id="display",
+            # Shown again with an error, the form keeps what was chosen
+            data_schema=display_schema(
+                display_options(user_input) if user_input else {}
+            ),
+            errors=errors,
+            last_step=False,
         )
 
     async def async_step_alerts(
@@ -496,11 +513,18 @@ class DpcOptionsFlowHandler(config_entries.OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Choose what the place shows: its days and kinds of entities."""
+        errors: dict[str, str] = {}
         if user_input is not None:
-            return self._saved(display_options(user_input))
+            errors = display_errors(user_input)
+            if not errors:
+                return self._saved(display_options(user_input))
         return self.async_show_form(
             step_id="display",
-            data_schema=display_schema(self.config_entry.options),
+            # Shown again with an error, the form keeps what was chosen
+            data_schema=display_schema(
+                display_options(user_input) if user_input else self.config_entry.options
+            ),
+            errors=errors,
             last_step=True,
         )
 

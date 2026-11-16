@@ -73,7 +73,8 @@
             "cannot_connect": "Unable to validate coordinates. Check your connection.",
             "zone_not_found": "The zone was not found.",
             "municipality_in_use": "{municipality} is already configured: each municipality can be added once.",
-            "municipality_not_listed": "Choose a municipality of the list."
+            "municipality_not_listed": "Choose a municipality of the list.",
+            "nothing_shown": "Nothing would be shown: choose a day and its entities, or the sensors, which the place has even without days. The day after tomorrow has no risks nor maps."
         },
         "abort": {
             "single_instance_allowed": "Multiple instances are supported. Each location can be added once.",
@@ -129,7 +130,8 @@
         },
         "error": {
             "municipality_not_listed": "Choose a municipality of the list.",
-            "municipality_in_use": "{municipality} is already configured: each municipality can be added once."
+            "municipality_in_use": "{municipality} is already configured: each municipality can be added once.",
+            "nothing_shown": "Nothing would be shown: choose a day and its entities, or the sensors, which the place has even without days. The day after tomorrow has no risks nor maps."
         }
     },
     "selector": {

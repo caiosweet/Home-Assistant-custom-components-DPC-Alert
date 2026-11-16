@@ -73,7 +73,8 @@
             "cannot_connect": "Koordinatat nuk mund të verifikohen. Kontrollo lidhjen.",
             "zone_not_found": "Zona nuk u gjet.",
             "municipality_in_use": "{municipality} është konfiguruar tashmë: çdo komunë mund të shtohet vetëm një herë.",
-            "municipality_not_listed": "Zgjidh një komunë nga lista."
+            "municipality_not_listed": "Zgjidh një komunë nga lista.",
+            "nothing_shown": "Nuk do të shfaqej asgjë: zgjidh një ditë dhe entitetet e saj, ose sensorët, që vendi i ka edhe pa ditë. Pasnesër nuk ka as rreziqe, as harta."
         },
         "abort": {
             "single_instance_allowed": "Mbështeten disa instanca. Çdo vend mund të shtohet vetëm një herë.",
@@ -129,7 +130,8 @@
         },
         "error": {
             "municipality_not_listed": "Zgjidh një komunë nga lista.",
-            "municipality_in_use": "{municipality} është konfiguruar tashmë: çdo komunë mund të shtohet vetëm një herë."
+            "municipality_in_use": "{municipality} është konfiguruar tashmë: çdo komunë mund të shtohet vetëm një herë.",
+            "nothing_shown": "Nuk do të shfaqej asgjë: zgjidh një ditë dhe entitetet e saj, ose sensorët, që vendi i ka edhe pa ditë. Pasnesër nuk ka as rreziqe, as harta."
         }
     },
     "selector": {

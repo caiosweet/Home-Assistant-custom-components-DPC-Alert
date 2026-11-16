@@ -73,7 +73,8 @@
             "cannot_connect": "Die Koordinaten konnten nicht geprüft werden. Überprüfe deine Verbindung.",
             "zone_not_found": "Zone nicht gefunden.",
             "municipality_in_use": "{municipality} ist bereits eingerichtet: Jede Gemeinde kann nur einmal hinzugefügt werden.",
-            "municipality_not_listed": "Wähle eine Gemeinde aus der Liste."
+            "municipality_not_listed": "Wähle eine Gemeinde aus der Liste.",
+            "nothing_shown": "Es würde nichts angezeigt: Wähle einen Tag und seine Entitäten oder die Sensoren, die der Ort auch ohne Tage hat. Übermorgen hat weder Risiken noch Karten."
         },
         "abort": {
             "single_instance_allowed": "Mehrere Instanzen werden unterstützt. Jeder Standort kann nur einmal hinzugefügt werden.",
@@ -129,7 +130,8 @@
         },
         "error": {
             "municipality_not_listed": "Wähle eine Gemeinde aus der Liste.",
-            "municipality_in_use": "{municipality} ist bereits eingerichtet: Jede Gemeinde kann nur einmal hinzugefügt werden."
+            "municipality_in_use": "{municipality} ist bereits eingerichtet: Jede Gemeinde kann nur einmal hinzugefügt werden.",
+            "nothing_shown": "Es würde nichts angezeigt: Wähle einen Tag und seine Entitäten oder die Sensoren, die der Ort auch ohne Tage hat. Übermorgen hat weder Risiken noch Karten."
         }
     },
     "selector": {

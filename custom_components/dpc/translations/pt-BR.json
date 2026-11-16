@@ -73,7 +73,8 @@
             "cannot_connect": "Não foi possível validar as coordenadas. Verifique sua conexão.",
             "zone_not_found": "Zona não encontrada.",
             "municipality_in_use": "{municipality} já está configurado: cada município pode ser adicionado uma única vez.",
-            "municipality_not_listed": "Escolha um município da lista."
+            "municipality_not_listed": "Escolha um município da lista.",
+            "nothing_shown": "Nada seria mostrado: escolha um dia e as entidades dele, ou os sensores, que o lugar tem mesmo sem dias. Depois de amanhã não tem riscos nem mapas."
         },
         "abort": {
             "single_instance_allowed": "Várias instâncias são suportadas. Cada local pode ser adicionado apenas uma vez.",
@@ -129,7 +130,8 @@
         },
         "error": {
             "municipality_not_listed": "Escolha um município da lista.",
-            "municipality_in_use": "{municipality} já está configurado: cada município pode ser adicionado uma única vez."
+            "municipality_in_use": "{municipality} já está configurado: cada município pode ser adicionado uma única vez.",
+            "nothing_shown": "Nada seria mostrado: escolha um dia e as entidades dele, ou os sensores, que o lugar tem mesmo sem dias. Depois de amanhã não tem riscos nem mapas."
         }
     },
     "selector": {

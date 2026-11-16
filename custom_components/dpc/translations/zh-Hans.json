@@ -73,7 +73,8 @@
             "cannot_connect": "无法验证坐标。请检查您的网络连接。",
             "zone_not_found": "未找到该区域。",
             "municipality_in_use": "{municipality} 已配置：每个市镇只能添加一次。",
-            "municipality_not_listed": "请从列表中选择一个市镇。"
+            "municipality_not_listed": "请从列表中选择一个市镇。",
+            "nothing_shown": "不会显示任何内容：请选择一天及其实体，或选择传感器，即使不选日期，地点也有传感器。后天没有风险和地图。"
         },
         "abort": {
             "single_instance_allowed": "支持多个实例。每个位置只能添加一次。",
@@ -129,7 +130,8 @@
         },
         "error": {
             "municipality_not_listed": "请从列表中选择一个市镇。",
-            "municipality_in_use": "{municipality} 已配置：每个市镇只能添加一次。"
+            "municipality_in_use": "{municipality} 已配置：每个市镇只能添加一次。",
+            "nothing_shown": "不会显示任何内容：请选择一天及其实体，或选择传感器，即使不选日期，地点也有传感器。后天没有风险和地图。"
         }
     },
     "selector": {

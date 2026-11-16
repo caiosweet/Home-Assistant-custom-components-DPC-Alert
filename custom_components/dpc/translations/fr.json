@@ -73,7 +73,8 @@
             "cannot_connect": "Impossible de valider les coordonnées. Vérifiez votre connexion.",
             "zone_not_found": "Zone introuvable.",
             "municipality_in_use": "{municipality} est déjà configurée : chaque commune ne peut être ajoutée qu'une seule fois.",
-            "municipality_not_listed": "Choisissez une commune de la liste."
+            "municipality_not_listed": "Choisissez une commune de la liste.",
+            "nothing_shown": "Rien ne serait affiché : choisissez un jour et ses entités, ou les capteurs, que le lieu a même sans jours. Après-demain n'a ni risques ni cartes."
         },
         "abort": {
             "single_instance_allowed": "Plusieurs instances sont prises en charge. Chaque lieu ne peut être ajouté qu'une seule fois.",
@@ -129,7 +130,8 @@
         },
         "error": {
             "municipality_not_listed": "Choisissez une commune de la liste.",
-            "municipality_in_use": "{municipality} est déjà configurée : chaque commune ne peut être ajoutée qu'une seule fois."
+            "municipality_in_use": "{municipality} est déjà configurée : chaque commune ne peut être ajoutée qu'une seule fois.",
+            "nothing_shown": "Rien ne serait affiché : choisissez un jour et ses entités, ou les capteurs, que le lieu a même sans jours. Après-demain n'a ni risques ni cartes."
         }
     },
     "selector": {

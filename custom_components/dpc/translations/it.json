@@ -73,7 +73,8 @@
             "cannot_connect": "Impossibile verificare le coordinate. Controlla la connessione.",
             "zone_not_found": "Zona non trovata.",
             "municipality_in_use": "{municipality} è già configurato: ogni comune può essere aggiunto una sola volta.",
-            "municipality_not_listed": "Scegli un comune dell'elenco."
+            "municipality_not_listed": "Scegli un comune dell'elenco.",
+            "nothing_shown": "Non verrebbe mostrato nulla: scegli un giorno e le sue entità, oppure i sensori, che il luogo ha anche senza giorni. Dopodomani non ha rischi né mappe."
         },
         "abort": {
             "single_instance_allowed": "Sono supportate più istanze. Ogni posizione può essere aggiunta una sola volta.",
@@ -129,7 +130,8 @@
         },
         "error": {
             "municipality_not_listed": "Scegli un comune dell'elenco.",
-            "municipality_in_use": "{municipality} è già configurato: ogni comune può essere aggiunto una sola volta."
+            "municipality_in_use": "{municipality} è già configurato: ogni comune può essere aggiunto una sola volta.",
+            "nothing_shown": "Non verrebbe mostrato nulla: scegli un giorno e le sue entità, oppure i sensori, che il luogo ha anche senza giorni. Dopodomani non ha rischi né mappe."
         }
     },
     "selector": {

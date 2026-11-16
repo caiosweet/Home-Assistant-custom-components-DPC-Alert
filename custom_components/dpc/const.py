@@ -1,6 +1,6 @@
 """Constants for Dpc."""
 
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from datetime import timedelta
 from enum import StrEnum
 import logging
@@ -112,6 +112,35 @@ def platform_shown(options: Mapping[str, Any], platform: str) -> bool:
     """Return whether a place shows a kind of entities, by its options."""
     shown: bool = options.get(platform, platform not in PLATFORMS_OFF_BY_DEFAULT)
     return shown
+
+
+PLATFORM_DAYS: Final[Mapping[str, frozenset[PlaceDay]]] = {
+    Platform.BINARY_SENSOR: frozenset({PlaceDay.TODAY, PlaceDay.TOMORROW}),
+    Platform.IMAGE: frozenset({PlaceDay.TODAY, PlaceDay.TOMORROW}),
+    Platform.GEO_LOCATION: frozenset(PlaceDay),
+    Platform.SENSOR: frozenset(PlaceDay),
+}
+"""The days that have entities of each kind: the risks and the maps only today
+and tomorrow, as only the vigilance bulletin covers the day after tomorrow and
+DPC publishes no map of it; the phenomena and the sensors every day."""
+
+PLATFORMS_OF_THE_PLACE: Final = frozenset({Platform.SENSOR})
+"""Kinds of entities the place has without days: its highest alert and
+precipitation, its zones and its bulletins."""
+
+
+def shows_entities(days: Iterable[str], platforms: Iterable[str]) -> bool:
+    """Return whether a place with these days and kinds of entities has any.
+
+    Without one, a place would be a device without entities, which shows
+    nothing: the setup and the options do not accept it.
+    """
+    chosen_days = set(days)
+    return any(
+        platform in PLATFORMS_OF_THE_PLACE
+        or not chosen_days.isdisjoint(PLATFORM_DAYS[platform])
+        for platform in platforms
+    )
 
 
 STARTUP_MESSAGE = f"""

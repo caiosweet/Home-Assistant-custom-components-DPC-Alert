@@ -73,7 +73,8 @@
             "cannot_connect": "Coordonatele nu pot fi validate. Verifică conexiunea.",
             "zone_not_found": "Zona nu a fost găsită.",
             "municipality_in_use": "{municipality} este deja configurată: fiecare comună poate fi adăugată o singură dată.",
-            "municipality_not_listed": "Alege o comună din listă."
+            "municipality_not_listed": "Alege o comună din listă.",
+            "nothing_shown": "Nu s-ar afișa nimic: alege o zi și entitățile ei, sau senzorii, pe care locul îi are chiar și fără zile. Poimâine nu are riscuri și nici hărți."
         },
         "abort": {
             "single_instance_allowed": "Sunt acceptate mai multe instanțe. Fiecare loc poate fi adăugat o singură dată.",
@@ -129,7 +130,8 @@
         },
         "error": {
             "municipality_not_listed": "Alege o comună din listă.",
-            "municipality_in_use": "{municipality} este deja configurată: fiecare comună poate fi adăugată o singură dată."
+            "municipality_in_use": "{municipality} este deja configurată: fiecare comună poate fi adăugată o singură dată.",
+            "nothing_shown": "Nu s-ar afișa nimic: alege o zi și entitățile ei, sau senzorii, pe care locul îi are chiar și fără zile. Poimâine nu are riscuri și nici hărți."
         }
     },
     "selector": {

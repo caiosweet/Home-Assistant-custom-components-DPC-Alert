@@ -77,7 +77,7 @@ A place is named after its alert zone, and its device after its municipality: fo
 1. **Municipality**: among those of the alert zone of the place; while DPC cannot be reached, any name can be typed.
 2. **What to show**:
    - **Days**: today, tomorrow and the day after tomorrow, each a device with its entities. Unchecking a day removes its device and entities; the place keeps its highest alert and precipitation and its bulletins.
-   - **Entities**: the binary sensors of the risks, the sensors, the maps, and the phenomena on the map (off by default). Unchecking a kind removes its entities from the place and from every day.
+   - **Entities**: the binary sensors of the risks, the sensors, the maps, and the phenomena on the map (off by default). Unchecking a kind removes its entities from the place and from every day. The place has to show something: without days, only the sensors give it entities, and the day after tomorrow has no risks nor maps.
 3. **Alerts**:
    - **Minimum level of warning**: yellow (default), orange or red alert. The binary sensor of each risk turns on from this level up.
    - **Radius of the phenomena** (km, default 50).
