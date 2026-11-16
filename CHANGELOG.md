@@ -51,8 +51,9 @@ that followed them.
   (`image.dpc_<place>_today_criticality_map` and so on), for a picture card
   instead of an iframe. A map is unavailable while its day has none.
 - The weather phenomena within the radius as geolocation entities of the
-  source `dpc`, such as `geo_location.dpc_<place>_today_gale_nw`: the map card
-  shows them with `geo_location_sources: [dpc]`. Each is named after its type,
+  source `dpc`, such as `geo_location.dpc_<place>_today_gale_nw`, when the
+  options turn them on: the map card shows them with
+  `geo_location_sources: [dpc]`. Each is named after its type,
   distance and direction in the language of Home Assistant ("Gale, 12.4 km
   NW"), and its `phenomenon` and `direction` are translated.
 - **The DPC Alert dashboard**: in **Settings → Dashboards → Add dashboard**,
@@ -72,9 +73,9 @@ that followed them.
 
 - **The setup and the options go step by step**: the place and its
   municipality; what to show, the days and the kinds of entities; and the
-  alerts, the minimum level of warning chosen among the named levels ("Yellow
-  alert"), the radius of the phenomena and the update interval. Each field
-  says what it does.
+  alerts, the minimum level of warning chosen among the named alerts ("Yellow
+  alert", "Orange alert", "Red alert"), the radius of the phenomena and the
+  update interval. Each field says what it does.
 - **The alert and vigilance sensors are named Highest alert and Highest
   precipitation**, what they are: the highest level of the zones of the place
   over the days. Their states are still 1 to 4 and 1 to 5, so automations

@@ -62,7 +62,7 @@
                     "scan_interval": "Intervalo de actualización"
                 },
                 "data_description": {
-                    "warning_level": "El sensor binario de cada riesgo se activa a partir de este nivel. Con Sin alerta, está siempre activo.",
+                    "warning_level": "El sensor binario de cada riesgo se activa a partir de este nivel.",
                     "radius": "Fenómenos meteorológicos a menos de esta distancia del lugar, en km (50 por defecto).",
                     "scan_interval": "Minutos entre comprobaciones de boletines nuevos (30 por defecto)."
                 }
@@ -85,8 +85,16 @@
     },
     "options": {
         "step": {
+            "init": {
+                "title": "Qué cambiar",
+                "menu_options": {
+                    "place": "Municipio",
+                    "display": "Qué mostrar",
+                    "alerts": "Alertas"
+                }
+            },
             "place": {
-                "title": "Lugar",
+                "title": "Municipio",
                 "data": {
                     "municipality": "Municipio"
                 },
@@ -113,7 +121,7 @@
                     "scan_interval": "Intervalo de actualización"
                 },
                 "data_description": {
-                    "warning_level": "El sensor binario de cada riesgo se activa a partir de este nivel. Con Sin alerta, está siempre activo.",
+                    "warning_level": "El sensor binario de cada riesgo se activa a partir de este nivel.",
                     "radius": "Fenómenos meteorológicos a menos de esta distancia del lugar, en km (50 por defecto).",
                     "scan_interval": "Minutos entre comprobaciones de boletines nuevos (30 por defecto)."
                 }
@@ -142,7 +150,6 @@
         },
         "warning_level": {
             "options": {
-                "1": "Sin alerta",
                 "2": "Alerta amarilla",
                 "3": "Alerta naranja",
                 "4": "Alerta roja"

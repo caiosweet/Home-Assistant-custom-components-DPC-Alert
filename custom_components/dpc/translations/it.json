@@ -62,7 +62,7 @@
                     "scan_interval": "Intervallo di aggiornamento"
                 },
                 "data_description": {
-                    "warning_level": "Il sensore binario di ogni rischio si accende da questo livello in su. Con Nessuna allerta è sempre acceso.",
+                    "warning_level": "Il sensore binario di ogni rischio si accende da questo livello in su.",
                     "radius": "Fenomeni meteo entro questa distanza dal luogo, in km (predefinito 50).",
                     "scan_interval": "Minuti tra un controllo e l'altro dei nuovi bollettini (predefinito 30)."
                 }
@@ -85,8 +85,16 @@
     },
     "options": {
         "step": {
+            "init": {
+                "title": "Cosa cambiare",
+                "menu_options": {
+                    "place": "Comune",
+                    "display": "Cosa mostrare",
+                    "alerts": "Allerte"
+                }
+            },
             "place": {
-                "title": "Luogo",
+                "title": "Comune",
                 "data": {
                     "municipality": "Comune"
                 },
@@ -113,7 +121,7 @@
                     "scan_interval": "Intervallo di aggiornamento"
                 },
                 "data_description": {
-                    "warning_level": "Il sensore binario di ogni rischio si accende da questo livello in su. Con Nessuna allerta è sempre acceso.",
+                    "warning_level": "Il sensore binario di ogni rischio si accende da questo livello in su.",
                     "radius": "Fenomeni meteo entro questa distanza dal luogo, in km (predefinito 50).",
                     "scan_interval": "Minuti tra un controllo e l'altro dei nuovi bollettini (predefinito 30)."
                 }
@@ -142,7 +150,6 @@
         },
         "warning_level": {
             "options": {
-                "1": "Nessuna allerta",
                 "2": "Allerta gialla",
                 "3": "Allerta arancione",
                 "4": "Allerta rossa"

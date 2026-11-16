@@ -62,7 +62,7 @@
                     "scan_interval": "Aktualisierungsintervall"
                 },
                 "data_description": {
-                    "warning_level": "Der Binärsensor jedes Risikos schaltet ab dieser Stufe ein. Mit Keine Warnung ist er immer an.",
+                    "warning_level": "Der Binärsensor jedes Risikos schaltet ab dieser Stufe ein.",
                     "radius": "Wetterphänomene innerhalb dieser Entfernung vom Ort, in km (Standard 50).",
                     "scan_interval": "Minuten zwischen zwei Prüfungen auf neue Bulletins (Standard 30)."
                 }
@@ -85,8 +85,16 @@
     },
     "options": {
         "step": {
+            "init": {
+                "title": "Was ändern",
+                "menu_options": {
+                    "place": "Gemeinde",
+                    "display": "Was anzeigen",
+                    "alerts": "Warnungen"
+                }
+            },
             "place": {
-                "title": "Ort",
+                "title": "Gemeinde",
                 "data": {
                     "municipality": "Gemeinde"
                 },
@@ -113,7 +121,7 @@
                     "scan_interval": "Aktualisierungsintervall"
                 },
                 "data_description": {
-                    "warning_level": "Der Binärsensor jedes Risikos schaltet ab dieser Stufe ein. Mit Keine Warnung ist er immer an.",
+                    "warning_level": "Der Binärsensor jedes Risikos schaltet ab dieser Stufe ein.",
                     "radius": "Wetterphänomene innerhalb dieser Entfernung vom Ort, in km (Standard 50).",
                     "scan_interval": "Minuten zwischen zwei Prüfungen auf neue Bulletins (Standard 30)."
                 }
@@ -142,7 +150,6 @@
         },
         "warning_level": {
             "options": {
-                "1": "Keine Warnung",
                 "2": "Gelbe Warnung",
                 "3": "Orange Warnung",
                 "4": "Rote Warnung"

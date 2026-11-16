@@ -175,7 +175,11 @@ async def test_migrate_entry_from_version_1(hass: HomeAssistant) -> None:
 
     assert entry.state is ConfigEntryState.LOADED
     assert (entry.version, entry.minor_version) == (2, 2)
-    assert entry.options == {CONF_MUNICIPALITY: "", CONF_DAYS: ["today", "tomorrow"]}
+    assert entry.options == {
+        CONF_MUNICIPALITY: "",
+        CONF_DAYS: ["today", "tomorrow"],
+        "geo_location": False,
+    }
 
 
 @pytest.mark.usefixtures("mock_dpc")
@@ -199,10 +203,61 @@ async def test_migrate_entry_to_the_days(hass: HomeAssistant) -> None:
 
     assert entry.state is ConfigEntryState.LOADED
     assert (entry.version, entry.minor_version) == (2, 2)
-    assert entry.options == {**options, CONF_DAYS: ["today", "tomorrow"]}
+    # The phenomena are off by default
+    assert entry.options == {
+        **options,
+        CONF_DAYS: ["today", "tomorrow"],
+        "geo_location": False,
+    }
 
 
 @pytest.mark.usefixtures("mock_dpc")
+@pytest.mark.usefixtures("mock_dpc")
+async def test_migrate_entry_of_a_beta_with_phenomena(
+    hass: HomeAssistant, entity_registry: er.EntityRegistry
+) -> None:
+    """Test that a place of the betas of 2026.11.1 keeps its phenomena on."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        version=2,
+        unique_id=UNIQUE_ID,
+        data={CONF_NAME: NAME, CONF_LATITUDE: LATITUDE, CONF_LONGITUDE: LONGITUDE},
+        options={CONF_MUNICIPALITY: ""},
+    )
+    entry.add_to_hass(hass)
+    entity_registry.async_get_or_create(
+        Platform.GEO_LOCATION,
+        DOMAIN,
+        f"{UNIQUE_ID}-2026-11-14-5@41.57,12.67",
+        config_entry=entry,
+    )
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert entry.options["geo_location"] is True
+    assert len(hass.states.async_all(Platform.GEO_LOCATION)) == 2
+
+
+@pytest.mark.usefixtures("mock_dpc")
+async def test_phenomena_off_by_default(hass: HomeAssistant) -> None:
+    """Test that a place whose options do not turn the phenomena on has none."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        version=2,
+        minor_version=2,
+        unique_id=UNIQUE_ID,
+        data={CONF_NAME: NAME, CONF_LATITUDE: LATITUDE, CONF_LONGITUDE: LONGITUDE},
+        options={CONF_MUNICIPALITY: "", CONF_DAYS: ["today"]},
+    )
+
+    await setup_integration(hass, entry)
+
+    assert entry.state is ConfigEntryState.LOADED
+    assert hass.states.async_all(Platform.GEO_LOCATION) == []
+    assert hass.states.async_all(Platform.SENSOR)
+
+
 async def test_migrate_entry_of_a_beta_with_the_day_after_tomorrow(
     hass: HomeAssistant, entity_registry: er.EntityRegistry
 ) -> None:
@@ -289,7 +344,7 @@ async def test_device_and_entity_ids_of_a_place(
         title=name,
         unique_id=UNIQUE_ID,
         data={CONF_NAME: name, CONF_LATITUDE: LATITUDE, CONF_LONGITUDE: LONGITUDE},
-        options={CONF_MUNICIPALITY: municipality},
+        options={CONF_MUNICIPALITY: municipality, "geo_location": True},
     )
 
     await setup_integration(hass, entry)
@@ -517,8 +572,8 @@ async def test_places_with_the_same_name(
         }
         for entry in entries
     ]
-    # Today and tomorrow, the days of the places of 2026.11.0. Milan has no
-    # phenomenon within 50 km in the bulletin, Rome has 2
-    assert [len(ids) for ids in entity_ids] == [34, 32]
+    # Today and tomorrow, the days of the places of 2026.11.0, without the
+    # phenomena, off by default
+    assert [len(ids) for ids in entity_ids] == [32, 32]
     assert not entity_ids[0] & entity_ids[1]
     assert "sensor.dpc_today_alert_2" in entity_ids[1]

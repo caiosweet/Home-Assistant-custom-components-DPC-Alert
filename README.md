@@ -58,7 +58,7 @@ Requires Home Assistant 2025.2 or newer. See the [changelog](https://github.com/
    - **Pick it on a map**: the map starts at your home; move the pin.
    - **Use a zone**, such as Home.
 3. The integration checks the place with DPC and shows its alert zone. Choose its **municipality** among those of the zone: a municipality that spans several alert zones gets the highest alert of all of them.
-4. **What to show**: the days (today by default) and the kinds of entities.
+4. **What to show**: the days (today by default) and the kinds of entities (all but the phenomena by default).
 5. **Alerts**: the minimum level of warning, the radius of the phenomena and the update interval. Each field says what it does, and the options change them later.
 
 Add as many places as you want, each with its own municipality: two places in the same municipality would get the same bulletins. The places share the downloads: each bulletin is downloaded once for all of them.
@@ -72,9 +72,9 @@ A place is named after its alert zone, and its device after its municipality: fo
 1. **Place**: its municipality, among those of its alert zone.
 2. **What to show**:
    - **Days**: today, tomorrow and the day after tomorrow, each a device with its entities. Unchecking a day removes its device and entities; the place keeps its highest alert and precipitation and its bulletins.
-   - **Entities**: the binary sensors of the risks, the sensors, the maps and the phenomena on the map. Unchecking a kind removes its entities from the place and from every day.
+   - **Entities**: the binary sensors of the risks, the sensors, the maps and the phenomena on the map, off by default. Unchecking a kind removes its entities from the place and from every day.
 3. **Alerts**:
-   - **Minimum level of warning** (default yellow alert): the binary sensor of each risk turns on from this level up; with no alert, it is always on.
+   - **Minimum level of warning**: yellow (default), orange or red alert. The binary sensor of each risk turns on from this level up.
    - **Radius of the phenomena** (km, default 50).
    - **Update interval** (minutes, default 30).
 

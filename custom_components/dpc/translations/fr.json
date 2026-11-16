@@ -62,7 +62,7 @@
                     "scan_interval": "Intervalle de mise à jour"
                 },
                 "data_description": {
-                    "warning_level": "Le capteur binaire de chaque risque s'active à partir de ce niveau. Avec Pas d'alerte, il est toujours actif.",
+                    "warning_level": "Le capteur binaire de chaque risque s'active à partir de ce niveau.",
                     "radius": "Phénomènes météo à moins de cette distance du lieu, en km (50 par défaut).",
                     "scan_interval": "Minutes entre deux vérifications des nouveaux bulletins (30 par défaut)."
                 }
@@ -85,8 +85,16 @@
     },
     "options": {
         "step": {
+            "init": {
+                "title": "Que modifier",
+                "menu_options": {
+                    "place": "Commune",
+                    "display": "Que montrer",
+                    "alerts": "Alertes"
+                }
+            },
             "place": {
-                "title": "Lieu",
+                "title": "Commune",
                 "data": {
                     "municipality": "Commune"
                 },
@@ -113,7 +121,7 @@
                     "scan_interval": "Intervalle de mise à jour"
                 },
                 "data_description": {
-                    "warning_level": "Le capteur binaire de chaque risque s'active à partir de ce niveau. Avec Pas d'alerte, il est toujours actif.",
+                    "warning_level": "Le capteur binaire de chaque risque s'active à partir de ce niveau.",
                     "radius": "Phénomènes météo à moins de cette distance du lieu, en km (50 par défaut).",
                     "scan_interval": "Minutes entre deux vérifications des nouveaux bulletins (30 par défaut)."
                 }
@@ -142,7 +150,6 @@
         },
         "warning_level": {
             "options": {
-                "1": "Pas d'alerte",
                 "2": "Alerte jaune",
                 "3": "Alerte orange",
                 "4": "Alerte rouge"

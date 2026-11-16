@@ -118,7 +118,14 @@ def dpc_texts(language: Language) -> dict[str, Any]:
     return {
         "selector": {
             "days": {"options": {str(day): texts.days[day.day] for day in PlaceDay}},
-            "warning_level": {"options": level_numbers},
+            # Green, no alert, is no warning level
+            "warning_level": {
+                "options": {
+                    str(level.code): texts.alert_levels[level]
+                    for level in AlertLevel
+                    if level.is_alert
+                }
+            },
         },
         "device": {
             str(day): {
@@ -192,13 +199,13 @@ def dpc_texts(language: Language) -> dict[str, Any]:
 def merged(texts: dict[str, Any], new: dict[str, Any]) -> dict[str, Any]:
     """Return translations with new texts, keeping the order and the other keys.
 
-    The texts of the states are replaced whole: a state aiodpc no longer has
-    goes.
+    The texts of the states and of the choices of a list are replaced whole: a
+    value aiodpc or the integration no longer has goes.
     """
     result = dict(texts)
     for key, value in new.items():
         if (
-            key != "state"
+            key not in {"state", "options"}
             and isinstance(value, dict)
             and isinstance(result.get(key), dict)
         ):

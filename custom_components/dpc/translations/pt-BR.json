@@ -62,7 +62,7 @@
                     "scan_interval": "Intervalo de atualização"
                 },
                 "data_description": {
-                    "warning_level": "O sensor binário de cada risco liga a partir deste nível. Com Sem alerta, fica sempre ligado.",
+                    "warning_level": "O sensor binário de cada risco liga a partir deste nível.",
                     "radius": "Fenômenos meteorológicos a até esta distância do lugar, em km (padrão 50).",
                     "scan_interval": "Minutos entre as verificações de boletins novos (padrão 30)."
                 }
@@ -85,8 +85,16 @@
     },
     "options": {
         "step": {
+            "init": {
+                "title": "O que mudar",
+                "menu_options": {
+                    "place": "Município",
+                    "display": "O que mostrar",
+                    "alerts": "Alertas"
+                }
+            },
             "place": {
-                "title": "Lugar",
+                "title": "Município",
                 "data": {
                     "municipality": "Município"
                 },
@@ -113,7 +121,7 @@
                     "scan_interval": "Intervalo de atualização"
                 },
                 "data_description": {
-                    "warning_level": "O sensor binário de cada risco liga a partir deste nível. Com Sem alerta, fica sempre ligado.",
+                    "warning_level": "O sensor binário de cada risco liga a partir deste nível.",
                     "radius": "Fenômenos meteorológicos a até esta distância do lugar, em km (padrão 50).",
                     "scan_interval": "Minutos entre as verificações de boletins novos (padrão 30)."
                 }
@@ -142,7 +150,6 @@
         },
         "warning_level": {
             "options": {
-                "1": "Sem alerta",
                 "2": "Alerta amarelo",
                 "3": "Alerta laranja",
                 "4": "Alerta vermelho"

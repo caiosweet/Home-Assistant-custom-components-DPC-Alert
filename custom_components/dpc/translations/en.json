@@ -62,7 +62,7 @@
                     "scan_interval": "Update interval"
                 },
                 "data_description": {
-                    "warning_level": "The binary sensor of each risk turns on from this level up. With No alert, it is always on.",
+                    "warning_level": "The binary sensor of each risk turns on from this level up.",
                     "radius": "Weather phenomena within this distance of the place, in km (default 50).",
                     "scan_interval": "Minutes between checks for new bulletins (default 30)."
                 }
@@ -85,8 +85,16 @@
     },
     "options": {
         "step": {
+            "init": {
+                "title": "What to change",
+                "menu_options": {
+                    "place": "Municipality",
+                    "display": "What to show",
+                    "alerts": "Alerts"
+                }
+            },
             "place": {
-                "title": "Place",
+                "title": "Municipality",
                 "data": {
                     "municipality": "Municipality"
                 },
@@ -113,7 +121,7 @@
                     "scan_interval": "Update interval"
                 },
                 "data_description": {
-                    "warning_level": "The binary sensor of each risk turns on from this level up. With No alert, it is always on.",
+                    "warning_level": "The binary sensor of each risk turns on from this level up.",
                     "radius": "Weather phenomena within this distance of the place, in km (default 50).",
                     "scan_interval": "Minutes between checks for new bulletins (default 30)."
                 }
@@ -142,7 +150,6 @@
         },
         "warning_level": {
             "options": {
-                "1": "No alert",
                 "2": "Yellow alert",
                 "3": "Orange alert",
                 "4": "Red alert"

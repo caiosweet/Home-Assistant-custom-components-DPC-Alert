@@ -54,14 +54,16 @@ PLACE = {
     CONF_LONGITUDE: LONGITUDE,
 }
 GET_ALERT_ZONE = "custom_components.dpc.config_flow.DpcClient.get_alert_zone"
-# What a new place shows and alerts, when the steps keep their defaults
+# What a new place shows and alerts, when the steps keep their defaults: every
+# kind of entity but the phenomena
 ALL_ENTITIES = ["binary_sensor", "geo_location", "image", "sensor"]
+NEW_PLACE_ENTITIES = ["binary_sensor", "image", "sensor"]
 NEW_PLACE_OPTIONS = {
     CONF_DAYS: ["today"],
     "binary_sensor": True,
     "sensor": True,
     "image": True,
-    "geo_location": True,
+    "geo_location": False,
     CONF_WARNING_LEVEL: 2,
     CONF_RADIUS: 50.0,
     CONF_SCAN_INTERVAL: 30,
@@ -149,6 +151,7 @@ async def test_map_flow(hass: HomeAssistant, mock_setup_entry: AsyncMock) -> Non
         )
 
     assert result["step_id"] == "municipality"
+    assert result["last_step"] is False
     assert result["description_placeholders"] == {"zone": "Bacini di Roma"}
     assert is_required(result, CONF_MUNICIPALITY)
     assert selector_config(result, CONF_MUNICIPALITY)["options"] == [
@@ -162,10 +165,11 @@ async def test_map_flow(hass: HomeAssistant, mock_setup_entry: AsyncMock) -> Non
         result["flow_id"], {CONF_MUNICIPALITY: " roma "}
     )
 
-    # What to show: today and every kind of entity
+    # What to show: today and every kind of entity but the phenomena
     assert result["step_id"] == "display"
+    assert result["last_step"] is False
     assert schema_key(result, CONF_DAYS).default() == ["today"]
-    assert schema_key(result, CONF_ENTITIES).default() == ALL_ENTITIES
+    assert schema_key(result, CONF_ENTITIES).default() == NEW_PLACE_ENTITIES
     assert selector_config(result, CONF_ENTITIES) == {
         "options": ALL_ENTITIES,
         "multiple": True,
@@ -175,13 +179,15 @@ async def test_map_flow(hass: HomeAssistant, mock_setup_entry: AsyncMock) -> Non
         "sort": False,
     }
     result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], {CONF_DAYS: ["today"], CONF_ENTITIES: ALL_ENTITIES}
+        result["flow_id"], {CONF_DAYS: ["today"], CONF_ENTITIES: NEW_PLACE_ENTITIES}
     )
 
-    # The alerts: the warning level among the levels, named as they are
+    # The alerts, the last step: the warning level among the alerts, named as
+    # they are
     assert result["step_id"] == "alerts"
+    assert result["last_step"] is True
     assert selector_config(result, CONF_WARNING_LEVEL) == {
-        "options": ["1", "2", "3", "4"],
+        "options": ["2", "3", "4"],
         "multiple": False,
         "translation_key": "warning_level",
         "mode": "dropdown",
@@ -490,6 +496,23 @@ async def test_options_flow_starts_from_the_options(
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert mock_config_entry.options["image"] is False
     assert mock_config_entry.options[CONF_WARNING_LEVEL] == 4
+
+
+@pytest.mark.parametrize("entry_options", [{CONF_WARNING_LEVEL: 1}])
+async def test_options_flow_with_a_level_no_longer_offered(
+    hass: HomeAssistant, mock_config_entry: MockConfigEntry
+) -> None:
+    """Test that a place that chose green, no alert, starts from yellow."""
+    mock_config_entry.add_to_hass(hass)
+    options = hass.config_entries.options
+    with patch(GET_ALERT_ZONE, return_value=ROME_ZONE):
+        result = await options.async_init(mock_config_entry.entry_id)
+    result = await options.async_configure(
+        result["flow_id"], {CONF_MUNICIPALITY: "Roma"}
+    )
+    result = await options.async_configure(result["flow_id"], {})
+
+    assert schema_key(result, CONF_WARNING_LEVEL).default() == "2"
 
 
 async def test_options_flow_without_days(

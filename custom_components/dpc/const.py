@@ -4,7 +4,7 @@ from collections.abc import Mapping
 from datetime import timedelta
 from enum import StrEnum
 import logging
-from typing import Final
+from typing import Any, Final
 
 from aiodpc import AlertLevel, Criticality, Day, Precipitation, RiskType
 from homeassistant.const import Platform
@@ -96,10 +96,23 @@ RETRY_INTERVAL: Final = timedelta(minutes=10)
 LATEST_ID_CHECK_INTERVAL: Final = 60.0
 """Seconds during which the places share a check of the latest bulletin ID."""
 
-WARNING_LEVELS: Final = [
-    level.value for level in AlertLevel if level is not AlertLevel.UNKNOWN
-]
-"""Warning levels offered in the options: 1 green, 2 yellow, 3 orange, 4 red."""
+WARNING_LEVELS: Final = [level.value for level in AlertLevel if level.is_alert]
+"""Warning levels offered in the options: 2 yellow, 3 orange, 4 red.
+
+Green, no alert, would turn the binary sensors on all the time; places that
+chose it before keep it, until they choose another level.
+"""
+
+PLATFORMS_OFF_BY_DEFAULT: Final = frozenset({Platform.GEO_LOCATION})
+"""Kinds of entities a place shows only when its options turn them on: the
+phenomena, many entities that come and go with every bulletin."""
+
+
+def platform_shown(options: Mapping[str, Any], platform: str) -> bool:
+    """Return whether a place shows a kind of entities, by its options."""
+    shown: bool = options.get(platform, platform not in PLATFORMS_OFF_BY_DEFAULT)
+    return shown
+
 
 STARTUP_MESSAGE = f"""
 -------------------------------------------------------------------

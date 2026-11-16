@@ -41,7 +41,7 @@ def entry_options() -> dict[str, Any]:
 
 @pytest.fixture
 def mock_config_entry(entry_options: dict[str, Any]) -> MockConfigEntry:
-    """Return the default config entry, with every day."""
+    """Return the default config entry, with every day and kind of entity."""
     return MockConfigEntry(
         domain=DOMAIN,
         title=NAME,
@@ -49,7 +49,13 @@ def mock_config_entry(entry_options: dict[str, Any]) -> MockConfigEntry:
         minor_version=2,
         unique_id=UNIQUE_ID,
         data={CONF_NAME: NAME, CONF_LATITUDE: LATITUDE, CONF_LONGITUDE: LONGITUDE},
-        options={CONF_MUNICIPALITY: "", CONF_DAYS: list(PlaceDay), **entry_options},
+        options={
+            CONF_MUNICIPALITY: "",
+            CONF_DAYS: list(PlaceDay),
+            # Off by default
+            "geo_location": True,
+            **entry_options,
+        },
     )
 
 

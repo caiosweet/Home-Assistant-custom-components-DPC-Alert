@@ -26,6 +26,7 @@ from .const import (
     PLATFORMS,
     STARTUP_MESSAGE,
     PlaceDay,
+    platform_shown,
 )
 from .coordinator import DpcConfigEntry, DpcDataUpdateCoordinator
 from .dashboard import async_offer_the_dashboard
@@ -60,7 +61,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: DpcConfigEntry) -> bool:
     coordinator.place_device = async_set_up_the_devices(hass, entry, coordinator.days)
 
     coordinator.platforms = [
-        platform for platform in PLATFORMS if entry.options.get(platform, True)
+        platform for platform in PLATFORMS if platform_shown(entry.options, platform)
     ]
     async_remove_hidden_entities(hass, entry, coordinator.platforms)
     await hass.config_entries.async_forward_entry_setups(entry, coordinator.platforms)
@@ -109,15 +110,25 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             entry, options={**entry.options, CONF_MUNICIPALITY: ""}, version=2
         )
     if entry.version == 2 and entry.minor_version < 2:
+        registry = er.async_get(hass)
         days = list(DAYS_BEFORE_THE_OPTION)
         # The betas of 2026.11.1 had the precipitation of the day after tomorrow
-        if er.async_get(hass).async_get_entity_id(
+        if registry.async_get_entity_id(
             Platform.SENSOR,
             DOMAIN,
             f"{entry.unique_id}-precipitation_{PlaceDay.AFTER_TOMORROW}",
         ):
             days.append(PlaceDay.AFTER_TOMORROW)
-        hass.config_entries.async_update_entry(
-            entry, options={**entry.options, CONF_DAYS: days}, minor_version=2
+        options = {**entry.options, CONF_DAYS: days}
+        # The phenomena are off by default: the betas had them on
+        options.setdefault(
+            Platform.GEO_LOCATION,
+            any(
+                registry_entry.domain == Platform.GEO_LOCATION
+                for registry_entry in er.async_entries_for_config_entry(
+                    registry, entry.entry_id
+                )
+            ),
         )
+        hass.config_entries.async_update_entry(entry, options=options, minor_version=2)
     return True
