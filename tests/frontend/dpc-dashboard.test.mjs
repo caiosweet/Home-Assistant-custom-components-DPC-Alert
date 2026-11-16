@@ -77,24 +77,24 @@ function placeEntities(device, prefix, phenomena = []) {
   ];
 }
 
-/** Return a Home Assistant with the places Roma (with 2 phenomena) and Portula. */
+/** Return a Home Assistant with the places Roma (with 2 phenomena) and Milano. */
 function homeAssistant({ version = "2026.11.0", language = "en", entities = [] } = {}) {
   const all = [
     ...placeEntities("roma", "dpc_roma", [
       ["isolated_thunderstorms_sse", "today"],
       ["moderate_sea_sw", "tomorrow"],
     ]),
-    ...placeEntities("portula", "dpc_portula"),
+    ...placeEntities("milano", "dpc_milano"),
     // Another integration on the same device is not shown
     { entity_id: "sensor.other", platform: "other", device_id: "roma" },
     ...entities,
   ];
-  const portula = placeDevices("portula", "Portula");
-  portula.portula.name_by_user = null;
+  const milano = placeDevices("milano", "Milano");
+  milano.milano.name_by_user = null;
   return {
     config: { version },
     locale: { language },
-    devices: { ...placeDevices("roma", "Roma"), ...portula },
+    devices: { ...placeDevices("roma", "Roma"), ...milano },
     entities: Object.fromEntries(all.map((entry) => [entry.entity_id, entry])),
   };
 }
@@ -118,10 +118,10 @@ describe("dashboard", () => {
   it("has a view per place, sorted by name, built by the view strategy", () => {
     assert.deepEqual(generateDashboard(homeAssistant()).views, [
       {
-        title: "Portula",
-        path: "portula",
+        title: "Milano",
+        path: "milano",
         icon: "mdi:shield-alert",
-        strategy: { type: "custom:dpc-alert", device_id: "portula" },
+        strategy: { type: "custom:dpc-alert", device_id: "milano" },
       },
       {
         title: "Roma",
@@ -134,7 +134,7 @@ describe("dashboard", () => {
 
   it("gives places of the same name different paths", () => {
     const hass = homeAssistant({ entities: placeEntities("peglio2", "dpc_peglio_2") });
-    hass.devices.portula.name_by_user = "Peglio";
+    hass.devices.milano.name_by_user = "Peglio";
     Object.assign(hass.devices, placeDevices("peglio2", "Peglio"));
 
     const paths = generateDashboard(hass).views.map((view) => view.path);
@@ -160,7 +160,7 @@ describe("dashboard", () => {
 
     assert.deepEqual(
       findPlaces(hass).map((place) => place.name),
-      ["Portula", "Roma"],
+      ["Milano", "Roma"],
     );
   });
 
@@ -178,7 +178,7 @@ describe("dashboard", () => {
 
   it("leaves out a day whose place is gone", () => {
     const hass = homeAssistant();
-    delete hass.devices.portula;
+    delete hass.devices.milano;
 
     assert.deepEqual(
       findPlaces(hass).map((place) => place.name),

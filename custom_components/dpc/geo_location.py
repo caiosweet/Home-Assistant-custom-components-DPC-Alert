@@ -148,7 +148,7 @@ class DpcPhenomenonEvent(DpcEntity, GeolocationEvent):
         # The category gives the icon
         self._attr_translation_key = str(nearby.category)
         self._attr_translation_placeholders = name_placeholders(nearby, texts)
-        # e.g. geo_location.dpc_portula_today_scattered_rain_wnw
+        # e.g. geo_location.dpc_milano_today_scattered_rain_wnw
         direction = nearby.phenomenon.direction.lower()
         self.suggest_entity_id(Platform.GEO_LOCATION, f"{nearby.type}_{direction}")
         self._nearby: NearbyPhenomenon | None = None

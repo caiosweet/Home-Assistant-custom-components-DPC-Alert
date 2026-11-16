@@ -92,7 +92,7 @@ def day_device_identifier(entry: ConfigEntry, day: PlaceDay) -> tuple[str, str]:
 def day_device_info(
     entry: ConfigEntry, day: PlaceDay, place: PlaceDevice
 ) -> DeviceInfo:
-    """Return the device of a day of a place, e.g. "Portula Today"."""
+    """Return the device of a day of a place, e.g. "Milano Today"."""
     return DeviceInfo(
         identifiers={day_device_identifier(entry, day)},
         translation_key=day,
@@ -143,7 +143,7 @@ def place_entity_id(
 ) -> str:
     """Return the entity ID a new entity of a place gets: dpc_<place>[_<day>]_<key>.
 
-    E.g. binary_sensor.dpc_portula_today_hydraulic_risk. Every ID of the
+    E.g. binary_sensor.dpc_milano_today_hydraulic_risk. Every ID of the
     integration starts with dpc, once, even for a place named DPC.
     """
     parts = [slugify(place)]

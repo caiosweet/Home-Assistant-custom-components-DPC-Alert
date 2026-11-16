@@ -33,9 +33,9 @@ that followed them.
 
 ### Added
 
-- **A device for each day** (Portula · Today, Portula · Tomorrow, Portula ·
+- **A device for each day** (Milano · Today, Milano · Tomorrow, Milano ·
   Day after tomorrow), part of the device of the place, with the entities of
-  that day, named without the day: **Portula · Today Hydraulic risk**. The new
+  that day, named without the day: **Milano · Today Hydraulic risk**. The new
   **Days** option chooses them: a new place shows today; the places added
   before show today and tomorrow, as their binary sensors did. Unchecking a day
   removes its device and its entities.
@@ -75,9 +75,9 @@ that followed them.
   "Orange alert", "Heavy".
 - **Entity IDs of new places** start with `dpc_`, then the place, the day and
   the entity, in English whatever the language:
-  `binary_sensor.dpc_portula_today_hydraulic_risk`,
-  `sensor.dpc_portula_highest_alert`. Existing entities keep their IDs, such
-  as `binary_sensor.dpc_portula_idraulico_oggi`; **Recreate entity IDs**, in
+  `binary_sensor.dpc_milano_today_hydraulic_risk`,
+  `sensor.dpc_milano_highest_alert`. Existing entities keep their IDs, such
+  as `binary_sensor.dpc_milano_idraulico_oggi`; **Recreate entity IDs**, in
   **Settings → Entities**, now gives them the new ones.
 - The texts of the levels, risks, criticalities, precipitation, phenomena,
   directions, days and bulletins come from aiodpc, the same in the library
@@ -164,8 +164,8 @@ Entity IDs, states and the other attributes do not change.
   the options.
 - The device of a place is named after its municipality, or after its entry
   when it has none, so that renaming the entry renames it. The entities of new
-  places get IDs from their municipality, like `sensor.dpc_portula_alert`
-  and `binary_sensor.dpc_portula_idraulico_oggi`; binary sensors no longer get
+  places get IDs from their municipality, like `sensor.dpc_milano_alert`
+  and `binary_sensor.dpc_milano_idraulico_oggi`; binary sensors no longer get
   IDs from the coordinates. Existing entities keep their IDs ([#90]).
 - HACS lists the integration as "DPC Alert (Protezione Civile)", and Home
   Assistant lists it under Weather & alerts, as a public warnings service

@@ -255,7 +255,7 @@ export class Place {
 
   /**
    * Return the name of a day of the place, as its device says it: "Hoje" for
-   * "Portula · Hoje", or the name the user gave the device.
+   * "Milano · Hoje", or the name the user gave the device.
    *
    * @param {string} day
    */

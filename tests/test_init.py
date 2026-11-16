@@ -260,7 +260,7 @@ async def test_options_update_reloads_entry(
         ("Bacini di Roma", "Roma", "Roma", "dpc_roma"),
         # Before, it had any name and no municipality, or the name DPC
         ("Casa", "", "Casa", "dpc_casa"),
-        ("DPC", "Portula", "Portula", "dpc_portula"),
+        ("DPC", "Milano", "Milano", "dpc_milano"),
         # Every ID starts with dpc, once
         ("DPC", "", "DPC", "dpc"),
         ("DPC Casa", "", "DPC Casa", "dpc_casa"),

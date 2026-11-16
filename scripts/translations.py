@@ -45,7 +45,7 @@ FILES: Final = {
 integration are the same, with the same tags."""
 
 DEVICE_NAME: Final = "{place} · {day}"
-"""The name of the device of a day, e.g. "Portula · Today": the place, then the
+"""The name of the device of a day, e.g. "Milano · Today": the place, then the
 day as aiodpc writes it."""
 
 RISK_LEVEL_NAMES: Final = {
