@@ -8,6 +8,8 @@ that followed them.
 
 ## [Unreleased]
 
+## [2026.11.1] - 2026-11-16
+
 ### Breaking changes
 
 - **The data of the bulletins moved from attributes to entities**, which Home
@@ -502,7 +504,8 @@ YAML for a municipality given by its ISTAT code, for the thunderstorm,
 hydraulic and hydrogeological risks of today and tomorrow, at or above a
 chosen alert level.
 
-[Unreleased]: https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/compare/v2026.11.0...HEAD
+[Unreleased]: https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/compare/v2026.11.1...HEAD
+[2026.11.1]: https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/compare/v2026.11.0...v2026.11.1
 [2026.11.0]: https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/compare/v2026.2.0...v2026.11.0
 [2026.2.0]: https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/compare/v2026.1.2...v2026.2.0
 [2026.1.2]: https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/compare/v2026.1.1...v2026.1.2
