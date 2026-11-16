@@ -22,9 +22,9 @@ How the alert system works: [_Civil Protection Department_](https://rischi.prote
 - **Each day**: the alert (no alert, yellow, orange or red) with the risks at that level; the criticality DPC states for the zone, such as "Moderate criticality for hydrogeological risk"; the level of the hydraulic, hydrogeological and thunderstorm risk, and a binary sensor of each, on when it reaches the alert level you choose; the expected precipitation; and the weather phenomena within the radius you choose, on a map, once the options turn them on. The criticality bulletin covers today and tomorrow, the vigilance bulletin the day after too.
 - **The place**: its highest alert and highest precipitation, its DPC zones and its bulletins.
 - **Maps** of the criticality and vigilance bulletins, today and tomorrow, as images.
-- **A dashboard** of every place, made of the cards of Home Assistant, in the colors of the DPC maps: see [Dashboard](#dashboard).
+- **A dashboard** of every place, made of the cards of Home Assistant, in the colors of the DPC alerts: see [Dashboard](#dashboard).
 - **Several places**, picked on a map or from a zone, each with its municipality. Each bulletin is downloaded once for all of them.
-- **Thirteen languages**: English, Italian, French, German, Spanish and Brazilian Portuguese, and those of some of the largest foreign communities in Italy: Romanian, Albanian, Arabic, Simplified Chinese, Ukrainian, Bengali and Hindi. The texts of the levels, risks, phenomena and directions are those of the [aiodpc](https://pypi.org/project/aiodpc/) library; in Italian, the levels, risks and phenomena are those DPC writes.
+- **Thirteen languages**: English, Italian, French, German, Spanish and Brazilian Portuguese, and those of some of the largest foreign communities in Italy: Romanian, Albanian, Arabic, Simplified Chinese, Ukrainian, Bengali and Hindi. The texts of the levels, risks, phenomena and directions are those of the [aiodpc](https://github.com/webysther/aiodpc) library; in Italian, the levels, risks and phenomena are those DPC writes.
 - **Official data**: the criticality and weather vigilance bulletins that DPC publishes every day.
 
 Requires Home Assistant 2025.2 or newer. See the [changelog](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/CHANGELOG.md) for what changed in each version.
@@ -96,7 +96,7 @@ The integration comes with a dashboard made of the cards of Home Assistant, in t
 1. Go to **Settings → Dashboards → Add dashboard**.
 2. Under **Community dashboards**, choose **DPC Alert**. If it is not listed, reload the page.
 
-It has a tab for each place, with the levels and the precipitation in the colors of the DPC maps:
+It has a tab for each place, with the levels in the colors of the DPC alert map, green to red, and the precipitation in the same scale, light to very heavy (none in the blue of the icons of the theme):
 
 - **The place**: its highest alert and highest precipitation, its zones, when each bulletin was published and until when it covers.
 - **Each day** it shows: a banner for each risk at or above the warning level, in the color of its level (without the sensors, a tile of each risk, on or off); the alert, with the risks at that level; the criticality; the maps of the bulletins; the phenomena of the day on a map; the level of each risk; the expected precipitation and the number of phenomena.
@@ -184,7 +184,6 @@ geo_location_sources:
 - Each municipality can be added once: two places in it would get the same bulletins. Municipalities of the same name far apart, such as Peglio, in Lombardy and in the Marche, are different ones: the entity IDs of the second end in `_2`, e.g. `sensor.dpc_peglio_highest_alert_2`.
 - The texts of the levels, risks, criticalities, phenomena and directions come from the aiodpc library; in Italian, the levels, risks, criticalities and phenomena are those DPC writes, while the directions are computed by aiodpc. Places, zones and municipalities keep the names DPC gives them, in Italian; in South Tyrol, the German names of the municipalities work too.
 - In templates and notifications, `state_translated()` gives the translated state; `state_attr_translated()` (Home Assistant 2026.4 or newer) a translated attribute, such as the `phenomenon` of a phenomenon. Lists, such as the `risks` of the alert of a day, are translated by the dashboards only.
-- No precipitation is white, as on the DPC map: on a light theme, its tile is barely colored.
 
 ## Troubleshooting
 

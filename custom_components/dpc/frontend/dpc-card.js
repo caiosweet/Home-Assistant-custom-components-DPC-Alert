@@ -177,6 +177,32 @@ export function defaultsOf(type) {
 }
 
 /**
+ * Return the options of the heading of a card, which its editor lists, each
+ * with the option of the configuration it sets: the highest level of the map
+ * card is that of its map, so that it stays checked when the map changes.
+ *
+ * @param {string} type
+ * @param {MapKind} [map]
+ * @returns {Record<string, keyof CardConfig>}
+ */
+export function headingOptions(type, map = "criticality") {
+  if (type === BULLETIN_CARD) {
+    return { show_title: "show_title" };
+  }
+  if (type === MAP_CARD) {
+    return {
+      show_title: "show_title",
+      show_highest: /** @type {keyof CardConfig} */ (MAPS[map].placeOption),
+    };
+  }
+  return {
+    show_title: "show_title",
+    show_highest_alert: "show_highest_alert",
+    show_highest_precipitation: "show_highest_precipitation",
+  };
+}
+
+/**
  * Return the place a card shows: the place of its device, or the first place.
  *
  * @param {Place[]} places
@@ -507,8 +533,9 @@ function same(value, other) {
 
 /**
  * Return the configuration of a card from its visual editor: the columns as a
- * number, the lists in their order, and without the options that show what the
- * card shows anyway, so that its YAML stays short.
+ * number, the list of the heading as its options, the lists in their order,
+ * and without the options that show what the card shows anyway, so that its
+ * YAML stays short.
  *
  * @param {string} type
  * @param {Record<string, any>} value
@@ -519,6 +546,12 @@ export function cleanConfig(type, value) {
   const config = { ...value };
   if (typeof config.columns === "string") {
     config.columns = Number(config.columns);
+  }
+  if (Array.isArray(config.heading)) {
+    for (const [option, key] of Object.entries(headingOptions(type, config.map))) {
+      config[key] = config.heading.includes(option);
+    }
+    delete config.heading;
   }
   if (Array.isArray(config.days)) {
     config.days = DAYS.filter((day) => config.days.includes(day));
@@ -536,7 +569,7 @@ export function cleanConfig(type, value) {
 
 /**
  * Return the data of the visual editor of a card: its options, with those it
- * leaves out as they show, and the place it shows.
+ * leaves out as they show, the place it shows, and what its heading shows.
  *
  * @param {string} type
  * @param {Place[]} places
@@ -544,10 +577,14 @@ export function cleanConfig(type, value) {
  */
 export function editorData(type, places, config) {
   const defaults = defaultsOf(type);
+  /** @type {Record<string, any>} */
+  const options = { ...defaults, ...config };
   return {
-    ...defaults,
-    ...config,
+    ...options,
     device_id: config.device_id ?? places[0]?.device.id,
+    heading: Object.entries(headingOptions(type, config.map))
+      .filter(([, key]) => options[key])
+      .map(([option]) => option),
     columns: String(config.columns ?? defaults.columns),
   };
 }
@@ -600,8 +637,28 @@ export function editorSchema(type, hass, places, config) {
       selector: { select: { options, mode: "dropdown" } },
     },
   ];
-  /** @param {string} name @param {string} label */
-  const toggle = (name, label) => ({ name, label, selector: { boolean: {} } });
+  // A list, as compact as the days, rather than a switch for each
+  /** @type {Record<string, string>} */
+  const headingLabels = {
+    show_title: texts.title,
+    show_highest_alert: entityText(hass, "sensor", "highest_alert"),
+    show_highest_precipitation: entityText(hass, "sensor", "highest_precipitation"),
+    show_highest: entityText(hass, "sensor", MAPS[config.map ?? "criticality"].place),
+  };
+  const headingField = {
+    name: "heading",
+    label: texts.heading,
+    selector: {
+      select: {
+        multiple: true,
+        mode: "list",
+        options: Object.keys(headingOptions(type, config.map)).map((option) => ({
+          value: option,
+          label: headingLabels[option],
+        })),
+      },
+    },
+  };
   /** @param {string[]} days */
   const daysField = (days) => ({
     name: "days",
@@ -620,7 +677,6 @@ export function editorSchema(type, hass, places, config) {
     selector: { select: { options: ["1", "2"], mode: "dropdown" } },
   };
   if (type === MAP_CARD) {
-    const kind = MAPS[config.map ?? "criticality"];
     fields.push(
       {
         name: "map",
@@ -635,13 +691,12 @@ export function editorSchema(type, hass, places, config) {
           },
         },
       },
-      toggle("show_title", texts.title),
-      toggle(kind.placeOption, entityText(hass, "sensor", kind.place)),
+      headingField,
       daysField(MAP_DAYS),
     );
   } else if (type === BULLETIN_CARD) {
     fields.push(
-      toggle("show_title", texts.title),
+      headingField,
       {
         name: "items",
         label: texts.bulletins,
@@ -659,11 +714,7 @@ export function editorSchema(type, hass, places, config) {
       columnsField,
     );
   } else {
-    fields.push(
-      toggle("show_title", texts.title),
-      toggle("show_highest_alert", entityText(hass, "sensor", "highest_alert")),
-      toggle("show_highest_precipitation", entityText(hass, "sensor", "highest_precipitation")),
-      daysField(DAYS),
+    fields.push(headingField, daysField(DAYS),
       columnsField,
     );
   }
@@ -677,7 +728,10 @@ export function editorSchema(type, hass, places, config) {
  *
  * The heading lines up with the tiles: the center of its 18px icon, 4px from
  * its edge, with the center of their 36px icons, 10px from theirs (15px), and
- * its badges, 4px from its edge, with their 10px padding (6px).
+ * its badges, 4px from its edge, with their 10px padding (6px). Without the
+ * title, the heading is as wide as its badges, at the start: an empty title
+ * and a gap of 8px before them, after its 4px, so their 16px icons line up
+ * with those of the tiles (8px).
  */
 const STYLE = `
   ha-card {
@@ -702,6 +756,11 @@ const STYLE = `
   }
   .heading {
     padding-inline: 15px 6px;
+  }
+  .badges {
+    justify-self: start;
+    padding-inline-start: 8px;
+    --ha-heading-card-title-min-width: 0px;
   }
   .picture {
     padding: 4px 10px;
@@ -979,7 +1038,7 @@ if (globalThis.customElements && globalThis.HTMLElement) {
           const element = createCardElement(config);
           element.classList.add(column);
           if (config.type === "heading") {
-            element.classList.add("heading");
+            element.classList.add(config.heading ? "heading" : "badges");
           }
           if (config.type === "picture-entity") {
             element.classList.add("picture");

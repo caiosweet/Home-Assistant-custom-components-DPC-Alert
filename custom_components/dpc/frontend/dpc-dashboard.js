@@ -71,18 +71,15 @@ const RISKS = ["hydraulic", "thunderstorms", "hydrogeological"];
 const DPC_ALERT_COLORS = ["#90c985", "#f8f865", "#f0bf01", "#fd6767"];
 
 /**
- * The colors of the precipitation on the DPC vigilance map: none to very heavy.
+ * The colors of the precipitation, none to very heavy.
  *
- * DPC draws no precipitation in white, which a light theme does not show: it
- * has the color Home Assistant gives the icons of sensors, a blue.
+ * Light to very heavy have the scale of the alerts, green to red, so that a
+ * level reads the same whatever it measures: the vigilance map draws them in
+ * blues and purples. No precipitation has the color Home Assistant gives the
+ * icons of sensors, a blue: the map draws it white, which a light theme does
+ * not show.
  */
-const DPC_PRECIPITATION_COLORS = [
-  "var(--state-icon-color)",
-  "#C3FFFE",
-  "#50FFFF",
-  "#508BFF",
-  "#A040FF",
-];
+const DPC_PRECIPITATION_COLORS = ["var(--state-icon-color)", ...DPC_ALERT_COLORS];
 
 /** Color of each state of the alert of a day, and of the level of each risk. */
 export const ALERT_COLORS = Object.fromEntries(
@@ -140,6 +137,7 @@ const TEXTS = {
     maps: "Maps",
     place: "Place",
     title: "Title",
+    heading: "Heading",
     days: "Days",
     columns: "Columns",
     description:
@@ -153,6 +151,7 @@ const TEXTS = {
     maps: "Mappe",
     place: "Luogo",
     title: "Titolo",
+    heading: "Intestazione",
     days: "Giorni",
     columns: "Colonne",
     description:
@@ -166,6 +165,7 @@ const TEXTS = {
     maps: "Mapas",
     place: "Lugar",
     title: "Título",
+    heading: "Cabeçalho",
     days: "Dias",
     columns: "Colunas",
     description:
@@ -179,6 +179,7 @@ const TEXTS = {
     maps: "Cartes",
     place: "Lieu",
     title: "Titre",
+    heading: "En-tête",
     days: "Jours",
     columns: "Colonnes",
     description:
@@ -192,6 +193,7 @@ const TEXTS = {
     maps: "Karten",
     place: "Ort",
     title: "Titel",
+    heading: "Kopfzeile",
     days: "Tage",
     columns: "Spalten",
     description:
@@ -205,6 +207,7 @@ const TEXTS = {
     maps: "Mapas",
     place: "Lugar",
     title: "Título",
+    heading: "Encabezado",
     days: "Días",
     columns: "Columnas",
     description:
@@ -218,6 +221,7 @@ const TEXTS = {
     maps: "地图",
     place: "地点",
     title: "标题",
+    heading: "标题栏",
     days: "日期",
     columns: "列数",
     description:
@@ -231,6 +235,7 @@ const TEXTS = {
     maps: "Hărți",
     place: "Loc",
     title: "Titlu",
+    heading: "Antet",
     days: "Zile",
     columns: "Coloane",
     description:
@@ -244,6 +249,7 @@ const TEXTS = {
     maps: "الخرائط",
     place: "المكان",
     title: "العنوان",
+    heading: "الترويسة",
     days: "الأيام",
     columns: "الأعمدة",
     description:
@@ -257,6 +263,7 @@ const TEXTS = {
     maps: "Карти",
     place: "Місце",
     title: "Заголовок",
+    heading: "Шапка",
     days: "Дні",
     columns: "Стовпці",
     description:
@@ -270,6 +277,7 @@ const TEXTS = {
     maps: "Hartat",
     place: "Vendi",
     title: "Titulli",
+    heading: "Koka",
     days: "Ditët",
     columns: "Kolonat",
     description:
@@ -283,6 +291,7 @@ const TEXTS = {
     maps: "মানচিত্র",
     place: "জায়গা",
     title: "শিরোনাম",
+    heading: "হেডার",
     days: "দিন",
     columns: "কলাম",
     description:
@@ -296,6 +305,7 @@ const TEXTS = {
     maps: "मानचित्र",
     place: "स्थान",
     title: "शीर्षक",
+    heading: "हेडर",
     days: "दिन",
     columns: "कॉलम",
     description:

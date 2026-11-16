@@ -34,8 +34,11 @@ that followed them.
 - The dashboard shows the zones and the bulletins of a place in the section of
   the place, rather than in a section of their own, and the maps of a day
   right after its criticality, where they no longer leave gaps between them.
-- No precipitation is shown in the blue of the icons of the theme, rather than
-  in the white of the DPC map, which a light theme does not show.
+- The precipitation is colored in the scale of the alerts, green to red, light
+  to very heavy, rather than in the blues and purples of the vigilance map, so
+  that a level reads the same whatever it measures; no precipitation in the
+  blue of the icons of the theme, rather than in a white that a light theme
+  does not show.
 
 ### Fixed
 

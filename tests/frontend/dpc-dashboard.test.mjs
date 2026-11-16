@@ -181,12 +181,13 @@ describe("view of a place", () => {
       4: "#fd6767",
     });
     assert.deepEqual(colorsOf(view, "sensor.dpc_roma_highest_precipitation"), {
-      // No precipitation in the color of the icons of the theme, rather than white
+      // No precipitation in the color of the icons of the theme, rather than
+      // white; the others in the scale of the alerts
       1: "var(--state-icon-color)",
-      2: "#C3FFFE",
-      3: "#50FFFF",
-      4: "#508BFF",
-      5: "#A040FF",
+      2: "#90c985",
+      3: "#f8f865",
+      4: "#f0bf01",
+      5: "#fd6767",
     });
   });
 

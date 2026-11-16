@@ -13,6 +13,7 @@ import {
   cleanConfig,
   editorData,
   editorSchema,
+  headingOptions,
   mapLayout,
   placeLayout,
   placeOf,
@@ -88,7 +89,7 @@ describe("card", () => {
     });
     assert.deepEqual(model.highestPrecipitation, {
       entity: "sensor.dpc_milano_highest_precipitation",
-      color: "#508BFF",
+      color: "#f0bf01",
     });
   });
 
@@ -103,10 +104,10 @@ describe("card", () => {
         precipitation?.color,
       ]),
       [
-        ["today", "Today", "#f0bf01", "#C3FFFE"],
-        ["tomorrow", "Tomorrow", "#90c985", "#50FFFF"],
+        ["today", "Today", "#f0bf01", "#90c985"],
+        ["tomorrow", "Tomorrow", "#90c985", "#f8f865"],
         // Only the vigilance bulletin covers the day after tomorrow
-        ["aftertomorrow", "Day after tomorrow", undefined, "#508BFF"],
+        ["aftertomorrow", "Day after tomorrow", undefined, "#f0bf01"],
       ],
     );
     assert.equal(days[2].alert, undefined);
@@ -157,7 +158,7 @@ describe("card", () => {
             {
               type: "entity",
               entity: "sensor.dpc_milano_highest_precipitation",
-              color: "#508BFF",
+              color: "#f0bf01",
             },
           ],
         },
@@ -177,7 +178,7 @@ describe("card", () => {
           type: "tile",
           entity: "sensor.dpc_milano_today_precipitation",
           name: { type: "entity" },
-          color: "#C3FFFE",
+          color: "#90c985",
         },
         column: "end",
       },
@@ -195,7 +196,7 @@ describe("card", () => {
           type: "tile",
           entity: "sensor.dpc_milano_tomorrow_precipitation",
           name: { type: "entity" },
-          color: "#50FFFF",
+          color: "#f8f865",
         },
         column: "end",
       },
@@ -205,7 +206,7 @@ describe("card", () => {
           type: "tile",
           entity: "sensor.dpc_milano_after_tomorrow_precipitation",
           name: "Day after tomorrow",
-          color: "#508BFF",
+          color: "#f0bf01",
         },
         column: "end",
       },
@@ -394,13 +395,13 @@ describe("map card", () => {
       "tomorrow",
     );
     assert.deepEqual(title.card.badges, [
-      { type: "entity", entity: "sensor.dpc_milano_highest_precipitation", color: "#508BFF" },
+      { type: "entity", entity: "sensor.dpc_milano_highest_precipitation", color: "#f0bf01" },
     ]);
     assert.equal(map.card.entity, "image.dpc_milano_today_vigilance_map");
     assert.equal(map.rows, 1);
     assert.deepEqual(
       blocks.map(({ card }) => [card.entity, card.color]),
-      [["sensor.dpc_milano_today_precipitation", "#C3FFFE"]],
+      [["sensor.dpc_milano_today_precipitation", "#90c985"]],
     );
   });
 
@@ -586,30 +587,54 @@ describe("visual editor", () => {
 
     assert.deepEqual(fields("dpc-card"), [
       ["device_id", "Lugar"],
-      ["show_title", "Título"],
-      ["show_highest_alert", "Alerta máximo"],
-      ["show_highest_precipitation", "Precipitação máxima"],
+      ["heading", "Cabeçalho"],
       ["days", "Dias"],
       ["columns", "Colunas"],
     ]);
     assert.deepEqual(fields("dpc-bulletin-card"), [
       ["device_id", "Lugar"],
-      ["show_title", "Título"],
+      ["heading", "Cabeçalho"],
       ["items", "Boletins"],
       ["columns", "Colunas"],
     ]);
     assert.deepEqual(fields("dpc-map-card"), [
       ["device_id", "Lugar"],
       ["map", "Mapas"],
-      ["show_title", "Título"],
-      ["show_highest_alert", "Alerta máximo"],
+      ["heading", "Cabeçalho"],
       ["days", "Dias"],
     ]);
-    // The highest level of the vigilance map is its precipitation
-    assert.deepEqual(fields("dpc-map-card", { map: "vigilance" })[3], [
-      "show_highest_precipitation",
-      "Precipitação máxima",
-    ]);
+  });
+
+  it("lists what the heading shows, as compact as the days", () => {
+    const hass = portuguese();
+    const places = findPlaces(hass);
+    const heading = (type, config = {}) =>
+      editorSchema(type, hass, places, config).find((field) => field.name === "heading").selector
+        .select;
+
+    assert.deepEqual(heading("dpc-card"), {
+      multiple: true,
+      mode: "list",
+      options: [
+        { value: "show_title", label: "Título" },
+        { value: "show_highest_alert", label: "Alerta máximo" },
+        { value: "show_highest_precipitation", label: "Precipitação máxima" },
+      ],
+    });
+    assert.deepEqual(heading("dpc-bulletin-card").options, [{ value: "show_title", label: "Título" }]);
+    // The highest level of the map card is that of its map
+    assert.deepEqual(heading("dpc-map-card").options[1], {
+      value: "show_highest",
+      label: "Alerta máximo",
+    });
+    assert.deepEqual(heading("dpc-map-card", { map: "vigilance" }).options[1], {
+      value: "show_highest",
+      label: "Precipitação máxima",
+    });
+    assert.deepEqual(headingOptions("dpc-map-card", "vigilance"), {
+      show_title: "show_title",
+      show_highest: "show_highest_precipitation",
+    });
   });
 
   it("offers the places, the days and the data of the bulletins by name", () => {
@@ -654,12 +679,17 @@ describe("visual editor", () => {
       show_title: true,
       show_highest_alert: true,
       show_highest_precipitation: true,
+      heading: ["show_title", "show_highest"],
       days: ["today", "tomorrow"],
       items: BULLETIN_ITEMS,
       columns: "2",
       map: "criticality",
     });
     assert.equal(editorData("dpc-card", places, { columns: 1 }).columns, "1");
+    assert.deepEqual(
+      editorData("dpc-card", places, { show_title: false, show_highest_alert: false }).heading,
+      ["show_highest_precipitation"],
+    );
   });
 
   it("keeps in the configuration only what differs from what the card shows anyway", () => {
@@ -671,7 +701,7 @@ describe("visual editor", () => {
     assert.deepEqual(
       cleanConfig("dpc-card", {
         ...data,
-        show_title: false,
+        heading: ["show_highest_alert", "show_highest_precipitation"],
         days: ["tomorrow", "today"],
         columns: "1",
       }),
@@ -682,6 +712,15 @@ describe("visual editor", () => {
         days: ["today", "tomorrow"],
         columns: 1,
       },
+    );
+    // The highest level of the map card stays checked when its map changes
+    assert.deepEqual(
+      cleanConfig("dpc-map-card", {
+        map: "vigilance",
+        show_highest_alert: false,
+        heading: ["show_highest"],
+      }),
+      { map: "vigilance", show_title: false, show_highest_alert: false },
     );
     assert.deepEqual(
       cleanConfig("dpc-bulletin-card", { items: ["vigilance_zone", "alert_zone"] }),
