@@ -453,11 +453,64 @@ describe("map card", () => {
     );
   });
 
-  it("shows only the heading without a map", () => {
+  it("shows the list as wide as the card without a map", () => {
+    // No map: DPC published them blank, or it is after midnight
     const hass = withStates();
+    assert.deepEqual(mapLayout(hass, milano(hass), {}).slice(1), [
+      {
+        card: {
+          type: "tile",
+          entity: "sensor.dpc_milano_today_alert",
+          name: "Today",
+          color: "#f0bf01",
+        },
+        column: "all",
+      },
+      {
+        card: {
+          type: "tile",
+          entity: "sensor.dpc_milano_tomorrow_alert",
+          name: "Tomorrow",
+          color: "#90c985",
+        },
+        column: "all",
+      },
+      {
+        card: { type: "tile", entity: "sensor.dpc_milano_alert_zone", name: { type: "entity" } },
+        column: "all",
+      },
+      {
+        card: {
+          type: "tile",
+          entity: "sensor.dpc_milano_today_nearby_phenomena",
+          name: { type: "entity" },
+        },
+        column: "all",
+      },
+    ]);
+  });
+
+  it("shows the days with data only, without a map", () => {
+    // After midnight, until the next bulletin: tomorrow has no alert yet
+    const hass = withStates(
+      {},
+      statesOf({ "sensor.dpc_milano_tomorrow_alert": "green" }),
+    );
     assert.deepEqual(
-      mapLayout(hass, milano(hass), {}).map(({ card }) => card.type),
-      ["heading"],
+      mapLayout(hass, milano(hass), { days: ["tomorrow"] })
+        .slice(1)
+        .map(({ card }) => card.entity),
+      [
+        "sensor.dpc_milano_tomorrow_alert",
+        "sensor.dpc_milano_alert_zone",
+        "sensor.dpc_milano_tomorrow_nearby_phenomena",
+      ],
+    );
+    // Without data of any day: the zone, without phenomena of a day
+    const empty = withStates({}, {});
+    assert.deepEqual(
+      mapLayout(empty, milano(empty), {}).map(({ card }) => card.entity ?? card.type),
+      ["heading", "sensor.dpc_milano_alert_zone"],
     );
   });
 

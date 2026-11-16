@@ -122,7 +122,7 @@ The integration comes with three cards for your own dashboards, in the card pick
 
 - **DPC Alert** (`custom:dpc-card`): the highest alert and precipitation of the place, then the alert and the precipitation of each day; the day after tomorrow has its precipitation only.
 - **DPC Alert · Bulletins** (`custom:dpc-bulletin-card`): the criticality bulletin and, beside it, the vigilance bulletin: their zones, when they were published and until when they cover.
-- **DPC Alert · Maps** (`custom:dpc-map-card`): the map of a day and, beside it, a list as high as the map: a block for each day with a map, the zone of the map and the number of phenomena near the place. With two days, a click on a block shows its map.
+- **DPC Alert · Maps** (`custom:dpc-map-card`): the map of a day and, beside it, a list as high as the map: a block for each day with a map, the zone of the map and the number of phenomena near the place. With two days, a click on a block shows its map. Without a map, as when DPC publishes it blank or after midnight until the next bulletin, the list takes the whole card.
 
 The visual editor chooses what each card shows. In YAML, an option left out shows everything:
 

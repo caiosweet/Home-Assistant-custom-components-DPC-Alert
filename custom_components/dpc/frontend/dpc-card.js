@@ -418,36 +418,22 @@ function hasData(hass, entity) {
 }
 
 /**
- * Return the native cards of the map card: a heading with the place and its
- * highest level, the map of the selected day (the first without one), and
- * beside it, as high as the map, a list: a block for each day chosen with a
- * map, its alert, or its precipitation for the vigilance map; the zone of the
- * map; and the number of phenomena near the place on the day of the map.
+ * Return the list of the map card: a block for each day, its alert, or its
+ * precipitation for the vigilance map; the zone of the map; and the number of
+ * phenomena near the place on a day.
  *
- * With more than one day, a click on a block shows its map, and the block of
- * the map shown stands out. A single day is a tile like the others, which
- * shows its details.
- *
- * @type {PlaceLayout}
+ * @param {CardHass} hass
+ * @param {Place} place
+ * @param {CardConfig} config
+ * @param {string[]} days
+ * @param {{ shown?: string, switches: boolean, column: Column }} how The day of
+ *   the phenomena, whether a click on a block shows its map, and the column.
+ * @returns {Placed[]}
  */
-export function mapLayout(hass, place, config, selected) {
+function mapList(hass, place, config, days, { shown, switches, column }) {
   const kind = MAPS[config.map ?? "criticality"];
-  const chosen = config.days ?? MAP_DAYS;
-  const days = MAP_DAYS.filter(
-    (day) => chosen.includes(day) && hasData(hass, place.entity("image", kind.image, day)),
-  );
-  const shown = selected && days.includes(selected) ? selected : days[0];
-  const highest = swatch(hass.states, place.entity("sensor", kind.place), kind.placeColors);
   /** @type {Placed[]} */
-  const layout = heading(config, place.name, [
-    (config[/** @type {keyof CardConfig} */ (kind.placeOption)] ?? true) && highest,
-  ]);
-  if (!shown) {
-    return layout;
-  }
-  const switches = days.length > 1;
-  /** @type {Placed[]} */
-  const beside = days.flatMap((day) => {
+  const list = days.flatMap((day) => {
     const block = swatch(hass.states, place.entity("sensor", kind.day, day), kind.dayColors);
     if (!block) {
       return [];
@@ -465,22 +451,72 @@ export function mapLayout(hass, place, config, selected) {
               icon_tap_action: { action: "none" },
               ...colorOf(block),
             },
-            column: /** @type {Column} */ ("end"),
+            column,
             select: day,
             selected: day === shown,
           },
         ]
-      : [{ card: { type: "tile", entity: block.entity, name, ...colorOf(block) }, column: "end" }];
+      : [{ card: { type: "tile", entity: block.entity, name, ...colorOf(block) }, column }];
   });
   const details = [
     (config.show_zone ?? true) && place.entity("sensor", kind.zone),
-    (config.show_nearby_phenomena ?? true) && place.entity("sensor", "nearby_phenomena", shown),
+    (config.show_nearby_phenomena ?? true) &&
+      shown !== undefined &&
+      place.entity("sensor", "nearby_phenomena", shown),
   ];
   for (const entity of details) {
     if (entity) {
-      beside.push({ card: tile(hass, entity), column: "end" });
+      list.push({ card: tile(hass, entity), column });
     }
   }
+  return list;
+}
+
+/**
+ * Return the native cards of the map card: a heading with the place and its
+ * highest level, the map of the selected day (the first without one), and
+ * beside it, as high as the map, a list: a block for each day chosen with a
+ * map, the zone of the map, and the number of phenomena near the place on the
+ * day of the map.
+ *
+ * With more than one day, a click on a block shows its map, and the block of
+ * the map shown stands out. A single day is a tile like the others, which
+ * shows its details.
+ *
+ * Without a map, the list takes the whole card, with the days that have data:
+ * DPC often publishes the maps blank, and has none of tomorrow from midnight
+ * until its next bulletin.
+ *
+ * @type {PlaceLayout}
+ */
+export function mapLayout(hass, place, config, selected) {
+  const kind = MAPS[config.map ?? "criticality"];
+  const chosen = MAP_DAYS.filter((day) => (config.days ?? MAP_DAYS).includes(day));
+  const days = chosen.filter((day) => hasData(hass, place.entity("image", kind.image, day)));
+  const shown = selected && days.includes(selected) ? selected : days[0];
+  const highest = swatch(hass.states, place.entity("sensor", kind.place), kind.placeColors);
+  /** @type {Placed[]} */
+  const layout = heading(config, place.name, [
+    (config[/** @type {keyof CardConfig} */ (kind.placeOption)] ?? true) && highest,
+  ]);
+  if (!shown) {
+    const withData = chosen.filter((day) =>
+      hasData(hass, place.entity("sensor", kind.day, day)),
+    );
+    return [
+      ...layout,
+      ...mapList(hass, place, config, withData, {
+        shown: withData[0],
+        switches: false,
+        column: "all",
+      }),
+    ];
+  }
+  const beside = mapList(hass, place, config, days, {
+    shown,
+    switches: days.length > 1,
+    column: "end",
+  });
   layout.push(
     {
       card: {
