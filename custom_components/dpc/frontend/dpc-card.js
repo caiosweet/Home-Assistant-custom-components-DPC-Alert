@@ -10,6 +10,9 @@
  * - `custom:dpc-map-card`: a map of the bulletins, and a block for each day
  *   that has one, which shows its map.
  *
+ * Each has a visual editor: the place, the title, the highest levels, the days
+ * or the data of the bulletins, and one or two columns.
+ *
  * The integration serves this file next to the dashboard strategy, whose
  * helpers it shares, and has the frontend load it (custom_components/dpc/dashboard.py).
  *
@@ -34,6 +37,7 @@ import {
   findPlaces,
   textsIn,
   tile,
+  translated,
   withTexts,
 } from "./dpc-dashboard.js";
 
@@ -49,16 +53,22 @@ import {
  * @typedef {Hass & { states: Record<string, StateObject> }} CardHass
  *   The parts of the Home Assistant object the cards read.
  *
- * @typedef {object} CardConfig
+ * @typedef {object} CardConfig What a card shows; without an option, all of it.
+ * @property {string} [type]
  * @property {string} [device_id] The device of the place; the first place without it.
- * @property {MapKind} [map] The map of the map card; the criticality map without it.
+ * @property {boolean} [show_title] The name of the place, above the rest.
+ * @property {boolean} [show_highest_alert] The highest alert of the place, in the heading.
+ * @property {boolean} [show_highest_precipitation] Its highest precipitation, in the heading.
+ * @property {string[]} [days] The days shown, of those the place has.
+ * @property {string[]} [items] The data of the bulletins the bulletin card shows.
+ * @property {number} [columns] 1, or 2 side by side.
+ * @property {MapKind} [map] The map of the map card.
  *
  * @typedef {"criticality" | "vigilance"} MapKind
  *
  * @typedef {object} Swatch An entity and the color of its state.
  * @property {string} entity
- * @property {string | undefined} color None without data, for an unknown
- *   state, or for a state the theme colors better.
+ * @property {string | undefined} color None without data, or for an unknown state.
  *
  * @typedef {object} DayModel What the alert card shows of a day.
  * @property {string} day e.g. "today"
@@ -86,6 +96,9 @@ import {
  *
  * @typedef {(hass: CardHass, place: Place, config: CardConfig, selected?: string)
  *   => Placed[]} PlaceLayout The native cards a card shows of a place.
+ *
+ * @typedef {Record<string, any>} FormField A field of the visual editor, as
+ *   `ha-form` draws it, with its label.
  */
 
 /** The name of the alert card, `custom:dpc-card` in a dashboard. */
@@ -97,9 +110,13 @@ export const BULLETIN_CARD = "dpc-bulletin-card";
 /** The name of the map card, `custom:dpc-map-card` in a dashboard. */
 export const MAP_CARD = "dpc-map-card";
 
+/** The days DPC publishes maps of: none of the day after tomorrow. */
+export const MAP_DAYS = ["today", "tomorrow"];
+
 /**
  * The maps of the map card: the image of each day, the sensor of the day its
- * block shows, and the sensor of the place its heading shows, with their colors.
+ * block shows, and the sensor of the place its heading shows, with their colors
+ * and the option that shows it.
  */
 export const MAPS = {
   criticality: {
@@ -108,6 +125,7 @@ export const MAPS = {
     dayColors: ALERT_COLORS,
     place: "highest_alert",
     placeColors: HIGHEST_ALERT_COLORS,
+    placeOption: "show_highest_alert",
   },
   vigilance: {
     image: "vigilance_map",
@@ -115,6 +133,7 @@ export const MAPS = {
     dayColors: PRECIPITATION_COLORS,
     place: "highest_precipitation",
     placeColors: HIGHEST_PRECIPITATION_COLORS,
+    placeOption: "show_highest_precipitation",
   },
 };
 
@@ -127,6 +146,35 @@ const BULLETIN_ROWS = [
   ["criticality_bulletin", "vigilance_bulletin"],
   ["criticality_valid_until", "vigilance_valid_until"],
 ];
+
+/**
+ * The data of the bulletins, those of the criticality bulletin first: the
+ * order of a single column, and of the editor.
+ */
+export const BULLETIN_ITEMS = [0, 1].flatMap((column) => BULLETIN_ROWS.map((row) => row[column]));
+
+/** The width of each column of two: the alert of a day is narrower than its
+ * precipitation, whose texts are longer. */
+const ALERT_COLUMNS = "minmax(0, 2fr) minmax(0, 3fr)";
+const EVEN_COLUMNS = "minmax(0, 1fr) minmax(0, 1fr)";
+const ONE_COLUMN = "minmax(0, 1fr)";
+
+/**
+ * Return the options of a card that show everything: what it shows without them.
+ *
+ * @param {string} type
+ */
+export function defaultsOf(type) {
+  return {
+    show_title: true,
+    show_highest_alert: true,
+    show_highest_precipitation: true,
+    days: type === MAP_CARD ? MAP_DAYS : DAYS,
+    items: BULLETIN_ITEMS,
+    columns: 2,
+    map: "criticality",
+  };
+}
 
 /**
  * Return the place a card shows: the place of its device, or the first place.
@@ -167,24 +215,33 @@ function colorOf(item) {
 
 /**
  * Return the heading of a card: the place, with badges of its entities, each
- * in the color of its state.
+ * in the color of its state. Without the title, only the badges; without
+ * either, no heading.
  *
+ * @param {CardConfig} config
  * @param {string} name
- * @param {Array<Swatch | undefined>} badges
- * @returns {Placed}
+ * @param {Array<Swatch | undefined | false>} badges
+ * @returns {Placed[]}
  */
-function heading(name, badges) {
-  return {
-    card: {
-      type: "heading",
-      heading: name,
-      icon: ICON,
-      badges: badges.flatMap((item) =>
-        item ? [{ type: "entity", entity: item.entity, ...colorOf(item) }] : [],
-      ),
+function heading(config, name, badges) {
+  const shown = badges.flatMap((item) =>
+    item ? [{ type: "entity", entity: item.entity, ...colorOf(item) }] : [],
+  );
+  const title = config.show_title ?? true;
+  if (!title && !shown.length) {
+    return [];
+  }
+  return [
+    {
+      card: {
+        type: "heading",
+        heading: title ? name : "",
+        ...(title ? { icon: ICON } : {}),
+        badges: shown,
+      },
+      column: "all",
     },
-    column: "all",
-  };
+  ];
 }
 
 /**
@@ -193,9 +250,10 @@ function heading(name, badges) {
  *
  * @param {CardHass} hass
  * @param {Place} place
+ * @param {string[]} [days] The days chosen; all of them without a choice.
  * @returns {CardModel}
  */
-export function cardModel(hass, place) {
+export function cardModel(hass, place, days = DAYS) {
   const { states } = hass;
   return {
     name: place.name,
@@ -205,7 +263,7 @@ export function cardModel(hass, place) {
       place.entity("sensor", "highest_precipitation"),
       HIGHEST_PRECIPITATION_COLORS,
     ),
-    days: DAYS.filter((day) => place.days.has(day)).map((day) => ({
+    days: DAYS.filter((day) => place.days.has(day) && days.includes(day)).map((day) => ({
       day,
       name: dayName(hass, place, day),
       alert: swatch(states, place.entity("sensor", "alert", day), ALERT_COLORS),
@@ -221,20 +279,22 @@ export function cardModel(hass, place) {
 /**
  * Return the tiles of a day: its alert, named after the day, and its
  * precipitation, named in the language of the user. Without an alert, the
- * precipitation keeps its column, named after the day.
+ * precipitation keeps its column, named after the day. In a single column,
+ * one below the other.
  *
  * @param {CardHass} hass
  * @param {DayModel} day
+ * @param {boolean} single Whether the card has a single column.
  * @returns {Placed[]}
  */
-function dayTiles(hass, day) {
+function dayTiles(hass, day, single) {
   const { alert, precipitation } = day;
   /** @type {Placed[]} */
   const tiles = [];
   if (alert) {
     tiles.push({
       card: { type: "tile", entity: alert.entity, name: day.name, ...colorOf(alert) },
-      column: "start",
+      column: single ? "all" : "start",
     });
   }
   if (precipitation) {
@@ -243,7 +303,7 @@ function dayTiles(hass, day) {
       card: alert
         ? tile(hass, precipitation.entity, options)
         : { type: "tile", entity: precipitation.entity, name: day.name, ...options },
-      column: "end",
+      column: single ? "all" : "end",
     });
   }
   return tiles;
@@ -255,42 +315,48 @@ function dayTiles(hass, day) {
  *
  * @param {CardHass} hass
  * @param {CardModel} model
+ * @param {CardConfig} [config]
  * @returns {Placed[]}
  */
-export function placeLayout(hass, model) {
+export function placeLayout(hass, model, config = {}) {
   return [
-    heading(model.name, [model.highestAlert, model.highestPrecipitation]),
-    ...model.days.flatMap((day) => dayTiles(hass, day)),
+    ...heading(config, model.name, [
+      (config.show_highest_alert ?? true) && model.highestAlert,
+      (config.show_highest_precipitation ?? true) && model.highestPrecipitation,
+    ]),
+    ...model.days.flatMap((day) => dayTiles(hass, day, config.columns === 1)),
   ];
 }
 
 /** @type {PlaceLayout} */
-export function alertLayout(hass, place) {
-  return placeLayout(hass, cardModel(hass, place));
+export function alertLayout(hass, place, config) {
+  return placeLayout(hass, cardModel(hass, place, config.days), config);
 }
 
 /**
  * Return the native cards of the bulletin card: a heading with the place, and
  * the zone, the publication and the validity of the criticality bulletin, and
- * beside them those of the vigilance bulletin.
+ * beside them those of the vigilance bulletin; in a single column, those of
+ * the criticality bulletin first. Only the data chosen, as the place has it.
  *
  * @type {PlaceLayout}
  */
-export function bulletinLayout(hass, place) {
-  /** @type {Placed[]} */
-  const layout = [heading(place.name, [])];
-  for (const [criticality, vigilance] of BULLETIN_ROWS) {
-    for (const [key, column] of /** @type {Array<[string, Column]>} */ ([
-      [criticality, "start"],
-      [vigilance, "end"],
-    ])) {
-      const entity = place.entity("sensor", key);
-      if (entity) {
-        layout.push({ card: tile(hass, entity), column });
-      }
-    }
-  }
-  return layout;
+export function bulletinLayout(hass, place, config) {
+  const chosen = config.items ?? BULLETIN_ITEMS;
+  /** @param {string} key @param {Column} column @returns {Placed[]} */
+  const placed = (key, column) => {
+    const entity = chosen.includes(key) ? place.entity("sensor", key) : undefined;
+    return entity ? [{ card: tile(hass, entity), column }] : [];
+  };
+  const items =
+    config.columns === 1
+      ? BULLETIN_ITEMS.flatMap((key) => placed(key, "all"))
+      : // A row with only the vigilance datum keeps it in its column
+        BULLETIN_ROWS.flatMap(([criticality, vigilance]) => [
+          ...placed(criticality, "start"),
+          ...placed(vigilance, "end"),
+        ]);
+  return [...heading(config, place.name, []), ...items];
 }
 
 /**
@@ -308,18 +374,24 @@ function hasData(hass, entity) {
 /**
  * Return the native cards of the map card: a heading with the place and its
  * highest level, the map of the selected day (the first without one), and
- * beside it, as high as the map, a block for each day with a map: its alert,
- * or its precipitation for the vigilance map. A click on a block shows its map.
+ * beside it, as high as the map, a block for each day chosen with a map: its
+ * alert, or its precipitation for the vigilance map. A click on a block shows
+ * its map.
  *
  * @type {PlaceLayout}
  */
 export function mapLayout(hass, place, config, selected) {
   const kind = MAPS[config.map ?? "criticality"];
-  const days = DAYS.filter((day) => hasData(hass, place.entity("image", kind.image, day)));
+  const chosen = config.days ?? MAP_DAYS;
+  const days = MAP_DAYS.filter(
+    (day) => chosen.includes(day) && hasData(hass, place.entity("image", kind.image, day)),
+  );
   const shown = selected && days.includes(selected) ? selected : days[0];
   const highest = swatch(hass.states, place.entity("sensor", kind.place), kind.placeColors);
   /** @type {Placed[]} */
-  const layout = [heading(place.name, [highest])];
+  const layout = heading(config, place.name, [
+    (config[/** @type {keyof CardConfig} */ (kind.placeOption)] ?? true) && highest,
+  ]);
   if (!shown) {
     return layout;
   }
@@ -376,6 +448,23 @@ export function cardLayout(layout, hass, places, config, selected) {
 }
 
 /**
+ * Check that an option is a list of some of the values it accepts.
+ *
+ * @param {CardConfig} config
+ * @param {"days" | "items"} option
+ * @param {string[]} values
+ */
+function checkList(config, option, values) {
+  const list = config[option];
+  if (
+    list !== undefined &&
+    !(Array.isArray(list) && list.every((value) => values.includes(value)))
+  ) {
+    throw new Error(`${option} must be a list of: ${values.join(", ")}`);
+  }
+}
+
+/**
  * Check the configuration of a card, as Home Assistant shows its errors.
  *
  * @param {CardConfig} config
@@ -387,6 +476,198 @@ export function checkConfig(config) {
   if (config.map !== undefined && !Object.keys(MAPS).includes(config.map)) {
     throw new Error(`map must be one of: ${Object.keys(MAPS).join(", ")}`);
   }
+  for (const option of /** @type {const} */ ([
+    "show_title",
+    "show_highest_alert",
+    "show_highest_precipitation",
+  ])) {
+    if (config[option] !== undefined && typeof config[option] !== "boolean") {
+      throw new Error(`${option} must be true or false`);
+    }
+  }
+  checkList(config, "days", DAYS);
+  checkList(config, "items", BULLETIN_ITEMS);
+  if (config.columns !== undefined && config.columns !== 1 && config.columns !== 2) {
+    throw new Error("columns must be 1 or 2");
+  }
+}
+
+/**
+ * Return whether two values of an option are the same: lists whatever their order.
+ *
+ * @param {unknown} value
+ * @param {unknown} other
+ */
+function same(value, other) {
+  if (Array.isArray(value) && Array.isArray(other)) {
+    return value.length === other.length && value.every((item) => other.includes(item));
+  }
+  return value === other;
+}
+
+/**
+ * Return the configuration of a card from its visual editor: the columns as a
+ * number, the lists in their order, and without the options that show what the
+ * card shows anyway, so that its YAML stays short.
+ *
+ * @param {string} type
+ * @param {Record<string, any>} value
+ * @returns {CardConfig}
+ */
+export function cleanConfig(type, value) {
+  /** @type {Record<string, any>} */
+  const config = { ...value };
+  if (typeof config.columns === "string") {
+    config.columns = Number(config.columns);
+  }
+  if (Array.isArray(config.days)) {
+    config.days = DAYS.filter((day) => config.days.includes(day));
+  }
+  if (Array.isArray(config.items)) {
+    config.items = BULLETIN_ITEMS.filter((item) => config.items.includes(item));
+  }
+  for (const [option, fallback] of Object.entries(defaultsOf(type))) {
+    if (same(config[option], fallback)) {
+      delete config[option];
+    }
+  }
+  return config;
+}
+
+/**
+ * Return the data of the visual editor of a card: its options, with those it
+ * leaves out as they show, and the place it shows.
+ *
+ * @param {string} type
+ * @param {Place[]} places
+ * @param {CardConfig} config
+ */
+export function editorData(type, places, config) {
+  const defaults = defaultsOf(type);
+  return {
+    ...defaults,
+    ...config,
+    device_id: config.device_id ?? places[0]?.device.id,
+    columns: String(config.columns ?? defaults.columns),
+  };
+}
+
+/**
+ * Return the name of a day as the integration names it in the language of
+ * the user: "Hoje", without the place.
+ *
+ * @param {Hass} hass
+ * @param {string} day
+ */
+function dayText(hass, day) {
+  return translated(hass, `device.${day}.name`, { place: "" })?.replace(/^[\s·]+/, "") || day;
+}
+
+/**
+ * Return the name of an entity of the integration, by its translation key, in
+ * the language of the user.
+ *
+ * @param {Hass} hass
+ * @param {string} domain
+ * @param {string} key
+ */
+function entityText(hass, domain, key) {
+  return translated(hass, `entity.${domain}.${key}.name`) || key;
+}
+
+/**
+ * Return the fields of the visual editor of a card, labeled in the language of
+ * the user, with the names of the integration where it has them.
+ *
+ * @param {string} type
+ * @param {Hass} hass
+ * @param {Place[]} places
+ * @param {CardConfig} config
+ * @returns {FormField[]}
+ */
+export function editorSchema(type, hass, places, config) {
+  const texts = textsIn(hass.locale?.language ?? hass.language);
+  const options = places.map((place) => ({ value: place.device.id, label: place.name }));
+  // A place that is gone stays, by its ID, until another is chosen
+  if (config.device_id && !options.some(({ value }) => value === config.device_id)) {
+    options.push({ value: config.device_id, label: config.device_id });
+  }
+  /** @type {FormField[]} */
+  const fields = [
+    {
+      name: "device_id",
+      label: texts.place,
+      selector: { select: { options, mode: "dropdown" } },
+    },
+  ];
+  /** @param {string} name @param {string} label */
+  const toggle = (name, label) => ({ name, label, selector: { boolean: {} } });
+  /** @param {string[]} days */
+  const daysField = (days) => ({
+    name: "days",
+    label: texts.days,
+    selector: {
+      select: {
+        multiple: true,
+        mode: "list",
+        options: days.map((day) => ({ value: day, label: dayText(hass, day) })),
+      },
+    },
+  });
+  const columnsField = {
+    name: "columns",
+    label: texts.columns,
+    selector: { select: { options: ["1", "2"], mode: "dropdown" } },
+  };
+  if (type === MAP_CARD) {
+    const kind = MAPS[config.map ?? "criticality"];
+    fields.push(
+      {
+        name: "map",
+        label: texts.maps,
+        selector: {
+          select: {
+            options: Object.entries(MAPS).map(([value, { image }]) => ({
+              value,
+              label: entityText(hass, "image", image),
+            })),
+            mode: "dropdown",
+          },
+        },
+      },
+      toggle("show_title", texts.title),
+      toggle(kind.placeOption, entityText(hass, "sensor", kind.place)),
+      daysField(MAP_DAYS),
+    );
+  } else if (type === BULLETIN_CARD) {
+    fields.push(
+      toggle("show_title", texts.title),
+      {
+        name: "items",
+        label: texts.bulletins,
+        selector: {
+          select: {
+            multiple: true,
+            mode: "list",
+            options: BULLETIN_ITEMS.map((key) => ({
+              value: key,
+              label: entityText(hass, "sensor", key),
+            })),
+          },
+        },
+      },
+      columnsField,
+    );
+  } else {
+    fields.push(
+      toggle("show_title", texts.title),
+      toggle("show_highest_alert", entityText(hass, "sensor", "highest_alert")),
+      toggle("show_highest_precipitation", entityText(hass, "sensor", "highest_precipitation")),
+      daysField(DAYS),
+      columnsField,
+    );
+  }
+  return fields;
 }
 
 /**
@@ -434,13 +715,12 @@ const STYLE = `
 `;
 
 /**
- * The cards: the layout of each, and the width of its two columns. The alert
- * of a day is narrower than its precipitation, whose texts are longer.
+ * The cards: the layout of each, and the width of its columns.
  *
  * @type {Array<{
  *   type: string,
  *   layout: PlaceLayout,
- *   columns: string,
+ *   columns: (config: CardConfig) => string,
  *   name: (texts: ReturnType<typeof textsIn>) => string,
  * }>}
  */
@@ -448,26 +728,130 @@ export const CARDS = [
   {
     type: CARD,
     layout: alertLayout,
-    columns: "minmax(0, 2fr) minmax(0, 3fr)",
+    columns: (config) => (config.columns === 1 ? ONE_COLUMN : ALERT_COLUMNS),
     name: () => "DPC Alert",
   },
   {
     type: BULLETIN_CARD,
     layout: bulletinLayout,
-    columns: "minmax(0, 1fr) minmax(0, 1fr)",
+    columns: (config) => (config.columns === 1 ? ONE_COLUMN : EVEN_COLUMNS),
     name: (texts) => `DPC Alert · ${texts.bulletins}`,
   },
   {
     type: MAP_CARD,
     layout: mapLayout,
-    columns: "minmax(0, 1fr) minmax(0, 1fr)",
+    columns: () => EVEN_COLUMNS,
     name: (texts) => `DPC Alert · ${texts.maps}`,
   },
 ];
 
 if (globalThis.customElements && globalThis.HTMLElement) {
   /**
-   * A card of a place, made of native cards in two columns.
+   * Have the frontend define its forms, which it loads with the editors of
+   * its own cards: the editor of a tile has one.
+   */
+  const loadForms = async () => {
+    if (customElements.get("ha-form")) {
+      return;
+    }
+    const helpers = await /** @type {any} */ (window).loadCardHelpers();
+    helpers.createCardElement({ type: "tile", entity: "sun.sun" });
+    await customElements.whenDefined("hui-tile-card");
+    await /** @type {any} */ (customElements.get("hui-tile-card")).getConfigElement();
+  };
+
+  /**
+   * Return the texts of the frontend with those of the integration in the
+   * language of the user, loaded once per language, then a call back.
+   */
+  class Texts {
+    /** @type {string | undefined} */
+    #language;
+
+    /** @type {Hass["localize"]} */
+    #localize;
+
+    /**
+     * Return Home Assistant with the texts loaded so far, and load them in
+     * a new language, calling back once they are.
+     *
+     * @template {Hass} H
+     * @param {H} hass
+     * @param {() => void} loaded
+     * @returns {H}
+     */
+    of(hass, loaded) {
+      const language = hass.locale?.language ?? hass.language;
+      if (language !== this.#language) {
+        this.#language = language;
+        withTexts(hass).then(({ localize }) => {
+          this.#localize = localize;
+          loaded();
+        });
+      }
+      return { ...hass, localize: this.#localize ?? hass.localize };
+    }
+  }
+
+  /**
+   * The visual editor of a card: a form of Home Assistant.
+   *
+   * @param {string} type
+   */
+  const defineEditor = (type) =>
+    class extends HTMLElement {
+      /** @type {CardConfig | undefined} */
+      #config;
+
+      /** @type {Hass | undefined} */
+      #hass;
+
+      /** @type {any} */
+      #form;
+
+      #texts = new Texts();
+
+      /** @param {CardConfig} config */
+      setConfig(config) {
+        this.#config = config;
+        this.#render();
+      }
+
+      /** @param {Hass} hass */
+      set hass(hass) {
+        this.#hass = hass;
+        this.#render();
+      }
+
+      #render() {
+        if (!this.#hass || !this.#config) {
+          return;
+        }
+        const hass = this.#texts.of(this.#hass, () => this.#render());
+        if (!this.#form) {
+          this.#form = document.createElement("ha-form");
+          this.#form.computeLabel = (/** @type {FormField} */ field) => field.label ?? field.name;
+          this.#form.addEventListener("value-changed", (/** @type {CustomEvent} */ event) => {
+            event.stopPropagation();
+            this.dispatchEvent(
+              new CustomEvent("config-changed", {
+                detail: { config: cleanConfig(type, event.detail.value) },
+                bubbles: true,
+                composed: true,
+              }),
+            );
+          });
+          this.append(this.#form);
+        }
+        const places = findPlaces(hass);
+        this.#form.hass = this.#hass;
+        this.#form.schema = editorSchema(type, hass, places, this.#config);
+        this.#form.data = editorData(type, places, this.#config);
+      }
+    };
+
+  /**
+   * A card of a place, made of native cards in one or two columns.
    *
    * @param {(typeof CARDS)[number]} definition
    */
@@ -494,13 +878,7 @@ if (globalThis.customElements && globalThis.HTMLElement) {
       /** @type {string | undefined} */
       #selected;
 
-      /** The language whose texts of the integration were asked for. */
-      /** @type {string | undefined} */
-      #language;
-
-      /** The texts of the frontend with those of the integration, once loaded. */
-      /** @type {CardHass["localize"]} */
-      #localize;
+      #texts = new Texts();
 
       /** @type {number} */
       #size = 1;
@@ -520,7 +898,6 @@ if (globalThis.customElements && globalThis.HTMLElement) {
       /** @param {CardHass} hass */
       set hass(hass) {
         this.#hass = hass;
-        this.#loadTranslations(hass);
         this.#update();
       }
 
@@ -538,21 +915,9 @@ if (globalThis.customElements && globalThis.HTMLElement) {
         return place ? { device_id: place.device.id } : {};
       }
 
-      /**
-       * Have the frontend load the texts of the integration in the language
-       * of the user, such as the names of the days, and render the card again
-       * with them.
-       *
-       * @param {CardHass} hass
-       */
-      async #loadTranslations(hass) {
-        const language = hass.locale?.language ?? hass.language;
-        if (language === this.#language) {
-          return;
-        }
-        this.#language = language;
-        this.#localize = (await withTexts(hass)).localize;
-        this.#update();
+      static async getConfigElement() {
+        await loadForms();
+        return document.createElement(`${type}-editor`);
       }
 
       /** Return the places, from the registries of the last time they changed. */
@@ -579,9 +944,9 @@ if (globalThis.customElements && globalThis.HTMLElement) {
         if (!this.#hass || !this.shadowRoot) {
           return;
         }
-        const hass = { ...this.#hass, localize: this.#localize ?? this.#hass.localize };
+        const hass = this.#texts.of(this.#hass, () => this.#update());
         const placed = cardLayout(layout, hass, this.#findPlaces(), this.#config, this.#selected);
-        const shown = JSON.stringify(placed);
+        const shown = JSON.stringify([columns(this.#config), placed]);
         if (shown !== this.#shown) {
           this.#shown = shown;
           const helpers = await /** @type {any} */ (window).loadCardHelpers();
@@ -609,7 +974,7 @@ if (globalThis.customElements && globalThis.HTMLElement) {
         const card = document.createElement("ha-card");
         const content = document.createElement("div");
         content.className = "content";
-        content.style.setProperty("--dpc-columns", columns);
+        content.style.setProperty("--dpc-columns", columns(this.#config));
         this.#cards = placed.map(({ card: config, column, rows, select, selected }) => {
           const element = createCardElement(config);
           element.classList.add(column);
@@ -636,7 +1001,7 @@ if (globalThis.customElements && globalThis.HTMLElement) {
         card.append(content);
         root.replaceChildren(style, card);
         // About a row for the heading, and one for each pair of cards
-        this.#size = 1 + Math.ceil((placed.length - 1) / 2);
+        this.#size = 1 + Math.ceil(placed.length / 2);
       }
     };
 
@@ -646,6 +1011,8 @@ if (globalThis.customElements && globalThis.HTMLElement) {
   for (const definition of CARDS) {
     customElements.get(definition.type) ||
       customElements.define(definition.type, defineCard(definition));
+    customElements.get(`${definition.type}-editor`) ||
+      customElements.define(`${definition.type}-editor`, defineEditor(definition.type));
     // Listed in the card picker, with a preview
     if (!pickable.some((/** @type {{ type: string }} */ item) => item.type === definition.type)) {
       pickable.push({

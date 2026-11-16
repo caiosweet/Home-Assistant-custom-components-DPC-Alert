@@ -131,13 +131,17 @@ const ENTITY_NAME_VERSION = [2025, 11];
 /** States of an entity without data, such as the map of tomorrow after midnight. */
 export const NO_DATA_STATES = ["unknown", "unavailable"];
 
-/** The texts of the dashboard, in the languages of the integration. */
+/** The texts of the dashboard and of the editor of the cards, in the languages of the integration. */
 // Keep each integration_name in sync with the top-level title in translations/*.json.
 const TEXTS = {
   en: {
     integration_name: "Civil Protection Department",
     bulletins: "Bulletins",
     maps: "Maps",
+    place: "Place",
+    title: "Title",
+    days: "Days",
+    columns: "Columns",
     description:
       "Alerts and weather vigilance of the Civil Protection Department for your places in Italy.",
     no_places:
@@ -147,6 +151,10 @@ const TEXTS = {
     integration_name: "Dipartimento Protezione Civile",
     bulletins: "Bollettini",
     maps: "Mappe",
+    place: "Luogo",
+    title: "Titolo",
+    days: "Giorni",
+    columns: "Colonne",
     description:
       "Allerte e vigilanza meteo del Dipartimento della Protezione Civile per i tuoi luoghi in Italia.",
     no_places:
@@ -156,6 +164,10 @@ const TEXTS = {
     integration_name: "Defesa Civil",
     bulletins: "Boletins",
     maps: "Mapas",
+    place: "Lugar",
+    title: "Título",
+    days: "Dias",
+    columns: "Colunas",
     description:
       "Alertas e vigilância meteorológica da Defesa Civil para os seus lugares na Itália.",
     no_places:
@@ -165,6 +177,10 @@ const TEXTS = {
     integration_name: "Département de la Protection civile",
     bulletins: "Bulletins",
     maps: "Cartes",
+    place: "Lieu",
+    title: "Titre",
+    days: "Jours",
+    columns: "Colonnes",
     description:
       "Alertes et vigilance météo du Département de la Protection civile pour vos lieux en Italie.",
     no_places:
@@ -174,6 +190,10 @@ const TEXTS = {
     integration_name: "Zivilschutzabteilung",
     bulletins: "Bulletins",
     maps: "Karten",
+    place: "Ort",
+    title: "Titel",
+    days: "Tage",
+    columns: "Spalten",
     description:
       "Warnungen und Wetterlage des Zivilschutzes für Ihre Orte in Italien.",
     no_places:
@@ -183,6 +203,10 @@ const TEXTS = {
     integration_name: "Departamento de Protección Civil",
     bulletins: "Boletines",
     maps: "Mapas",
+    place: "Lugar",
+    title: "Título",
+    days: "Días",
+    columns: "Columnas",
     description:
       "Alertas y vigilancia meteorológica del Departamento de Protección Civil para tus lugares en Italia.",
     no_places:
@@ -192,6 +216,10 @@ const TEXTS = {
     integration_name: "意大利民防部",
     bulletins: "公报",
     maps: "地图",
+    place: "地点",
+    title: "标题",
+    days: "日期",
+    columns: "列数",
     description:
       "意大利民防部为您在意大利的地点提供的预警和气象警戒。",
     no_places:
@@ -201,6 +229,10 @@ const TEXTS = {
     integration_name: "Departamentul Protecției Civile",
     bulletins: "Buletine",
     maps: "Hărți",
+    place: "Loc",
+    title: "Titlu",
+    days: "Zile",
+    columns: "Coloane",
     description:
       "Alertele și vigilența meteorologică ale Departamentului Protecției Civile pentru locurile tale din Italia.",
     no_places:
@@ -210,6 +242,10 @@ const TEXTS = {
     integration_name: "إدارة الحماية المدنية",
     bulletins: "النشرات",
     maps: "الخرائط",
+    place: "المكان",
+    title: "العنوان",
+    days: "الأيام",
+    columns: "الأعمدة",
     description:
       "إنذارات ويقظة الطقس من إدارة الحماية المدنية لأماكنك في إيطاليا.",
     no_places:
@@ -219,6 +255,10 @@ const TEXTS = {
     integration_name: "Департамент цивільного захисту",
     bulletins: "Бюлетені",
     maps: "Карти",
+    place: "Місце",
+    title: "Заголовок",
+    days: "Дні",
+    columns: "Стовпці",
     description:
       "Попередження та метеорологічна пильність Департаменту цивільного захисту для ваших місць в Італії.",
     no_places:
@@ -228,6 +268,10 @@ const TEXTS = {
     integration_name: "Departamenti i Mbrojtjes Civile",
     bulletins: "Buletinet",
     maps: "Hartat",
+    place: "Vendi",
+    title: "Titulli",
+    days: "Ditët",
+    columns: "Kolonat",
     description:
       "Paralajmërimet dhe vigjilenca meteorologjike e Departamentit të Mbrojtjes Civile për vendet e tua në Itali.",
     no_places:
@@ -237,6 +281,10 @@ const TEXTS = {
     integration_name: "নাগরিক সুরক্ষা বিভাগ",
     bulletins: "বুলেটিন",
     maps: "মানচিত্র",
+    place: "জায়গা",
+    title: "শিরোনাম",
+    days: "দিন",
+    columns: "কলাম",
     description:
       "ইতালিতে আপনার জায়গাগুলোর জন্য নাগরিক সুরক্ষা বিভাগের সতর্কতা ও আবহাওয়া নজরদারি।",
     no_places:
@@ -246,6 +294,10 @@ const TEXTS = {
     integration_name: "नागरिक सुरक्षा विभाग",
     bulletins: "बुलेटिन",
     maps: "मानचित्र",
+    place: "स्थान",
+    title: "शीर्षक",
+    days: "दिन",
+    columns: "कॉलम",
     description:
       "इटली में आपके स्थानों के लिए नागरिक सुरक्षा विभाग की चेतावनियाँ और मौसम सतर्कता।",
     no_places:

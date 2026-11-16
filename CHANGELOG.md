@@ -23,6 +23,10 @@ that followed them.
     a map, which shows its map; `map: vigilance` for the vigilance map rather
     than the criticality map.
 
+  A visual editor chooses the place, whether to show the title and the highest
+  alert and precipitation, the days, the data of the bulletins, and one or two
+  columns.
+
 ### Changed
 
 - The DPC Alert dashboard names the days and the entities in the language of

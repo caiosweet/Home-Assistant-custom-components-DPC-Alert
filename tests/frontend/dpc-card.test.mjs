@@ -3,12 +3,16 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import {
+  BULLETIN_ITEMS,
   CARDS,
   alertLayout,
   bulletinLayout,
   cardLayout,
   cardModel,
   checkConfig,
+  cleanConfig,
+  editorData,
+  editorSchema,
   mapLayout,
   placeLayout,
   placeOf,
@@ -450,3 +454,241 @@ describe("cards", () => {
     }
   });
 });
+
+/** Return the entity and the column of each native card but the heading. */
+const placesOf = (layout) =>
+  layout.filter(({ card }) => card.type !== "heading").map(({ card, column }) => [card.entity, column]);
+
+describe("options of the cards", () => {
+  it("show the badges without the title, and no heading without either", () => {
+    const hass = withStates();
+    const [heading] = alertLayout(hass, milano(hass), { show_title: false });
+    assert.deepEqual(heading.card.heading, "");
+    assert.equal(heading.card.icon, undefined);
+    assert.equal(heading.card.badges.length, 2);
+
+    const layout = alertLayout(hass, milano(hass), {
+      show_title: false,
+      show_highest_alert: false,
+      show_highest_precipitation: false,
+    });
+    assert.equal(layout.some(({ card }) => card.type === "heading"), false);
+  });
+
+  it("show only the highest level chosen", () => {
+    const hass = withStates();
+    const [heading] = alertLayout(hass, milano(hass), { show_highest_alert: false });
+    assert.deepEqual(
+      heading.card.badges.map((badge) => badge.entity),
+      ["sensor.dpc_milano_highest_precipitation"],
+    );
+  });
+
+  it("show only the days chosen, in a single column one below the other", () => {
+    const hass = withStates();
+    const layout = alertLayout(hass, milano(hass), { days: ["aftertomorrow", "today"], columns: 1 });
+    assert.deepEqual(placesOf(layout), [
+      ["sensor.dpc_milano_today_alert", "all"],
+      ["sensor.dpc_milano_today_precipitation", "all"],
+      ["sensor.dpc_milano_after_tomorrow_precipitation", "all"],
+    ]);
+  });
+
+  it("show only the data of the bulletins chosen, side by side", () => {
+    const hass = withStates({}, BULLETINS);
+    const layout = bulletinLayout(hass, milano(hass), {
+      items: ["vigilance_zone", "criticality_bulletin", "vigilance_valid_until"],
+      show_title: false,
+    });
+    assert.deepEqual(placesOf(layout), [
+      // Alone in its row, the vigilance datum keeps its column
+      ["sensor.dpc_milano_vigilance_zone", "end"],
+      ["sensor.dpc_milano_criticality_bulletin", "start"],
+      ["sensor.dpc_milano_vigilance_valid_until", "end"],
+    ]);
+    assert.equal(layout.length, 3);
+  });
+
+  it("show the criticality bulletin first in a single column", () => {
+    const hass = withStates({}, BULLETINS);
+    assert.deepEqual(
+      placesOf(bulletinLayout(hass, milano(hass), { columns: 1 })).map(([entity]) => entity),
+      BULLETIN_ITEMS.map((key) => `sensor.dpc_milano_${key}`),
+    );
+  });
+
+  it("show the maps of the days chosen, with or without the highest level", () => {
+    const hass = withStates({}, MAPS);
+    const [heading, map, ...blocks] = mapLayout(hass, milano(hass), {
+      days: ["tomorrow"],
+      show_highest_alert: false,
+    });
+    assert.deepEqual(heading.card.badges, []);
+    assert.equal(map.card.entity, "image.dpc_milano_tomorrow_criticality_map");
+    assert.deepEqual(
+      blocks.map(({ select }) => select),
+      ["tomorrow"],
+    );
+
+    const [vigilance] = mapLayout(hass, milano(hass), {
+      map: "vigilance",
+      show_highest_alert: false,
+    });
+    // The highest level of the vigilance map is its precipitation
+    assert.equal(vigilance.card.badges.length, 1);
+  });
+
+  it("have the width of their columns", () => {
+    const columns = Object.fromEntries(CARDS.map(({ type, columns }) => [type, [columns({}), columns({ columns: 1 })]]));
+    assert.deepEqual(columns, {
+      "dpc-card": ["minmax(0, 2fr) minmax(0, 3fr)", "minmax(0, 1fr)"],
+      "dpc-bulletin-card": ["minmax(0, 1fr) minmax(0, 1fr)", "minmax(0, 1fr)"],
+      "dpc-map-card": ["minmax(0, 1fr) minmax(0, 1fr)", "minmax(0, 1fr) minmax(0, 1fr)"],
+    });
+  });
+
+  it("are checked", () => {
+    checkConfig({
+      show_title: false,
+      show_highest_alert: true,
+      days: ["today"],
+      items: [],
+      columns: 1,
+    });
+    assert.throws(() => checkConfig({ show_title: "no" }), /show_title must be true or false/);
+    assert.throws(() => checkConfig({ days: ["yesterday"] }), /days must be a list of: today, tomorrow, aftertomorrow/);
+    assert.throws(() => checkConfig({ days: "today" }), /days must be a list/);
+    assert.throws(() => checkConfig({ items: ["link"] }), /items must be a list of: alert_zone/);
+    assert.throws(() => checkConfig({ columns: 3 }), /columns must be 1 or 2/);
+  });
+});
+
+describe("visual editor", () => {
+  /** The texts of the integration in Portuguese the editor uses. */
+  const texts = {
+    "component.dpc.device.today.name": "{place} · Hoje",
+    "component.dpc.device.tomorrow.name": "{place} · Amanhã",
+    "component.dpc.entity.sensor.highest_alert.name": "Alerta máximo",
+    "component.dpc.entity.sensor.highest_precipitation.name": "Precipitação máxima",
+    "component.dpc.entity.sensor.alert_zone.name": "Zona de alerta",
+    "component.dpc.entity.image.criticality_map.name": "Mapa de criticidade",
+  };
+  const portuguese = () => ({
+    ...withStates({ language: "pt-BR" }),
+    localize: localizeWith(texts),
+  });
+
+  it("has the fields of each card, labeled in the language of the user", () => {
+    const hass = portuguese();
+    const places = findPlaces(hass);
+    const fields = (type, config = {}) =>
+      editorSchema(type, hass, places, config).map(({ name, label }) => [name, label]);
+
+    assert.deepEqual(fields("dpc-card"), [
+      ["device_id", "Lugar"],
+      ["show_title", "Título"],
+      ["show_highest_alert", "Alerta máximo"],
+      ["show_highest_precipitation", "Precipitação máxima"],
+      ["days", "Dias"],
+      ["columns", "Colunas"],
+    ]);
+    assert.deepEqual(fields("dpc-bulletin-card"), [
+      ["device_id", "Lugar"],
+      ["show_title", "Título"],
+      ["items", "Boletins"],
+      ["columns", "Colunas"],
+    ]);
+    assert.deepEqual(fields("dpc-map-card"), [
+      ["device_id", "Lugar"],
+      ["map", "Mapas"],
+      ["show_title", "Título"],
+      ["show_highest_alert", "Alerta máximo"],
+      ["days", "Dias"],
+    ]);
+    // The highest level of the vigilance map is its precipitation
+    assert.deepEqual(fields("dpc-map-card", { map: "vigilance" })[3], [
+      "show_highest_precipitation",
+      "Precipitação máxima",
+    ]);
+  });
+
+  it("offers the places, the days and the data of the bulletins by name", () => {
+    const hass = portuguese();
+    const places = findPlaces(hass);
+    const options = (type, name) =>
+      editorSchema(type, hass, places, {}).find((field) => field.name === name).selector.select
+        .options;
+
+    assert.deepEqual(options("dpc-card", "device_id"), [
+      { value: "milano", label: "Milano" },
+      { value: "roma", label: "Roma" },
+    ]);
+    // Without a text, the key of the day
+    assert.deepEqual(
+      options("dpc-card", "days").map(({ label }) => label),
+      ["Hoje", "Amanhã", "aftertomorrow"],
+    );
+    assert.deepEqual(options("dpc-bulletin-card", "items")[0], {
+      value: "alert_zone",
+      label: "Zona de alerta",
+    });
+    assert.deepEqual(options("dpc-bulletin-card", "items")[1].label, "criticality_bulletin");
+    assert.deepEqual(options("dpc-map-card", "map")[0], {
+      value: "criticality",
+      label: "Mapa de criticidade",
+    });
+  });
+
+  it("keeps a place that is gone, by its ID", () => {
+    const hass = portuguese();
+    const [, ...gone] = editorSchema("dpc-card", hass, findPlaces(hass), { device_id: "gone" })[0]
+      .selector.select.options;
+    assert.deepEqual(gone.at(-1), { value: "gone", label: "gone" });
+  });
+
+  it("starts from what the card shows", () => {
+    const places = findPlaces(withStates());
+    assert.deepEqual(editorData("dpc-map-card", places, { type: "custom:dpc-map-card" }), {
+      type: "custom:dpc-map-card",
+      device_id: "milano",
+      show_title: true,
+      show_highest_alert: true,
+      show_highest_precipitation: true,
+      days: ["today", "tomorrow"],
+      items: BULLETIN_ITEMS,
+      columns: "2",
+      map: "criticality",
+    });
+    assert.equal(editorData("dpc-card", places, { columns: 1 }).columns, "1");
+  });
+
+  it("keeps in the configuration only what differs from what the card shows anyway", () => {
+    const data = editorData("dpc-card", findPlaces(withStates()), { type: "custom:dpc-card" });
+    assert.deepEqual(cleanConfig("dpc-card", data), {
+      type: "custom:dpc-card",
+      device_id: "milano",
+    });
+    assert.deepEqual(
+      cleanConfig("dpc-card", {
+        ...data,
+        show_title: false,
+        days: ["tomorrow", "today"],
+        columns: "1",
+      }),
+      {
+        type: "custom:dpc-card",
+        device_id: "milano",
+        show_title: false,
+        days: ["today", "tomorrow"],
+        columns: 1,
+      },
+    );
+    assert.deepEqual(
+      cleanConfig("dpc-bulletin-card", { items: ["vigilance_zone", "alert_zone"] }),
+      { items: ["alert_zone", "vigilance_zone"] },
+    );
+    // All the days of the map card are those it has maps of
+    assert.deepEqual(cleanConfig("dpc-map-card", { days: ["tomorrow", "today"] }), {});
+  });
+});
+
