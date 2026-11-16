@@ -208,12 +208,14 @@ geo_location_sources:
 - DPC publishes the criticality bulletin every day by 16:00 (Italian time), sometimes updated later the same day, and the weather vigilance bulletin by 15:00.
 - Every 30 minutes (the **Update interval** option), each place checks whether DPC has published new bulletins. The places that update at the same time share the check.
 - A new bulletin is downloaded once for all the places and read at each place: about 11 MB for a criticality bulletin, 8 MB for a vigilance bulletin.
+- The maps of the days are downloaded with the bulletin, once for all the places, about 100 kB each. DPC often publishes a map blank and sometimes replaces it later at the same address: a blank map is not shown, and it is downloaded again at every update until DPC publishes the map.
 - Today and tomorrow follow the Italian date: after midnight, the second day of the bulletin becomes today, until DPC publishes the next bulletin.
 - When DPC cannot be reached, the places keep their bulletins, whose days stay valid, and check again after 10 minutes, or sooner with a shorter update interval.
 
 ## Known limitations
 
 - DPC covers Italy only. San Marino and Vatican City are in no DPC alert zone.
+- DPC often publishes the map of a day blank: from August to November 2026, 40% of the criticality maps and 5% of the vigilance maps, and it replaced only about a third of them later. The map is then unavailable, and the dashboards leave it out, sometimes for the whole day.
 - The criticality bulletin covers today and tomorrow; the vigilance bulletin, three days. The highest alert of a place is of today and tomorrow, even when it shows only today.
 - Each municipality can be added once: two places in it would get the same bulletins. Municipalities of the same name far apart, such as Peglio, in Lombardy and in the Marche, are different ones: the entity IDs of the second end in `_2`, e.g. `sensor.dpc_peglio_highest_alert_2`.
 - The texts of the levels, risks, criticalities, phenomena and directions come from the aiodpc library; in Italian, the levels, risks, criticalities and phenomena are those DPC writes, while the directions are computed by aiodpc. Places, zones and municipalities keep the names DPC gives them, in Italian; in South Tyrol, the German names of the municipalities work too.
@@ -254,7 +256,7 @@ The devices of the days, **Milano · Today** and **Milano · Tomorrow** (`today`
 | `sensor.dpc_milano_today_hydraulic_risk_level`, `…_thunderstorm_risk_level`, `…_hydrogeological_risk_level` | The level of the risk: no alert, yellow, orange or red |
 | `sensor.dpc_milano_today_precipitation` | The expected precipitation of the day: none to very heavy |
 | `sensor.dpc_milano_today_nearby_phenomena` | The number of weather phenomena within the radius |
-| `image.dpc_milano_today_criticality_map`, `…_vigilance_map` | The national map of the bulletin, as DPC previews it |
+| `image.dpc_milano_today_criticality_map`, `…_vigilance_map` | The national map of the bulletin, as DPC previews it; unavailable while DPC publishes it blank |
 | `geo_location.dpc_milano_today_gale_nw` and so on | A weather phenomenon within the radius, once the options turn the phenomena on, named after its type, distance and direction ("Gale, 12.4 km NW"): its distance, in km |
 
 The device of the day after tomorrow, **Milano · Day after tomorrow** (`after_tomorrow` in the IDs), has the precipitation, the number of phenomena and the phenomena: the criticality bulletin covers two days.

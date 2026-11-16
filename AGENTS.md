@@ -136,6 +136,10 @@ Users' automations and dashboards depend on what the integration exposes.
   bulletins are checked; a new bulletin (about 18 MB) is downloaded once for
   all places. Never block the event loop: reading a bulletin at each place
   runs in an executor.
+- The maps of the days are downloaded once for all places too
+  (`DpcBulletins.preview`, with `DpcClient.get_preview`). DPC often publishes
+  them blank: a map entity is unavailable until its map is downloaded and not
+  blank, and tries again at every update of its place.
 
 ## Home Assistant conventions
 

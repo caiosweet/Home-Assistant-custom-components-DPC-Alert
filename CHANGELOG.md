@@ -40,9 +40,16 @@ that followed them.
   that a level reads the same whatever it measures; no precipitation in the
   blue of the icons of the theme, rather than in a white that a light theme
   does not show.
+- Requires aiodpc 0.9.0.
 
 ### Fixed
 
+- The maps that DPC publishes blank, 40% of the criticality maps from August to
+  November 2026, are no longer shown: the map of a day is unavailable, and
+  left out of the dashboards, until DPC publishes it, checked again at every
+  update. A map that DPC replaces at the same address is shown, rather than
+  the blank one kept until the next bulletin. The maps are downloaded with the
+  bulletins, once for all the places.
 - The DPC Alert dashboard of a place that shows the binary sensors of the
   risks without the sensors showed nothing while the risks were off: it shows
   them whether they are on or off. Sections with nothing to show are left out.

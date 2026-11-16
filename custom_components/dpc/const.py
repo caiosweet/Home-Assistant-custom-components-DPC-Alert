@@ -94,7 +94,13 @@ RETRY_INTERVAL: Final = timedelta(minutes=10)
 """Interval of the next update after a bulletin could not be fetched."""
 
 LATEST_ID_CHECK_INTERVAL: Final = 60.0
-"""Seconds during which the places share a check of the latest bulletin ID."""
+"""Seconds during which the places share a check of the latest bulletin ID,
+or of a map that DPC published blank."""
+
+PREVIEWS_KEPT: Final = 8
+"""Maps kept for the places: the four of the latest bulletins (criticality and
+vigilance, today and tomorrow), and the four before them while the places
+move on to the new ones."""
 
 WARNING_LEVELS: Final = [level.value for level in AlertLevel if level.is_alert]
 """Warning levels offered in the options: 2 yellow, 3 orange, 4 red.

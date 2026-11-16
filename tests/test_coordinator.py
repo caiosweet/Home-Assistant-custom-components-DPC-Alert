@@ -233,6 +233,9 @@ async def test_places_share_the_downloads(
     assert len(downloads) == len(set(downloads)) == 8  # 2 criticality, 6 vigilance
     pages = [url for _, url, _, _ in mock_dpc.mock_calls if "mappe" in str(url)]
     assert len(pages) == 2  # one check of each bulletin, shared by the places
+    # So are the maps of the days: today and tomorrow, of both bulletins
+    maps = [str(url) for _, url, _, _ in mock_dpc.mock_calls if "/preview/" in str(url)]
+    assert len(maps) == len(set(maps)) == 4
     assert criticality_state(hass, mock_config_entry) == "3"
     assert criticality_state(hass, milan) == "4"
 

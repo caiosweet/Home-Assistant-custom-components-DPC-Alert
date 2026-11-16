@@ -30,6 +30,7 @@ from .const import (
     DOMAIN,
     LATEST_ID_CHECK_INTERVAL,
     LOGGER,
+    PREVIEWS_KEPT,
 )
 
 
@@ -55,17 +56,31 @@ class Place:
         )
 
 
+@dataclass(frozen=True, slots=True)
+class _Preview:
+    """The preview of a map, as last downloaded."""
+
+    image: bytes | None
+    """The map; None while DPC publishes it blank."""
+    checked_at: float
+    """When it was downloaded, by the monotonic clock."""
+
+
 class DpcBulletins:
     """The latest DPC bulletins of every configured place.
 
     The config entries share it. A bulletin is the same file for the whole of
     Italy, so when DPC publishes a new one it is downloaded once and read at
-    every place, in an executor because reading it takes some CPU time.
+    every place, in an executor because reading it takes some CPU time. So is
+    the map of a day, the same for every place.
     """
 
     def __init__(self, hass: HomeAssistant, client: DpcClient) -> None:
         """Initialize the bulletins, downloaded with the client."""
+        self._client = client
         self._places: dict[str, Place] = {}
+        self._previews: dict[str, _Preview] = {}
+        self._previews_lock = asyncio.Lock()
         self._criticality = _SharedBulletin[CriticalityMap, CriticalityBulletin](
             hass,
             client,
@@ -113,6 +128,31 @@ class DpcBulletins:
         Raises :class:`aiodpc.DpcError`, as :meth:`criticality`.
         """
         return await self._vigilance.reading(entry_id)
+
+    async def preview(self, url: str) -> bytes | None:
+        """Return the map at the address of the preview of a day; None while blank.
+
+        A map is downloaded once for every place. DPC publishes many blank,
+        and replaces some later at the same address (``aiodpc.previews``): a
+        blank one is downloaded again when asked, once a minute at most, as the
+        places update one after the other.
+
+        Raises :class:`aiodpc.DpcConnectionError`.
+        """
+        async with self._previews_lock:
+            preview = self._previews.get(url)
+            if preview is not None and (
+                preview.image is not None
+                or time.monotonic() - preview.checked_at < LATEST_ID_CHECK_INTERVAL
+            ):
+                return preview.image
+            image = await self._client.get_preview(url)
+            # The most recent last: the oldest are forgotten first
+            self._previews.pop(url, None)
+            self._previews[url] = _Preview(image, time.monotonic())
+            while len(self._previews) > PREVIEWS_KEPT:
+                del self._previews[next(iter(self._previews))]
+            return image
 
 
 DATA_BULLETINS: HassKey[DpcBulletins] = HassKey(f"{DOMAIN}_bulletins")
