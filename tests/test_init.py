@@ -21,7 +21,12 @@ from pytest_homeassistant_custom_component.test_util.aiohttp import (
     AiohttpClientMocker,
 )
 
-from custom_components.dpc.const import CONF_MUNICIPALITY, CONF_WARNING_LEVEL, DOMAIN
+from custom_components.dpc.const import (
+    CONF_DAYS,
+    CONF_MUNICIPALITY,
+    CONF_WARNING_LEVEL,
+    DOMAIN,
+)
 
 from . import (
     LATITUDE,
@@ -156,7 +161,7 @@ async def test_setup_of_a_place_outside_the_alert_zones(hass: HomeAssistant) -> 
 
 @pytest.mark.usefixtures("mock_dpc")
 async def test_migrate_entry_from_version_1(hass: HomeAssistant) -> None:
-    """Test that a version 1 entry is migrated to version 2."""
+    """Test that a version 1 entry goes through every migration, to 2.2."""
     entry = MockConfigEntry(
         domain=DOMAIN,
         version=1,
@@ -169,8 +174,61 @@ async def test_migrate_entry_from_version_1(hass: HomeAssistant) -> None:
     await hass.async_block_till_done()
 
     assert entry.state is ConfigEntryState.LOADED
-    assert entry.version == 2
-    assert entry.options[CONF_MUNICIPALITY] == ""
+    assert (entry.version, entry.minor_version) == (2, 2)
+    assert entry.options == {CONF_MUNICIPALITY: "", CONF_DAYS: ["today", "tomorrow"]}
+
+
+@pytest.mark.usefixtures("mock_dpc")
+async def test_migrate_entry_to_the_days(hass: HomeAssistant) -> None:
+    """Test that a place of 2026.11.0 keeps its options and gets today and tomorrow.
+
+    Those are the days of its binary sensors.
+    """
+    options = {CONF_MUNICIPALITY: "Roma", CONF_WARNING_LEVEL: 3, "image": False}
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        version=2,
+        unique_id=UNIQUE_ID,
+        data={CONF_NAME: NAME, CONF_LATITUDE: LATITUDE, CONF_LONGITUDE: LONGITUDE},
+        options=options,
+    )
+    entry.add_to_hass(hass)
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert entry.state is ConfigEntryState.LOADED
+    assert (entry.version, entry.minor_version) == (2, 2)
+    assert entry.options == {**options, CONF_DAYS: ["today", "tomorrow"]}
+
+
+@pytest.mark.usefixtures("mock_dpc")
+async def test_migrate_entry_of_a_beta_with_the_day_after_tomorrow(
+    hass: HomeAssistant, entity_registry: er.EntityRegistry
+) -> None:
+    """Test that a place of the betas of 2026.11.1 keeps the day after tomorrow.
+
+    The betas had the precipitation of the day after tomorrow.
+    """
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        version=2,
+        unique_id=UNIQUE_ID,
+        data={CONF_NAME: NAME, CONF_LATITUDE: LATITUDE, CONF_LONGITUDE: LONGITUDE},
+        options={CONF_MUNICIPALITY: ""},
+    )
+    entry.add_to_hass(hass)
+    entity_registry.async_get_or_create(
+        Platform.SENSOR,
+        DOMAIN,
+        f"{UNIQUE_ID}-precipitation_aftertomorrow",
+        config_entry=entry,
+    )
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert entry.options[CONF_DAYS] == ["today", "tomorrow", "aftertomorrow"]
 
 
 async def test_options_update_reloads_entry(

@@ -30,6 +30,7 @@ from .const import (
     ATTR_PHENOMENON,
     ATTR_VALID_UNTIL,
     DOMAIN,
+    PlaceDay,
 )
 from .coordinator import DpcConfigEntry, DpcData, DpcDataUpdateCoordinator
 from .entity import DpcEntity
@@ -42,7 +43,7 @@ PARALLEL_UPDATES = 0
 class NearbyPhenomenon:
     """A weather phenomenon of a known category near the place, on a day."""
 
-    day: str
+    day: PlaceDay
     """The day, as named in the attributes: today, tomorrow or aftertomorrow."""
     valid_until: datetime
     """End of the day: the midnight (Europe/Rome) that ends it."""

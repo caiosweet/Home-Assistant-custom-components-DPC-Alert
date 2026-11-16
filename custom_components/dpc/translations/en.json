@@ -66,6 +66,7 @@
                     "binary_sensor": "Binary sensor enabled",
                     "sensor": "Sensor enabled",
                     "municipality": "Municipality",
+                    "days": "Days",
                     "scan_interval": "Update interval (minutes, default 30)",
                     "warning_level": "Minimum level of warning.",
                     "radius": "Radius (Km, default 50)",
@@ -73,13 +74,23 @@
                     "geo_location": "Geolocation enabled"
                 },
                 "data_description": {
-                    "municipality": "Large municipalities span several alert zones: the place then gets the highest alert of all of them. Each municipality can be added once."
+                    "municipality": "Large municipalities span several alert zones: the place then gets the highest alert of all of them. Each municipality can be added once.",
+                    "days": "Each chosen day gets a device with its alerts, precipitation, maps and phenomena."
                 }
             }
         },
         "error": {
             "municipality_not_listed": "Choose a municipality of the list.",
             "municipality_in_use": "{municipality} is already configured: each municipality can be added once."
+        }
+    },
+    "selector": {
+        "days": {
+            "options": {
+                "today": "Today",
+                "tomorrow": "Tomorrow",
+                "aftertomorrow": "Day after tomorrow"
+            }
         }
     },
     "entity": {

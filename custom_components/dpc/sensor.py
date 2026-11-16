@@ -15,17 +15,15 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .attributes import criticality_attributes, vigilance_attributes
 from .const import (
     ALERT_LEVEL_STATES,
-    ATTR_AFTERTOMORROW,
     ATTR_DESCRIPTION,
     ATTR_MAX_LEVEL,
     ATTR_RISKS,
-    ATTR_TODAY,
-    ATTR_TOMORROW,
     ATTR_TOTAL_ALERTS,
     ATTR_TOTAL_PHENOMENA,
     ATTR_VALID_UNTIL,
     ATTR_ZONE_NAME,
     PRECIPITATION_STATES,
+    PlaceDay,
 )
 from .coordinator import DpcConfigEntry, DpcDataUpdateCoordinator
 from .entity import DpcEntity
@@ -45,12 +43,9 @@ async def async_setup_entry(
             DpcSensorVigilance(coordinator, entry),
             *(
                 DpcAlertDaySensor(coordinator, entry, day)
-                for day in (ATTR_TODAY, ATTR_TOMORROW)
+                for day in (PlaceDay.TODAY, PlaceDay.TOMORROW)
             ),
-            *(
-                DpcPrecipitationDaySensor(coordinator, entry, day)
-                for day in (ATTR_TODAY, ATTR_TOMORROW, ATTR_AFTERTOMORROW)
-            ),
+            *(DpcPrecipitationDaySensor(coordinator, entry, day) for day in PlaceDay),
         ]
     )
 
@@ -86,7 +81,7 @@ class DpcSensorCriticality(DpcEntity, SensorEntity):
         return super().available and self.coordinator.data.criticality is not None
 
     @property
-    def _days(self) -> dict[str, CriticalityDay]:
+    def _days(self) -> dict[PlaceDay, CriticalityDay]:
         """Return today and tomorrow, when the bulletin covers them."""
         return self.coordinator.data.criticality_days
 
@@ -138,7 +133,7 @@ class DpcSensorVigilance(DpcEntity, SensorEntity):
         return super().available and self.coordinator.data.vigilance is not None
 
     @property
-    def _days(self) -> dict[str, VigilanceDay]:
+    def _days(self) -> dict[PlaceDay, VigilanceDay]:
         """Return today, tomorrow and the day after, when the bulletin covers them."""
         return self.coordinator.data.vigilance_days
 
@@ -192,7 +187,7 @@ class DpcDaySensor(DpcEntity, SensorEntity):
         coordinator: DpcDataUpdateCoordinator,
         entry: ConfigEntry,
         level: str,
-        day: str,
+        day: PlaceDay,
     ) -> None:
         """Initialize the sensor of a level ("alert") on a day ("today")."""
         super().__init__(coordinator, entry)
@@ -208,7 +203,7 @@ class DpcAlertDaySensor(DpcDaySensor):
     _attr_options = ALERT_LEVEL_STATES
 
     def __init__(
-        self, coordinator: DpcDataUpdateCoordinator, entry: ConfigEntry, day: str
+        self, coordinator: DpcDataUpdateCoordinator, entry: ConfigEntry, day: PlaceDay
     ) -> None:
         """Initialize the alert sensor of today or tomorrow."""
         super().__init__(coordinator, entry, "alert", day)
@@ -250,7 +245,7 @@ class DpcPrecipitationDaySensor(DpcDaySensor):
     _attr_options = PRECIPITATION_STATES
 
     def __init__(
-        self, coordinator: DpcDataUpdateCoordinator, entry: ConfigEntry, day: str
+        self, coordinator: DpcDataUpdateCoordinator, entry: ConfigEntry, day: PlaceDay
     ) -> None:
         """Initialize the precipitation sensor of today, tomorrow or the day after."""
         super().__init__(coordinator, entry, "precipitation", day)

@@ -66,6 +66,7 @@
                     "binary_sensor": "Binärsensor aktiviert",
                     "sensor": "Sensor aktiviert",
                     "municipality": "Gemeinde",
+                    "days": "Tage",
                     "scan_interval": "Aktualisierungsintervall (Minuten, Standard 30)",
                     "warning_level": "Mindestwarnstufe",
                     "radius": "Radius (km, Standard 50)",
@@ -73,13 +74,23 @@
                     "geo_location": "Geolokalisierung aktiviert"
                 },
                 "data_description": {
-                    "municipality": "Große Gemeinden erstrecken sich über mehrere Warngebiete: Der Ort erhält dann die höchste Warnung all dieser Gebiete. Jede Gemeinde kann nur einmal hinzugefügt werden."
+                    "municipality": "Große Gemeinden erstrecken sich über mehrere Warngebiete: Der Ort erhält dann die höchste Warnung all dieser Gebiete. Jede Gemeinde kann nur einmal hinzugefügt werden.",
+                    "days": "Jeder gewählte Tag erhält ein Gerät mit seinen Warnungen, Niederschlägen, Karten und Phänomenen."
                 }
             }
         },
         "error": {
             "municipality_not_listed": "Wähle eine Gemeinde aus der Liste.",
             "municipality_in_use": "{municipality} ist bereits eingerichtet: Jede Gemeinde kann nur einmal hinzugefügt werden."
+        }
+    },
+    "selector": {
+        "days": {
+            "options": {
+                "today": "Heute",
+                "tomorrow": "Morgen",
+                "aftertomorrow": "Übermorgen"
+            }
         }
     },
     "entity": {

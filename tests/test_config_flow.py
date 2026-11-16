@@ -31,7 +31,12 @@ from pytest_homeassistant_custom_component.test_util.aiohttp import (
     AiohttpClientMocker,
 )
 
-from custom_components.dpc.const import CONF_MUNICIPALITY, CONF_WARNING_LEVEL, DOMAIN
+from custom_components.dpc.const import (
+    CONF_DAYS,
+    CONF_MUNICIPALITY,
+    CONF_WARNING_LEVEL,
+    DOMAIN,
+)
 
 from . import LATITUDE, LONGITUDE, PUBLICATION_DAY, UNIQUE_ID, mock_dpc_responses
 
@@ -139,8 +144,10 @@ async def test_map_flow(hass: HomeAssistant, mock_setup_entry: AsyncMock) -> Non
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert result["title"] == "Bacini di Roma"
     assert result["data"] == PLACE
-    assert result["options"] == {CONF_MUNICIPALITY: "Roma"}
+    # A new place shows today; the options add the other days
+    assert result["options"] == {CONF_MUNICIPALITY: "Roma", CONF_DAYS: ["today"]}
     assert result["result"].unique_id == UNIQUE_ID
+    assert (result["result"].version, result["result"].minor_version) == (2, 2)
     assert len(mock_setup_entry.mock_calls) == 1
 
 
@@ -330,7 +337,7 @@ async def test_homonym_of_another_place(hass: HomeAssistant) -> None:
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert (result["title"], result["options"]) == (
         "Marc-1",
-        {CONF_MUNICIPALITY: "Peglio"},
+        {CONF_MUNICIPALITY: "Peglio", CONF_DAYS: ["today"]},
     )
 
 
@@ -353,11 +360,26 @@ async def test_options_flow(
     ]
     # Required, also for the places added before it was
     assert is_required(result, CONF_MUNICIPALITY)
+    # Any of the three days, starting from those of the place
+    assert selector_config(result, CONF_DAYS) == {
+        "options": ["today", "tomorrow", "aftertomorrow"],
+        "multiple": True,
+        "translation_key": "days",
+        "mode": "list",
+        "custom_value": False,
+        "sort": False,
+    }
+    assert schema_key(result, CONF_DAYS).default() == [
+        "today",
+        "tomorrow",
+        "aftertomorrow",
+    ]
 
     options = {
         "binary_sensor": False,
         "sensor": True,
         CONF_MUNICIPALITY: "roma",
+        CONF_DAYS: ["today", "aftertomorrow"],
         CONF_SCAN_INTERVAL: 15,
         CONF_WARNING_LEVEL: 3,
         CONF_RADIUS: 30,
@@ -375,6 +397,24 @@ async def test_options_flow(
         CONF_MUNICIPALITY: "Roma",
         CONF_RADIUS: 30.0,
     }
+
+
+async def test_options_flow_without_days(
+    hass: HomeAssistant, mock_config_entry: MockConfigEntry
+) -> None:
+    """Test that a place can show no day: it keeps its own entities."""
+    mock_config_entry.add_to_hass(hass)
+    with patch(GET_ALERT_ZONE, return_value=ROME_ZONE):
+        result = await hass.config_entries.options.async_init(
+            mock_config_entry.entry_id
+        )
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {CONF_MUNICIPALITY: "Roma", CONF_DAYS: []}
+    )
+
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert mock_config_entry.options[CONF_DAYS] == []
 
 
 @pytest.mark.parametrize(

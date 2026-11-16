@@ -11,7 +11,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import dt as dt_util
 
-from .const import ATTR_TODAY, ATTR_TOMORROW
+from .const import PlaceDay
 from .coordinator import DpcConfigEntry, DpcData, DpcDataUpdateCoordinator
 from .entity import DpcEntity
 
@@ -27,7 +27,7 @@ class DpcMapEntityDescription(ImageEntityDescription):
     """Return the URL of the preview of the map, None when there is none."""
 
 
-def _criticality_map(day: str) -> Callable[[DpcData], str | None]:
+def _criticality_map(day: PlaceDay) -> Callable[[DpcData], str | None]:
     """Return how to find the criticality map of a day."""
 
     def url(data: DpcData) -> str | None:
@@ -37,7 +37,7 @@ def _criticality_map(day: str) -> Callable[[DpcData], str | None]:
     return url
 
 
-def _vigilance_map(day: str) -> Callable[[DpcData], str | None]:
+def _vigilance_map(day: PlaceDay) -> Callable[[DpcData], str | None]:
     """Return how to find the vigilance map of a day."""
 
     def url(data: DpcData) -> str | None:
@@ -55,7 +55,7 @@ MAP_DESCRIPTIONS = (
             translation_key=f"criticality_map_{day}",
             url_fn=_criticality_map(day),
         )
-        for day in (ATTR_TODAY, ATTR_TOMORROW)
+        for day in (PlaceDay.TODAY, PlaceDay.TOMORROW)
     ),
     *(
         DpcMapEntityDescription(
@@ -63,7 +63,7 @@ MAP_DESCRIPTIONS = (
             translation_key=f"vigilance_map_{day}",
             url_fn=_vigilance_map(day),
         )
-        for day in (ATTR_TODAY, ATTR_TOMORROW)
+        for day in (PlaceDay.TODAY, PlaceDay.TOMORROW)
     ),
 )
 

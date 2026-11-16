@@ -66,6 +66,7 @@
                     "binary_sensor": "Sensor binario habilitado",
                     "sensor": "Sensor habilitado",
                     "municipality": "Municipio",
+                    "days": "Días",
                     "scan_interval": "Intervalo de actualización (minutos, 30 por defecto)",
                     "warning_level": "Nivel mínimo de alerta",
                     "radius": "Radio (km, 50 por defecto)",
@@ -73,13 +74,23 @@
                     "geo_location": "Geolocalización habilitada"
                 },
                 "data_description": {
-                    "municipality": "Los municipios grandes abarcan varias zonas de alerta: el lugar recibe entonces la alerta más alta de todas ellas. Cada municipio solo se puede añadir una vez."
+                    "municipality": "Los municipios grandes abarcan varias zonas de alerta: el lugar recibe entonces la alerta más alta de todas ellas. Cada municipio solo se puede añadir una vez.",
+                    "days": "Cada día elegido tiene un dispositivo con sus alertas, precipitación, mapas y fenómenos."
                 }
             }
         },
         "error": {
             "municipality_not_listed": "Elige un municipio de la lista.",
             "municipality_in_use": "{municipality} ya está configurado: cada municipio solo se puede añadir una vez."
+        }
+    },
+    "selector": {
+        "days": {
+            "options": {
+                "today": "Hoy",
+                "tomorrow": "Mañana",
+                "aftertomorrow": "Pasado mañana"
+            }
         }
     },
     "entity": {

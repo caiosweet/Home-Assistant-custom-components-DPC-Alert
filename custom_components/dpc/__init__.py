@@ -11,11 +11,22 @@ from functools import partial
 
 import homeassistant.helpers.config_validation as cv
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.typing import ConfigType
 
 from .bulletins import Place, async_get_bulletins
-from .const import CONF_MUNICIPALITY, DOMAIN, LOGGER, PLATFORMS, STARTUP_MESSAGE
+from .const import (
+    CONF_DAYS,
+    CONF_MUNICIPALITY,
+    DAYS_BEFORE_THE_OPTION,
+    DOMAIN,
+    LOGGER,
+    PLATFORMS,
+    STARTUP_MESSAGE,
+    PlaceDay,
+)
 from .coordinator import DpcConfigEntry, DpcDataUpdateCoordinator
 from .dashboard import async_offer_the_dashboard
 
@@ -67,11 +78,28 @@ async def async_unload_entry(hass: HomeAssistant, entry: DpcConfigEntry) -> bool
 
 
 async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Migrate an old config entry."""
-    LOGGER.info("Migrating DPC entry from Version %s", entry.version)
+    """Migrate an old config entry, one version after the other.
+
+    Each step updates the entry in place, so an entry of version 1 goes
+    through all of them.
+    """
+    LOGGER.info(
+        "Migrating DPC entry from version %s.%s", entry.version, entry.minor_version
+    )
     if entry.version == 1:
         hass.config_entries.async_update_entry(
             entry, options={**entry.options, CONF_MUNICIPALITY: ""}, version=2
         )
-
+    if entry.version == 2 and entry.minor_version < 2:
+        days = list(DAYS_BEFORE_THE_OPTION)
+        # The betas of 2026.11.1 had the precipitation of the day after tomorrow
+        if er.async_get(hass).async_get_entity_id(
+            Platform.SENSOR,
+            DOMAIN,
+            f"{entry.unique_id}-precipitation_{PlaceDay.AFTER_TOMORROW}",
+        ):
+            days.append(PlaceDay.AFTER_TOMORROW)
+        hass.config_entries.async_update_entry(
+            entry, options={**entry.options, CONF_DAYS: days}, minor_version=2
+        )
     return True

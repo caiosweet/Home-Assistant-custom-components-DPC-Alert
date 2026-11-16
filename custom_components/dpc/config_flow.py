@@ -40,8 +40,10 @@ from homeassistant.helpers.selector import (
 )
 
 from .const import (
+    CONF_DAYS,
     CONF_MUNICIPALITY,
     CONF_WARNING_LEVEL,
+    DEFAULT_DAYS,
     DEFAULT_RADIUS,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_WARNING_LEVEL,
@@ -50,6 +52,7 @@ from .const import (
     PLATFORMS,
     SAME_MUNICIPALITY_KM,
     WARNING_LEVELS,
+    PlaceDay,
 )
 
 ZONE_DOMAIN = "zone"
@@ -137,6 +140,11 @@ class DpcFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """
 
     VERSION = 2
+    # A change that older versions of the integration can still load bumps the
+    # minor version: since Home Assistant 2026.7, an entry of a higher major
+    # version fails to load, so going back to an older release would break it.
+    # 2: the days of the place (CONF_DAYS).
+    MINOR_VERSION = 2
 
     def __init__(self) -> None:
         """Initialize the flow."""
@@ -235,7 +243,10 @@ class DpcFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 return self.async_create_entry(
                     title=self._alert_zone.name,
                     data=self._place,
-                    options={CONF_MUNICIPALITY: municipality},
+                    options={
+                        CONF_MUNICIPALITY: municipality,
+                        CONF_DAYS: list(DEFAULT_DAYS),
+                    },
                 )
 
         return self.async_show_form(
@@ -357,6 +368,17 @@ class DpcOptionsFlowHandler(config_entries.OptionsFlow):
             vol.Required(
                 CONF_MUNICIPALITY, description={"suggested_value": municipality}
             ): municipality_selector(self._municipalities or (), municipality),
+            # No day is a choice too: the place keeps its own entities
+            vol.Required(
+                CONF_DAYS, default=options.get(CONF_DAYS, list(DEFAULT_DAYS))
+            ): SelectSelector(
+                SelectSelectorConfig(
+                    options=list(PlaceDay),
+                    multiple=True,
+                    translation_key=CONF_DAYS,
+                    mode=SelectSelectorMode.LIST,
+                )
+            ),
             vol.Optional(
                 CONF_SCAN_INTERVAL,
                 default=options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),

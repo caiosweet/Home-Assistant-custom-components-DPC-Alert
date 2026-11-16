@@ -2,6 +2,7 @@
 
 from collections.abc import Mapping
 from datetime import timedelta
+from enum import StrEnum
 import logging
 from typing import Final
 
@@ -31,14 +32,38 @@ NAME = "Dipartimento Protezione Civile"
 MANUFACTURER = "Italian Government"
 
 # Config
+CONF_DAYS: Final = "days"
 CONF_MUNICIPALITY = "municipality"
 CONF_WARNING_LEVEL = "warning_level"
+
+
+class PlaceDay(StrEnum):
+    """A day of the bulletins that a place shows, as its options name it.
+
+    The values are the keys the integration has always given the days, in the
+    data of the coordinator and in the unique IDs of the entities of each day
+    (``aftertomorrow`` in one word).
+    """
+
+    TODAY = "today"
+    TOMORROW = "tomorrow"
+    AFTER_TOMORROW = "aftertomorrow"
+
 
 # Defaults
 DEFAULT_NAME = "DPC"
 DEFAULT_WARNING_LEVEL = AlertLevel.YELLOW.value
 DEFAULT_RADIUS = 50  # Km
 DEFAULT_SCAN_INTERVAL = 30  # min
+
+DEFAULT_DAYS: Final = [PlaceDay.TODAY]
+"""Days a new place shows: today. The options add the others."""
+
+DAYS_BEFORE_THE_OPTION: Final = [PlaceDay.TODAY, PlaceDay.TOMORROW]
+"""Days of the places added before the days option.
+
+2026.11.0 had the binary sensors of the risks of today and tomorrow.
+"""
 
 SAME_MUNICIPALITY_KM: Final = 80.0
 """Distance within which two places with the same municipality name share it.
@@ -86,7 +111,6 @@ RISK_NAMES: Final[Mapping[RiskType, str]] = {
     RiskType.HYDROGEOLOGICAL: "Idrogeologico",
 }
 
-ATTR_AFTERTOMORROW = "aftertomorrow"
 ATTR_ALERT = "alert"
 ATTR_ID = "id"
 ATTR_EXPIRES = "expires"
@@ -98,8 +122,6 @@ ATTR_LINK = "link"
 ATTR_MAX_LEVEL = "max_level"
 ATTR_PUBLICATION_DATE = "publication_date"
 ATTR_RISK = "risk"
-ATTR_TODAY = "today"
-ATTR_TOMORROW = "tomorrow"
 ATTR_TOTAL_ALERTS = "total_alerts"
 ATTR_TOTAL_PHENOMENA = "total_phenomena"
 ATTR_ZONE_NAME = "zone_name"

@@ -25,15 +25,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from homeassistant.util import dt as dt_util
 
 from .bulletins import DpcBulletins
-from .const import (
-    ATTR_AFTERTOMORROW,
-    ATTR_TODAY,
-    ATTR_TOMORROW,
-    DEFAULT_SCAN_INTERVAL,
-    DOMAIN,
-    LOGGER,
-    RETRY_INTERVAL,
-)
+from .const import DEFAULT_SCAN_INTERVAL, DOMAIN, LOGGER, RETRY_INTERVAL, PlaceDay
 
 
 @dataclass(frozen=True)
@@ -52,8 +44,8 @@ class DpcData:
     vigilance: LatestBulletin[VigilanceBulletin] | None = None
 
     @property
-    def criticality_days(self) -> dict[str, CriticalityDay]:
-        """Return today and tomorrow, by attribute name, when the bulletin covers them.
+    def criticality_days(self) -> dict[PlaceDay, CriticalityDay]:
+        """Return today and tomorrow, when the bulletin covers them.
 
         After midnight, until DPC publishes the next bulletin, the second day of
         the bulletin is today and there is no tomorrow.
@@ -61,25 +53,27 @@ class DpcData:
         if self.criticality is None:
             return {}
         bulletin = self.criticality.bulletin
-        return _covered({ATTR_TODAY: bulletin.today, ATTR_TOMORROW: bulletin.tomorrow})
+        return _covered(
+            {PlaceDay.TODAY: bulletin.today, PlaceDay.TOMORROW: bulletin.tomorrow}
+        )
 
     @property
-    def vigilance_days(self) -> dict[str, VigilanceDay]:
-        """Return today, tomorrow and the day after, by attribute name, when covered."""
+    def vigilance_days(self) -> dict[PlaceDay, VigilanceDay]:
+        """Return today, tomorrow and the day after, when the bulletin covers them."""
         if self.vigilance is None:
             return {}
         bulletin = self.vigilance.bulletin
         return _covered(
             {
-                ATTR_TODAY: bulletin.today,
-                ATTR_TOMORROW: bulletin.tomorrow,
-                ATTR_AFTERTOMORROW: bulletin.after_tomorrow,
+                PlaceDay.TODAY: bulletin.today,
+                PlaceDay.TOMORROW: bulletin.tomorrow,
+                PlaceDay.AFTER_TOMORROW: bulletin.after_tomorrow,
             }
         )
 
 
-def _covered[DayT](days: dict[str, DayT | None]) -> dict[str, DayT]:
-    """Return the days covered by the bulletin, by attribute name."""
+def _covered[DayT](days: dict[PlaceDay, DayT | None]) -> dict[PlaceDay, DayT]:
+    """Return the days covered by the bulletin."""
     return {name: day for name, day in days.items() if day is not None}
 
 

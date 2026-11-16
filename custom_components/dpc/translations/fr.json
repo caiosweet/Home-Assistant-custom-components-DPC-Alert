@@ -66,6 +66,7 @@
                     "binary_sensor": "Capteur binaire activé",
                     "sensor": "Capteur activé",
                     "municipality": "Commune",
+                    "days": "Jours",
                     "scan_interval": "Intervalle de mise à jour (minutes, 30 par défaut)",
                     "warning_level": "Niveau d'alerte minimal",
                     "radius": "Rayon (km, 50 par défaut)",
@@ -73,13 +74,23 @@
                     "geo_location": "Géolocalisation activée"
                 },
                 "data_description": {
-                    "municipality": "Les grandes communes s'étendent sur plusieurs zones d'alerte : le lieu reçoit alors l'alerte la plus élevée d'entre elles. Chaque commune ne peut être ajoutée qu'une seule fois."
+                    "municipality": "Les grandes communes s'étendent sur plusieurs zones d'alerte : le lieu reçoit alors l'alerte la plus élevée d'entre elles. Chaque commune ne peut être ajoutée qu'une seule fois.",
+                    "days": "Chaque jour choisi a un appareil avec ses alertes, précipitations, cartes et phénomènes."
                 }
             }
         },
         "error": {
             "municipality_not_listed": "Choisissez une commune de la liste.",
             "municipality_in_use": "{municipality} est déjà configurée : chaque commune ne peut être ajoutée qu'une seule fois."
+        }
+    },
+    "selector": {
+        "days": {
+            "options": {
+                "today": "Aujourd'hui",
+                "tomorrow": "Demain",
+                "aftertomorrow": "Après-demain"
+            }
         }
     },
     "entity": {
