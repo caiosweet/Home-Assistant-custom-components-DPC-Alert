@@ -58,6 +58,10 @@ from .const import (
 ZONE_DOMAIN = "zone"
 HOME_ZONE = "zone.home"
 
+CONF_ENTITIES = "entities"
+"""The field of the kinds of entities a place shows. Each kind is kept as the
+option of its platform (``binary_sensor: true``), as it has always been."""
+
 
 async def async_get_alert_zone(
     hass: HomeAssistant, latitude: float, longitude: float
@@ -132,6 +136,82 @@ def place_with_municipality(
     )
 
 
+def display_schema(options: Mapping[str, Any]) -> vol.Schema:
+    """Return the form of what a place shows: its days and kinds of entities."""
+    return vol.Schema(
+        {
+            # No day is a choice too: the place keeps its own entities
+            vol.Required(
+                CONF_DAYS, default=list(options.get(CONF_DAYS, DEFAULT_DAYS))
+            ): SelectSelector(
+                SelectSelectorConfig(
+                    options=list(PlaceDay),
+                    multiple=True,
+                    translation_key=CONF_DAYS,
+                    mode=SelectSelectorMode.LIST,
+                )
+            ),
+            vol.Required(
+                CONF_ENTITIES,
+                default=[
+                    platform
+                    for platform in sorted(PLATFORMS)
+                    if options.get(platform, True)
+                ],
+            ): SelectSelector(
+                SelectSelectorConfig(
+                    options=sorted(PLATFORMS),
+                    multiple=True,
+                    translation_key=CONF_ENTITIES,
+                    mode=SelectSelectorMode.LIST,
+                )
+            ),
+        }
+    )
+
+
+def display_options(user_input: Mapping[str, Any]) -> dict[str, Any]:
+    """Return the options of what a place shows, from its form."""
+    shown = user_input[CONF_ENTITIES]
+    return {
+        CONF_DAYS: user_input[CONF_DAYS],
+        **{platform: platform in shown for platform in PLATFORMS},
+    }
+
+
+def alerts_schema(options: Mapping[str, Any]) -> vol.Schema:
+    """Return the form of the alerts of a place: their level, radius and updates."""
+    return vol.Schema(
+        {
+            vol.Required(
+                CONF_WARNING_LEVEL,
+                default=str(options.get(CONF_WARNING_LEVEL, DEFAULT_WARNING_LEVEL)),
+            ): SelectSelector(
+                SelectSelectorConfig(
+                    options=[str(level) for level in WARNING_LEVELS],
+                    translation_key=CONF_WARNING_LEVEL,
+                    mode=SelectSelectorMode.DROPDOWN,
+                )
+            ),
+            vol.Required(
+                CONF_RADIUS, default=options.get(CONF_RADIUS, DEFAULT_RADIUS)
+            ): vol.All(vol.Coerce(float), vol.Range(min=0)),
+            vol.Required(
+                CONF_SCAN_INTERVAL,
+                default=options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
+            ): cv.positive_int,
+        }
+    )
+
+
+def alerts_options(user_input: Mapping[str, Any]) -> dict[str, Any]:
+    """Return the options of the alerts of a place, from its form.
+
+    The warning level is kept as a number, as it has always been.
+    """
+    return {**user_input, CONF_WARNING_LEVEL: int(user_input[CONF_WARNING_LEVEL])}
+
+
 class DpcFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Config flow for Dpc: a place and its municipality.
 
@@ -150,6 +230,8 @@ class DpcFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """Initialize the flow."""
         self._place: dict[str, Any] = {}
         self._alert_zone: AlertZone | None = None
+        self._options: dict[str, Any] = {}
+        """The options chosen so far, step after step."""
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -240,14 +322,8 @@ class DpcFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 errors[CONF_MUNICIPALITY] = "municipality_in_use"
                 placeholders["municipality"] = other.options[CONF_MUNICIPALITY]
             else:
-                return self.async_create_entry(
-                    title=self._alert_zone.name,
-                    data=self._place,
-                    options={
-                        CONF_MUNICIPALITY: municipality,
-                        CONF_DAYS: list(DEFAULT_DAYS),
-                    },
-                )
+                self._options = {CONF_MUNICIPALITY: municipality}
+                return await self.async_step_display()
 
         return self.async_show_form(
             step_id="municipality",
@@ -261,6 +337,28 @@ class DpcFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             errors=errors,
             description_placeholders=placeholders,
         )
+
+    async def async_step_display(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Choose what the place shows: its days and kinds of entities."""
+        if user_input is not None:
+            self._options |= display_options(user_input)
+            return await self.async_step_alerts()
+        return self.async_show_form(step_id="display", data_schema=display_schema({}))
+
+    async def async_step_alerts(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Choose the warning level, the radius of the phenomena and the updates."""
+        assert self._alert_zone is not None
+        if user_input is not None:
+            return self.async_create_entry(
+                title=self._alert_zone.name,
+                data=self._place,
+                options=self._options | alerts_options(user_input),
+            )
+        return self.async_show_form(step_id="alerts", data_schema=alerts_schema({}))
 
     async def _async_set_place(
         self, latitude: float, longitude: float
@@ -299,12 +397,14 @@ class DpcFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
 
 class DpcOptionsFlowHandler(config_entries.OptionsFlow):
-    """Options of a place."""
+    """Options of a place, in the steps of its setup: municipality, display, alerts."""
 
     def __init__(self) -> None:
         """Initialize the options flow."""
         self._municipalities: tuple[str, ...] | None = None
         """Municipalities of the alert zone of the place; None when unknown."""
+        self._options: dict[str, Any] = {}
+        """The options of the place, as changed step after step."""
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
@@ -318,7 +418,8 @@ class DpcOptionsFlowHandler(config_entries.OptionsFlow):
             LOGGER.debug("No municipalities to offer, any can be typed: %s", err)
         else:
             self._municipalities = alert_zone.municipalities
-        return await self.async_step_user()
+        self._options = dict(self.config_entry.options)
+        return await self.async_step_place()
 
     def _municipality(self, typed: str) -> str | None:
         """Return a typed municipality as DPC lists it, or None if not listed.
@@ -331,15 +432,16 @@ class DpcOptionsFlowHandler(config_entries.OptionsFlow):
             return typed.strip()
         return listed_municipality(self._municipalities, typed)
 
-    async def async_step_user(
+    async def async_step_place(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Show and save the options of the place."""
-        options = dict(self.config_entry.options)
+        """Choose the municipality of the place."""
         errors: dict[str, str] = {}
         placeholders: dict[str, str] = {}
+        typed = self._options.get(CONF_MUNICIPALITY) or ""
         if user_input is not None:
-            municipality = self._municipality(user_input[CONF_MUNICIPALITY])
+            typed = user_input[CONF_MUNICIPALITY]
+            municipality = self._municipality(typed)
             if municipality is None:
                 errors[CONF_MUNICIPALITY] = "municipality_not_listed"
             elif (
@@ -353,48 +455,42 @@ class DpcOptionsFlowHandler(config_entries.OptionsFlow):
                 errors[CONF_MUNICIPALITY] = "municipality_in_use"
                 placeholders["municipality"] = other.options[CONF_MUNICIPALITY]
             else:
-                return self.async_create_entry(
-                    data=options | user_input | {CONF_MUNICIPALITY: municipality}
-                )
-            # Show the options as entered
-            options |= user_input
+                self._options[CONF_MUNICIPALITY] = municipality
+                return await self.async_step_display()
 
-        municipality = options.get(CONF_MUNICIPALITY) or ""
-        schema: dict[vol.Marker, Any] = {
-            vol.Required(platform, default=options.get(platform, True)): bool
-            for platform in sorted(PLATFORMS)
-        }
-        schema |= {
-            vol.Required(
-                CONF_MUNICIPALITY, description={"suggested_value": municipality}
-            ): municipality_selector(self._municipalities or (), municipality),
-            # No day is a choice too: the place keeps its own entities
-            vol.Required(
-                CONF_DAYS, default=options.get(CONF_DAYS, list(DEFAULT_DAYS))
-            ): SelectSelector(
-                SelectSelectorConfig(
-                    options=list(PlaceDay),
-                    multiple=True,
-                    translation_key=CONF_DAYS,
-                    mode=SelectSelectorMode.LIST,
-                )
-            ),
-            vol.Optional(
-                CONF_SCAN_INTERVAL,
-                default=options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
-            ): cv.positive_int,
-            vol.Optional(
-                CONF_WARNING_LEVEL,
-                default=options.get(CONF_WARNING_LEVEL, DEFAULT_WARNING_LEVEL),
-            ): vol.In(WARNING_LEVELS),
-            vol.Required(
-                CONF_RADIUS,
-                default=options.get(CONF_RADIUS, DEFAULT_RADIUS),
-            ): vol.All(vol.Coerce(float), vol.Range(min=0)),
-        }
         return self.async_show_form(
-            step_id="user",
-            data_schema=vol.Schema(schema),
+            step_id="place",
+            data_schema=vol.Schema(
+                {
+                    # Shown as entered, after an error
+                    vol.Required(
+                        CONF_MUNICIPALITY, description={"suggested_value": typed}
+                    ): municipality_selector(self._municipalities or (), typed),
+                }
+            ),
             errors=errors,
             description_placeholders=placeholders,
+        )
+
+    async def async_step_display(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Choose what the place shows: its days and kinds of entities."""
+        if user_input is not None:
+            self._options |= display_options(user_input)
+            return await self.async_step_alerts()
+        return self.async_show_form(
+            step_id="display", data_schema=display_schema(self._options)
+        )
+
+    async def async_step_alerts(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Choose the warning level, the radius of the phenomena and the updates."""
+        if user_input is not None:
+            return self.async_create_entry(
+                data=self._options | alerts_options(user_input)
+            )
+        return self.async_show_form(
+            step_id="alerts", data_schema=alerts_schema(self._options)
         )

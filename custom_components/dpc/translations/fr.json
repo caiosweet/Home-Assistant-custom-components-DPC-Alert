@@ -40,6 +40,32 @@
                 "data_description": {
                     "municipality": "Les grandes communes s'étendent sur plusieurs zones d'alerte : le lieu reçoit alors l'alerte la plus élevée d'entre elles. Chaque commune ne peut être ajoutée qu'une seule fois."
                 }
+            },
+            "display": {
+                "title": "Que montrer",
+                "description": "Vous pourrez les changer plus tard dans les options.",
+                "data": {
+                    "days": "Jours",
+                    "entities": "Entités"
+                },
+                "data_description": {
+                    "days": "Chaque jour choisi a un appareil avec ses alertes, précipitations, cartes et phénomènes.",
+                    "entities": "Décocher un type supprime ses entités du lieu et de chaque jour."
+                }
+            },
+            "alerts": {
+                "title": "Alertes",
+                "description": "Vous pourrez les changer plus tard dans les options.",
+                "data": {
+                    "warning_level": "Niveau d'alerte minimal",
+                    "radius": "Rayon des phénomènes",
+                    "scan_interval": "Intervalle de mise à jour"
+                },
+                "data_description": {
+                    "warning_level": "Le capteur binaire de chaque risque s'active à partir de ce niveau. Avec Pas d'alerte, il est toujours actif.",
+                    "radius": "Phénomènes météo à moins de cette distance du lieu, en km (50 par défaut).",
+                    "scan_interval": "Minutes entre deux vérifications des nouveaux bulletins (30 par défaut)."
+                }
             }
         },
         "error": {
@@ -59,23 +85,37 @@
     },
     "options": {
         "step": {
-            "user": {
-                "title": "Options DPC",
-                "description": "Niveau d'alerte minimal : 1 vert, 2 jaune, 3 orange, 4 rouge. Le capteur est actif à partir du niveau sélectionné.",
+            "place": {
+                "title": "Lieu",
                 "data": {
-                    "binary_sensor": "Capteur binaire activé",
-                    "sensor": "Capteur activé",
-                    "municipality": "Commune",
-                    "days": "Jours",
-                    "scan_interval": "Intervalle de mise à jour (minutes, 30 par défaut)",
-                    "warning_level": "Niveau d'alerte minimal",
-                    "radius": "Rayon (km, 50 par défaut)",
-                    "image": "Image activée",
-                    "geo_location": "Géolocalisation activée"
+                    "municipality": "Commune"
                 },
                 "data_description": {
-                    "municipality": "Les grandes communes s'étendent sur plusieurs zones d'alerte : le lieu reçoit alors l'alerte la plus élevée d'entre elles. Chaque commune ne peut être ajoutée qu'une seule fois.",
-                    "days": "Chaque jour choisi a un appareil avec ses alertes, précipitations, cartes et phénomènes."
+                    "municipality": "Les grandes communes s'étendent sur plusieurs zones d'alerte : le lieu reçoit alors l'alerte la plus élevée d'entre elles. Chaque commune ne peut être ajoutée qu'une seule fois."
+                }
+            },
+            "display": {
+                "title": "Que montrer",
+                "data": {
+                    "days": "Jours",
+                    "entities": "Entités"
+                },
+                "data_description": {
+                    "days": "Chaque jour choisi a un appareil avec ses alertes, précipitations, cartes et phénomènes.",
+                    "entities": "Décocher un type supprime ses entités du lieu et de chaque jour."
+                }
+            },
+            "alerts": {
+                "title": "Alertes",
+                "data": {
+                    "warning_level": "Niveau d'alerte minimal",
+                    "radius": "Rayon des phénomènes",
+                    "scan_interval": "Intervalle de mise à jour"
+                },
+                "data_description": {
+                    "warning_level": "Le capteur binaire de chaque risque s'active à partir de ce niveau. Avec Pas d'alerte, il est toujours actif.",
+                    "radius": "Phénomènes météo à moins de cette distance du lieu, en km (50 par défaut).",
+                    "scan_interval": "Minutes entre deux vérifications des nouveaux bulletins (30 par défaut)."
                 }
             }
         },
@@ -90,6 +130,22 @@
                 "today": "Aujourd'hui",
                 "tomorrow": "Demain",
                 "aftertomorrow": "Après-demain"
+            }
+        },
+        "entities": {
+            "options": {
+                "binary_sensor": "Capteurs binaires des risques",
+                "sensor": "Capteurs",
+                "image": "Cartes",
+                "geo_location": "Phénomènes sur la carte"
+            }
+        },
+        "warning_level": {
+            "options": {
+                "1": "Pas d'alerte",
+                "2": "Alerte jaune",
+                "3": "Alerte orange",
+                "4": "Alerte rouge"
             }
         }
     },

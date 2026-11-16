@@ -106,9 +106,19 @@ def dpc_texts(language: Language) -> dict[str, Any]:
     directions = {
         str(point).lower(): texts.compass_points[point] for point in CompassPoint
     }
+    # The levels by their number, as the highest alert and the warning level
+    level_numbers = _states(
+        {
+            str(level.code): level
+            for level in AlertLevel
+            if level is not AlertLevel.UNKNOWN
+        },
+        texts.alert_levels,
+    )
     return {
         "selector": {
-            "days": {"options": {str(day): texts.days[day.day] for day in PlaceDay}}
+            "days": {"options": {str(day): texts.days[day.day] for day in PlaceDay}},
+            "warning_level": {"options": level_numbers},
         },
         "device": {
             str(day): {
@@ -121,16 +131,7 @@ def dpc_texts(language: Language) -> dict[str, Any]:
                 key: {"name": tell(risk)} for risk, key in RISK_TRANSLATION_KEYS.items()
             },
             "sensor": {
-                "highest_alert": {
-                    "state": _states(
-                        {
-                            str(level.code): level
-                            for level in AlertLevel
-                            if level is not AlertLevel.UNKNOWN
-                        },
-                        texts.alert_levels,
-                    )
-                },
+                "highest_alert": {"state": level_numbers},
                 "highest_precipitation": {
                     "state": _states(
                         {

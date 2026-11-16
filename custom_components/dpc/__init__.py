@@ -12,7 +12,7 @@ from functools import partial
 import homeassistant.helpers.config_validation as cv
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.typing import ConfigType
 
@@ -62,9 +62,25 @@ async def async_setup_entry(hass: HomeAssistant, entry: DpcConfigEntry) -> bool:
     coordinator.platforms = [
         platform for platform in PLATFORMS if entry.options.get(platform, True)
     ]
+    async_remove_hidden_entities(hass, entry, coordinator.platforms)
     await hass.config_entries.async_forward_entry_setups(entry, coordinator.platforms)
     entry.async_on_unload(entry.add_update_listener(async_update_options))
     return True
+
+
+@callback
+def async_remove_hidden_entities(
+    hass: HomeAssistant, entry: ConfigEntry, platforms: list[str]
+) -> None:
+    """Remove the entities of the kinds the options no longer show.
+
+    As the devices of the days no longer shown, they go rather than stay
+    unavailable; showing their kind again creates them anew.
+    """
+    registry = er.async_get(hass)
+    for registry_entry in er.async_entries_for_config_entry(registry, entry.entry_id):
+        if registry_entry.domain not in platforms:
+            registry.async_remove(registry_entry.entity_id)
 
 
 async def async_update_options(hass: HomeAssistant, entry: DpcConfigEntry) -> None:

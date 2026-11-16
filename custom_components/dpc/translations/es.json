@@ -40,6 +40,32 @@
                 "data_description": {
                     "municipality": "Los municipios grandes abarcan varias zonas de alerta: el lugar recibe entonces la alerta más alta de todas ellas. Cada municipio solo se puede añadir una vez."
                 }
+            },
+            "display": {
+                "title": "Qué mostrar",
+                "description": "Puedes cambiarlos más tarde en las opciones.",
+                "data": {
+                    "days": "Días",
+                    "entities": "Entidades"
+                },
+                "data_description": {
+                    "days": "Cada día elegido tiene un dispositivo con sus alertas, precipitación, mapas y fenómenos.",
+                    "entities": "Desmarcar un tipo elimina sus entidades del lugar y de cada día."
+                }
+            },
+            "alerts": {
+                "title": "Alertas",
+                "description": "Puedes cambiarlos más tarde en las opciones.",
+                "data": {
+                    "warning_level": "Nivel mínimo de alerta",
+                    "radius": "Radio de los fenómenos",
+                    "scan_interval": "Intervalo de actualización"
+                },
+                "data_description": {
+                    "warning_level": "El sensor binario de cada riesgo se activa a partir de este nivel. Con Sin alerta, está siempre activo.",
+                    "radius": "Fenómenos meteorológicos a menos de esta distancia del lugar, en km (50 por defecto).",
+                    "scan_interval": "Minutos entre comprobaciones de boletines nuevos (30 por defecto)."
+                }
             }
         },
         "error": {
@@ -59,23 +85,37 @@
     },
     "options": {
         "step": {
-            "user": {
-                "title": "Opciones de DPC",
-                "description": "Nivel mínimo de alerta: 1 verde, 2 amarillo, 3 naranja, 4 rojo. El sensor se activa a partir del nivel seleccionado.",
+            "place": {
+                "title": "Lugar",
                 "data": {
-                    "binary_sensor": "Sensor binario habilitado",
-                    "sensor": "Sensor habilitado",
-                    "municipality": "Municipio",
-                    "days": "Días",
-                    "scan_interval": "Intervalo de actualización (minutos, 30 por defecto)",
-                    "warning_level": "Nivel mínimo de alerta",
-                    "radius": "Radio (km, 50 por defecto)",
-                    "image": "Imagen habilitada",
-                    "geo_location": "Geolocalización habilitada"
+                    "municipality": "Municipio"
                 },
                 "data_description": {
-                    "municipality": "Los municipios grandes abarcan varias zonas de alerta: el lugar recibe entonces la alerta más alta de todas ellas. Cada municipio solo se puede añadir una vez.",
-                    "days": "Cada día elegido tiene un dispositivo con sus alertas, precipitación, mapas y fenómenos."
+                    "municipality": "Los municipios grandes abarcan varias zonas de alerta: el lugar recibe entonces la alerta más alta de todas ellas. Cada municipio solo se puede añadir una vez."
+                }
+            },
+            "display": {
+                "title": "Qué mostrar",
+                "data": {
+                    "days": "Días",
+                    "entities": "Entidades"
+                },
+                "data_description": {
+                    "days": "Cada día elegido tiene un dispositivo con sus alertas, precipitación, mapas y fenómenos.",
+                    "entities": "Desmarcar un tipo elimina sus entidades del lugar y de cada día."
+                }
+            },
+            "alerts": {
+                "title": "Alertas",
+                "data": {
+                    "warning_level": "Nivel mínimo de alerta",
+                    "radius": "Radio de los fenómenos",
+                    "scan_interval": "Intervalo de actualización"
+                },
+                "data_description": {
+                    "warning_level": "El sensor binario de cada riesgo se activa a partir de este nivel. Con Sin alerta, está siempre activo.",
+                    "radius": "Fenómenos meteorológicos a menos de esta distancia del lugar, en km (50 por defecto).",
+                    "scan_interval": "Minutos entre comprobaciones de boletines nuevos (30 por defecto)."
                 }
             }
         },
@@ -90,6 +130,22 @@
                 "today": "Hoy",
                 "tomorrow": "Mañana",
                 "aftertomorrow": "Pasado mañana"
+            }
+        },
+        "entities": {
+            "options": {
+                "binary_sensor": "Sensores binarios de los riesgos",
+                "sensor": "Sensores",
+                "image": "Mapas",
+                "geo_location": "Fenómenos en el mapa"
+            }
+        },
+        "warning_level": {
+            "options": {
+                "1": "Sin alerta",
+                "2": "Alerta amarilla",
+                "3": "Alerta naranja",
+                "4": "Alerta roja"
             }
         }
     },

@@ -35,8 +35,8 @@ that followed them.
 
 - **A device for each day** (Milano · Today, Milano · Tomorrow, Milano ·
   Day after tomorrow), part of the device of the place, with the entities of
-  that day, named without the day: **Milano · Today Hydraulic risk**. The new
-  **Days** option chooses them: a new place shows today; the places added
+  that day, named without the day: **Milano · Today Hydraulic risk**. The setup
+  and the options choose them: a new place shows today; the places added
   before show today and tomorrow, as their binary sensors did. Unchecking a day
   removes its device and its entities.
 - **Sensors of each day**, translated by Home Assistant, which dashboards show
@@ -65,9 +65,16 @@ that followed them.
   data, such as the maps of tomorrow after midnight, is hidden. Adding a place
   now ends with a pointer to it.
 - The options can turn off the maps and the phenomena, like the sensors.
+  Turning off a kind of entities removes them, instead of leaving them
+  unavailable.
 
 ### Changed
 
+- **The setup and the options go step by step**: the place and its
+  municipality; what to show, the days and the kinds of entities; and the
+  alerts, the minimum level of warning chosen among the named levels ("Yellow
+  alert"), the radius of the phenomena and the update interval. Each field
+  says what it does.
 - **The alert and vigilance sensors are named Highest alert and Highest
   precipitation**, what they are: the highest level of the zones of the place
   over the days. Their states are still 1 to 4 and 1 to 5, so automations

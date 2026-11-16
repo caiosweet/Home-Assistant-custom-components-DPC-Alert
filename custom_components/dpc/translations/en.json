@@ -40,6 +40,32 @@
                 "data_description": {
                     "municipality": "Large municipalities span several alert zones: the place then gets the highest alert of all of them. Each municipality can be added once."
                 }
+            },
+            "display": {
+                "title": "What to show",
+                "description": "You can change them later in the options.",
+                "data": {
+                    "days": "Days",
+                    "entities": "Entities"
+                },
+                "data_description": {
+                    "days": "Each chosen day gets a device with its alerts, precipitation, maps and phenomena.",
+                    "entities": "Unchecking a kind removes its entities from the place and from every day."
+                }
+            },
+            "alerts": {
+                "title": "Alerts",
+                "description": "You can change them later in the options.",
+                "data": {
+                    "warning_level": "Minimum level of warning",
+                    "radius": "Radius of the phenomena",
+                    "scan_interval": "Update interval"
+                },
+                "data_description": {
+                    "warning_level": "The binary sensor of each risk turns on from this level up. With No alert, it is always on.",
+                    "radius": "Weather phenomena within this distance of the place, in km (default 50).",
+                    "scan_interval": "Minutes between checks for new bulletins (default 30)."
+                }
             }
         },
         "error": {
@@ -59,23 +85,37 @@
     },
     "options": {
         "step": {
-            "user": {
-                "title": "DPC Options",
-                "description": "Minimum warning level: 1 green, 2 yellow, 3 orange, 4 red. The sensor is active at or above the selected level.",
+            "place": {
+                "title": "Place",
                 "data": {
-                    "binary_sensor": "Binary sensor enabled",
-                    "sensor": "Sensor enabled",
-                    "municipality": "Municipality",
-                    "days": "Days",
-                    "scan_interval": "Update interval (minutes, default 30)",
-                    "warning_level": "Minimum level of warning.",
-                    "radius": "Radius (Km, default 50)",
-                    "image": "Image enabled",
-                    "geo_location": "Geolocation enabled"
+                    "municipality": "Municipality"
                 },
                 "data_description": {
-                    "municipality": "Large municipalities span several alert zones: the place then gets the highest alert of all of them. Each municipality can be added once.",
-                    "days": "Each chosen day gets a device with its alerts, precipitation, maps and phenomena."
+                    "municipality": "Large municipalities span several alert zones: the place then gets the highest alert of all of them. Each municipality can be added once."
+                }
+            },
+            "display": {
+                "title": "What to show",
+                "data": {
+                    "days": "Days",
+                    "entities": "Entities"
+                },
+                "data_description": {
+                    "days": "Each chosen day gets a device with its alerts, precipitation, maps and phenomena.",
+                    "entities": "Unchecking a kind removes its entities from the place and from every day."
+                }
+            },
+            "alerts": {
+                "title": "Alerts",
+                "data": {
+                    "warning_level": "Minimum level of warning",
+                    "radius": "Radius of the phenomena",
+                    "scan_interval": "Update interval"
+                },
+                "data_description": {
+                    "warning_level": "The binary sensor of each risk turns on from this level up. With No alert, it is always on.",
+                    "radius": "Weather phenomena within this distance of the place, in km (default 50).",
+                    "scan_interval": "Minutes between checks for new bulletins (default 30)."
                 }
             }
         },
@@ -90,6 +130,22 @@
                 "today": "Today",
                 "tomorrow": "Tomorrow",
                 "aftertomorrow": "Day after tomorrow"
+            }
+        },
+        "entities": {
+            "options": {
+                "binary_sensor": "Binary sensors of the risks",
+                "sensor": "Sensors",
+                "image": "Maps",
+                "geo_location": "Phenomena on the map"
+            }
+        },
+        "warning_level": {
+            "options": {
+                "1": "No alert",
+                "2": "Yellow alert",
+                "3": "Orange alert",
+                "4": "Red alert"
             }
         }
     },

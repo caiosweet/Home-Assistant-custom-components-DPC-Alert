@@ -58,21 +58,25 @@ Requires Home Assistant 2025.2 or newer. See the [changelog](https://github.com/
    - **Pick it on a map**: the map starts at your home; move the pin.
    - **Use a zone**, such as Home.
 3. The integration checks the place with DPC and shows its alert zone. Choose its **municipality** among those of the zone: a municipality that spans several alert zones gets the highest alert of all of them.
+4. **What to show**: the days (today by default) and the kinds of entities.
+5. **Alerts**: the minimum level of warning, the radius of the phenomena and the update interval. Each field says what it does, and the options change them later.
 
 Add as many places as you want, each with its own municipality: two places in the same municipality would get the same bulletins. The places share the downloads: each bulletin is downloaded once for all of them.
 
-A place is named after its alert zone, and its device after its municipality: for a place in Milan, the device is Milano, and the device of today is Milano · Today. A new place shows today; the **Days** option adds tomorrow and the day after tomorrow. The entity IDs start with `dpc_`, then the place, the day and the entity, in English whatever the language: `sensor.dpc_milano_highest_alert`, `binary_sensor.dpc_milano_today_hydraulic_risk`. See [Entities](#entities) for all of them.
+A place is named after its alert zone, and its device after its municipality: for a place in Milan, the device is Milano, and the device of today is Milano · Today. A new place shows today, unless you choose other days. The entity IDs start with `dpc_`, then the place, the day and the entity, in English whatever the language: `sensor.dpc_milano_highest_alert`, `binary_sensor.dpc_milano_today_hydraulic_risk`. See [Entities](#entities) for all of them.
 
 ### Options
 
-**Configure** on the integration changes:
+**Configure** on the integration goes through the steps of the setup:
 
-1. Binary sensors, sensors, maps (image) and phenomena (geolocation) enabled
-2. Municipality, among those of the alert zone of the place
-3. Days: today, tomorrow and the day after tomorrow, each a device with its entities. Unchecking a day removes its device and entities; the place keeps its highest alert and precipitation and its bulletins
-4. Update interval (minutes, default 30)
-5. Minimum level of warning (1 green to 4 red, default 2): when the binary sensors turn on
-6. Radius of the weather phenomena (km, default 50)
+1. **Place**: its municipality, among those of its alert zone.
+2. **What to show**:
+   - **Days**: today, tomorrow and the day after tomorrow, each a device with its entities. Unchecking a day removes its device and entities; the place keeps its highest alert and precipitation and its bulletins.
+   - **Entities**: the binary sensors of the risks, the sensors, the maps and the phenomena on the map. Unchecking a kind removes its entities from the place and from every day.
+3. **Alerts**:
+   - **Minimum level of warning** (default yellow alert): the binary sensor of each risk turns on from this level up; with no alert, it is always on.
+   - **Radius of the phenomena** (km, default 50).
+   - **Update interval** (minutes, default 30).
 
 ### Removal
 

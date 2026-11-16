@@ -238,11 +238,13 @@ async def test_options_update_reloads_entry(
     entry = init_integration
     coordinator = entry.runtime_data
 
-    result = await hass.config_entries.options.async_init(entry.entry_id)
-    result = await hass.config_entries.options.async_configure(
-        result["flow_id"],
-        {**entry.options, CONF_MUNICIPALITY: "Roma", CONF_WARNING_LEVEL: 3},
+    options = hass.config_entries.options
+    result = await options.async_init(entry.entry_id)
+    result = await options.async_configure(
+        result["flow_id"], {CONF_MUNICIPALITY: "Roma"}
     )
+    result = await options.async_configure(result["flow_id"], {})
+    result = await options.async_configure(result["flow_id"], {CONF_WARNING_LEVEL: "3"})
     await hass.async_block_till_done()
 
     assert entry.state is ConfigEntryState.LOADED
@@ -405,6 +407,28 @@ async def test_days_no_longer_shown_are_removed(
     assert entity_registry.async_get(tomorrow.entity_id) is None
     assert hass.states.get(tomorrow.entity_id) is None
     assert hass.states.get("sensor.dpc_today_alert") is not None
+
+
+async def test_kinds_no_longer_shown_are_removed(
+    hass: HomeAssistant,
+    entity_registry: er.EntityRegistry,
+    init_integration: MockConfigEntry,
+) -> None:
+    """Test that a kind of entity taken out of the options goes from the registry."""
+    entry = init_integration
+    assert entity_registry.async_get("image.dpc_today_criticality_map") is not None
+
+    hass.config_entries.async_update_entry(
+        entry, options={**entry.options, "image": False, "geo_location": False}
+    )
+    await hass.async_block_till_done()
+
+    domains = {
+        item.domain
+        for item in er.async_entries_for_config_entry(entity_registry, entry.entry_id)
+    }
+    assert domains == {Platform.BINARY_SENSOR, Platform.SENSOR}
+    assert hass.states.get("image.dpc_today_criticality_map") is None
 
 
 async def test_days_follow_the_name_of_the_place(

@@ -40,6 +40,32 @@
                 "data_description": {
                     "municipality": "Große Gemeinden erstrecken sich über mehrere Warngebiete: Der Ort erhält dann die höchste Warnung all dieser Gebiete. Jede Gemeinde kann nur einmal hinzugefügt werden."
                 }
+            },
+            "display": {
+                "title": "Was anzeigen",
+                "description": "Sie können es später in den Optionen ändern.",
+                "data": {
+                    "days": "Tage",
+                    "entities": "Entitäten"
+                },
+                "data_description": {
+                    "days": "Jeder gewählte Tag erhält ein Gerät mit seinen Warnungen, Niederschlägen, Karten und Phänomenen.",
+                    "entities": "Wird eine Art abgewählt, werden ihre Entitäten vom Ort und von jedem Tag entfernt."
+                }
+            },
+            "alerts": {
+                "title": "Warnungen",
+                "description": "Sie können es später in den Optionen ändern.",
+                "data": {
+                    "warning_level": "Mindestwarnstufe",
+                    "radius": "Radius der Phänomene",
+                    "scan_interval": "Aktualisierungsintervall"
+                },
+                "data_description": {
+                    "warning_level": "Der Binärsensor jedes Risikos schaltet ab dieser Stufe ein. Mit Keine Warnung ist er immer an.",
+                    "radius": "Wetterphänomene innerhalb dieser Entfernung vom Ort, in km (Standard 50).",
+                    "scan_interval": "Minuten zwischen zwei Prüfungen auf neue Bulletins (Standard 30)."
+                }
             }
         },
         "error": {
@@ -59,23 +85,37 @@
     },
     "options": {
         "step": {
-            "user": {
-                "title": "DPC-Optionen",
-                "description": "Mindestwarnstufe: 1 Grün, 2 Gelb, 3 Orange, 4 Rot. Der Sensor ist ab der gewählten Stufe aktiv.",
+            "place": {
+                "title": "Ort",
                 "data": {
-                    "binary_sensor": "Binärsensor aktiviert",
-                    "sensor": "Sensor aktiviert",
-                    "municipality": "Gemeinde",
-                    "days": "Tage",
-                    "scan_interval": "Aktualisierungsintervall (Minuten, Standard 30)",
-                    "warning_level": "Mindestwarnstufe",
-                    "radius": "Radius (km, Standard 50)",
-                    "image": "Bild aktiviert",
-                    "geo_location": "Geolokalisierung aktiviert"
+                    "municipality": "Gemeinde"
                 },
                 "data_description": {
-                    "municipality": "Große Gemeinden erstrecken sich über mehrere Warngebiete: Der Ort erhält dann die höchste Warnung all dieser Gebiete. Jede Gemeinde kann nur einmal hinzugefügt werden.",
-                    "days": "Jeder gewählte Tag erhält ein Gerät mit seinen Warnungen, Niederschlägen, Karten und Phänomenen."
+                    "municipality": "Große Gemeinden erstrecken sich über mehrere Warngebiete: Der Ort erhält dann die höchste Warnung all dieser Gebiete. Jede Gemeinde kann nur einmal hinzugefügt werden."
+                }
+            },
+            "display": {
+                "title": "Was anzeigen",
+                "data": {
+                    "days": "Tage",
+                    "entities": "Entitäten"
+                },
+                "data_description": {
+                    "days": "Jeder gewählte Tag erhält ein Gerät mit seinen Warnungen, Niederschlägen, Karten und Phänomenen.",
+                    "entities": "Wird eine Art abgewählt, werden ihre Entitäten vom Ort und von jedem Tag entfernt."
+                }
+            },
+            "alerts": {
+                "title": "Warnungen",
+                "data": {
+                    "warning_level": "Mindestwarnstufe",
+                    "radius": "Radius der Phänomene",
+                    "scan_interval": "Aktualisierungsintervall"
+                },
+                "data_description": {
+                    "warning_level": "Der Binärsensor jedes Risikos schaltet ab dieser Stufe ein. Mit Keine Warnung ist er immer an.",
+                    "radius": "Wetterphänomene innerhalb dieser Entfernung vom Ort, in km (Standard 50).",
+                    "scan_interval": "Minuten zwischen zwei Prüfungen auf neue Bulletins (Standard 30)."
                 }
             }
         },
@@ -90,6 +130,22 @@
                 "today": "Heute",
                 "tomorrow": "Morgen",
                 "aftertomorrow": "Übermorgen"
+            }
+        },
+        "entities": {
+            "options": {
+                "binary_sensor": "Binärsensoren der Risiken",
+                "sensor": "Sensoren",
+                "image": "Karten",
+                "geo_location": "Phänomene auf der Karte"
+            }
+        },
+        "warning_level": {
+            "options": {
+                "1": "Keine Warnung",
+                "2": "Gelbe Warnung",
+                "3": "Orange Warnung",
+                "4": "Rote Warnung"
             }
         }
     },
