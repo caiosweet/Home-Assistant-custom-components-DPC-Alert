@@ -99,7 +99,7 @@ The integration comes with a dashboard made of the cards of Home Assistant, in t
 It has a tab for each place, with the levels and the precipitation in the colors of the DPC maps:
 
 - **The place**: its highest alert and highest precipitation, its zones, when each bulletin was published and until when it covers.
-- **Each day** it shows: a banner for each risk at or above the warning level, in the color of its level; the alert, with the risks at that level; the criticality; the maps of the bulletins; the phenomena of the day on a map; the level of each risk; the expected precipitation and the number of phenomena.
+- **Each day** it shows: a banner for each risk at or above the warning level, in the color of its level (without the sensors, a tile of each risk, on or off); the alert, with the risks at that level; the criticality; the maps of the bulletins; the phenomena of the day on a map; the level of each risk; the expected precipitation and the number of phenomena.
 
 The dashboard follows your places: it changes by itself when you add one, check or uncheck a day, and when a bulletin brings other phenomena. The alert, the criticality, the levels, the precipitation and the maps of a day are hidden while they have no data, such as tomorrow's after midnight, until DPC publishes the next bulletin. The colored banners of the risks need Home Assistant 2026.9 or newer; before, the risks are shown as tiles.
 

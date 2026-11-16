@@ -35,6 +35,9 @@ that followed them.
 
 ### Fixed
 
+- The DPC Alert dashboard of a place that shows the binary sensors of the
+  risks without the sensors showed nothing while the risks were off: it shows
+  them whether they are on or off. Sections with nothing to show are left out.
 - The README: installing and uninstalling with the Marketplace of Home
   Assistant 2026.11, or with HACS before; the diagnostics show the
   municipality and the DPC zones of the place, in the names of its devices

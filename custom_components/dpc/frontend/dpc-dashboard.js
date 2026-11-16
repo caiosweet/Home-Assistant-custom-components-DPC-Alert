@@ -516,8 +516,9 @@ export function colorByState(card, entity, colors, colorOption = "color") {
 /**
  * Return the banners of a risk, shown while it is on, in the color of its level.
  *
- * Before the alert card, or without the level of the risk, a tile shown while
- * it is on.
+ * Before the alert card, a tile shown while it is on. Without the level of the
+ * risk, as when the place shows no sensors, the risk is all the dashboard has
+ * of it: its tile, always shown, as the levels are.
  *
  * @param {Hass} hass
  * @param {string} entity A binary sensor of a risk.
@@ -525,8 +526,11 @@ export function colorByState(card, entity, colors, colorOption = "color") {
  * @returns {Card[]}
  */
 export function riskBanners(hass, entity, level) {
+  if (!level) {
+    return [tile(hass, entity, { grid_options: { columns: 4 } })];
+  }
   const isOn = { condition: "state", entity, state: "on" };
-  if (!level || !isAtLeast(hass, ALERT_CARD_VERSION)) {
+  if (!isAtLeast(hass, ALERT_CARD_VERSION)) {
     return [{ ...tile(hass, entity), visibility: [isOn] }];
   }
   return Object.entries(ALERT_COLORS).map(([state, color]) => ({
@@ -698,7 +702,8 @@ export function daySection(hass, place, day) {
 }
 
 /**
- * Return the view of a place.
+ * Return the view of a place: the sections of the place and of its days that
+ * have more than their heading, as when the place shows no sensors.
  *
  * @param {Hass} hass
  * @param {Place} place
@@ -710,7 +715,7 @@ export function placeView(hass, place) {
     sections: [
       placeSection(hass, place),
       ...DAYS.filter((day) => place.days.has(day)).map((day) => daySection(hass, place, day)),
-    ],
+    ].filter((section) => section.cards.length > 1),
   };
 }
 

@@ -256,20 +256,40 @@ describe("view of a place", () => {
     }
   });
 
-  it("shows a tile of a risk on whose level is disabled", () => {
+  it("always shows the tile of a risk whose level is disabled", () => {
     const hass = homeAssistant();
     delete hass.entities["sensor.dpc_roma_today_hydraulic_risk_level"];
     const view = generateView({ device_id: "roma" }, hass);
 
+    // The risk is all the dashboard has of it, whether it is on or off
+    assert.deepEqual(cardsFor(view, "binary_sensor.dpc_roma_today_hydraulic_risk"), [
+      {
+        type: "tile",
+        entity: "binary_sensor.dpc_roma_today_hydraulic_risk",
+        name: { type: "entity" },
+        grid_options: { columns: 4 },
+      },
+    ]);
+  });
+
+  it("shows the risks of a place that shows only them", () => {
+    const hass = homeAssistant();
+    for (const [id, entry] of Object.entries(hass.entities)) {
+      if (!id.startsWith("binary_sensor.") || entry.device_id !== "roma-today") {
+        delete hass.entities[id];
+      }
+    }
+    const view = generateView({ device_id: "roma" }, hass);
+
+    // The place, without its sensors, has nothing to show: no section
     assert.deepEqual(
-      cardsFor(view, "binary_sensor.dpc_roma_today_hydraulic_risk").map((card) => [
-        card.type,
-        card.visibility,
-      ]),
+      view.sections.map((section) => section.cards.map((card) => card.heading ?? card.entity)),
       [
         [
-          "tile",
-          [{ condition: "state", entity: "binary_sensor.dpc_roma_today_hydraulic_risk", state: "on" }],
+          "Today",
+          "binary_sensor.dpc_roma_today_hydraulic_risk",
+          "binary_sensor.dpc_roma_today_thunderstorm_risk",
+          "binary_sensor.dpc_roma_today_hydrogeological_risk",
         ],
       ],
     );
