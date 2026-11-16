@@ -50,7 +50,8 @@ export const PLATFORM = "dpc";
 /** The name of the strategy, `custom:dpc-alert` in a dashboard or a view. */
 export const STRATEGY = "dpc-alert";
 
-const ICON = "mdi:shield-alert";
+/** The icon of a place, in the dashboard and in the card. */
+export const ICON = "mdi:shield-alert";
 
 /** The days of the bulletins, as the identifiers of the devices of the days end. */
 export const DAYS = ["today", "tomorrow", "aftertomorrow"];

@@ -29,17 +29,17 @@ from .const import (
     platform_shown,
 )
 from .coordinator import DpcConfigEntry, DpcDataUpdateCoordinator
-from .dashboard import async_offer_the_dashboard
+from .dashboard import async_offer_the_frontend
 from .entity import async_set_up_the_devices
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Offer the DPC Alert dashboard; the places are set up from the UI only."""
+    """Offer the DPC Alert dashboard and card; the places are set up from the UI only."""
     del config
     LOGGER.info(STARTUP_MESSAGE)
-    await async_offer_the_dashboard(hass)
+    await async_offer_the_frontend(hass)
     return True
 
 

@@ -182,5 +182,13 @@ CRITICALITY_STATES: Final = [
 """States of the criticality of a day: absent, or a criticality and the risk the
 DPC map shows, e.g. moderate_hydrogeological."""
 
-DASHBOARD_MODULE_URL: Final = f"/{DOMAIN}/frontend/dpc-dashboard.js"
-"""URL of the DPC Alert dashboard strategy, loaded by the frontend of every user."""
+FRONTEND_URL: Final = f"/{DOMAIN}/frontend/{VERSION}"
+"""URL of the modules of the frontend, loaded by the frontend of every user.
+
+The browsers keep the modules in their cache: the version in the path makes
+them load the modules again when the integration is updated, and the card
+imports the dashboard strategy by a relative path, which keeps the version.
+"""
+
+FRONTEND_MODULES: Final = ("dpc-dashboard.js", "dpc-card.js")
+"""The modules of the frontend: the dashboard strategy and the card."""
