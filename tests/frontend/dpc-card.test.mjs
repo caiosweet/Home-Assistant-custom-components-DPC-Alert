@@ -3,9 +3,14 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import {
+  CARDS,
+  alertLayout,
+  bulletinLayout,
   cardLayout,
   cardModel,
+  checkConfig,
   dayName,
+  mapLayout,
   placeLayout,
   placeOf,
   swatch,
@@ -178,7 +183,7 @@ describe("card", () => {
           name: "Today",
           color: "#f0bf01",
         },
-        column: "alert",
+        column: "start",
       },
       {
         card: {
@@ -187,7 +192,7 @@ describe("card", () => {
           name: { type: "entity" },
           color: "#C3FFFE",
         },
-        column: "precipitation",
+        column: "end",
       },
       {
         card: {
@@ -196,7 +201,7 @@ describe("card", () => {
           name: "Tomorrow",
           color: "#90c985",
         },
-        column: "alert",
+        column: "start",
       },
       {
         card: {
@@ -205,7 +210,7 @@ describe("card", () => {
           name: { type: "entity" },
           color: "#50FFFF",
         },
-        column: "precipitation",
+        column: "end",
       },
       // Without an alert, the precipitation keeps its column, named after the day
       {
@@ -215,7 +220,7 @@ describe("card", () => {
           name: "Day after tomorrow",
           color: "#508BFF",
         },
-        column: "precipitation",
+        column: "end",
       },
     ]);
   });
@@ -251,7 +256,7 @@ describe("card", () => {
 
   it("asks for a place when there is none", () => {
     const hass = withStates({ language: "it" });
-    assert.deepEqual(cardLayout(hass, [], {}), [
+    assert.deepEqual(cardLayout(alertLayout, hass, [], {}), [
       {
         card: {
           type: "markdown",
@@ -265,7 +270,200 @@ describe("card", () => {
 
   it("heads the card with the place of its device", () => {
     const hass = withStates();
-    const [heading] = cardLayout(hass, findPlaces(hass), { device_id: "roma" });
+    const [heading] = cardLayout(alertLayout, hass, findPlaces(hass), { device_id: "roma" });
     assert.equal(heading.card.heading, "Roma");
+  });
+});
+
+/** Milano with its bulletins: the zones, the publications, the validity. */
+const BULLETINS = statesOf({
+  "sensor.dpc_milano_alert_zone": "Lomb-11",
+  "sensor.dpc_milano_vigilance_zone": "Lombardia 5",
+  "sensor.dpc_milano_criticality_bulletin": "2026-11-16T14:00:00+00:00",
+  "sensor.dpc_milano_vigilance_bulletin": "2026-11-16T13:00:00+00:00",
+  "sensor.dpc_milano_criticality_valid_until": "2026-11-17T23:00:00+00:00",
+  "sensor.dpc_milano_vigilance_valid_until": "2026-11-18T23:00:00+00:00",
+});
+
+describe("bulletin card", () => {
+  it("shows the criticality bulletin and, beside it, the vigilance bulletin", () => {
+    const hass = withStates({}, BULLETINS);
+    const [title, ...tiles] = bulletinLayout(hass, milano(hass), {});
+    assert.equal(title.card.heading, "Milano");
+    assert.deepEqual(title.card.badges, []);
+    assert.deepEqual(
+      tiles.map(({ card, column }) => [card.entity, column]),
+      [
+        ["sensor.dpc_milano_alert_zone", "start"],
+        ["sensor.dpc_milano_vigilance_zone", "end"],
+        ["sensor.dpc_milano_criticality_bulletin", "start"],
+        ["sensor.dpc_milano_vigilance_bulletin", "end"],
+        ["sensor.dpc_milano_criticality_valid_until", "start"],
+        ["sensor.dpc_milano_vigilance_valid_until", "end"],
+      ],
+    );
+  });
+
+  it("names the data of the bulletins in the language of the user", () => {
+    const hass = {
+      ...withStates({}, BULLETINS),
+      localize: localizeWith({
+        "component.dpc.entity.sensor.alert_zone.name": "Zona de alerta",
+      }),
+    };
+    const [, zone, vigilance] = bulletinLayout(hass, milano(hass), {});
+    assert.equal(zone.card.name, "Zona de alerta");
+    // Without the text, as the dashboard names it
+    assert.deepEqual(vigilance.card.name, { type: "entity" });
+  });
+
+  it("shows only the data of the enabled entities", () => {
+    const hass = withStates({}, BULLETINS);
+    const place = milano(hass);
+    place.entries = place.entries.filter(({ entry }) => entry.translation_key !== "alert_zone");
+    const [, first] = bulletinLayout(hass, place, {});
+    assert.deepEqual([first.card.entity, first.column], ["sensor.dpc_milano_vigilance_zone", "end"]);
+  });
+});
+
+/** Milano with the maps of today and tomorrow, and the levels of each day. */
+const MAPS = statesOf({
+  ...Object.fromEntries(Object.entries(MILANO).map(([entity, { state }]) => [entity, state])),
+  "image.dpc_milano_today_criticality_map": "2026-11-16T14:00:00+00:00",
+  "image.dpc_milano_tomorrow_criticality_map": "2026-11-16T14:00:00+00:00",
+  "image.dpc_milano_today_vigilance_map": "2026-11-16T13:00:00+00:00",
+  // No vigilance map for tomorrow yet
+  "image.dpc_milano_tomorrow_vigilance_map": "unknown",
+});
+
+describe("map card", () => {
+  it("shows the map of today, and beside it a block for each day with a map", () => {
+    const hass = withStates({}, MAPS);
+    assert.deepEqual(mapLayout(hass, milano(hass), {}), [
+      {
+        card: {
+          type: "heading",
+          heading: "Milano",
+          icon: "mdi:shield-alert",
+          badges: [
+            { type: "entity", entity: "sensor.dpc_milano_highest_alert", color: "#f0bf01" },
+          ],
+        },
+        column: "all",
+      },
+      {
+        card: {
+          type: "picture-entity",
+          entity: "image.dpc_milano_today_criticality_map",
+          show_name: false,
+          show_state: false,
+        },
+        column: "start",
+        rows: 2,
+      },
+      {
+        card: {
+          type: "tile",
+          entity: "sensor.dpc_milano_today_alert",
+          name: "Today",
+          tap_action: { action: "none" },
+          icon_tap_action: { action: "none" },
+          color: "#f0bf01",
+        },
+        column: "end",
+        select: "today",
+        selected: true,
+      },
+      {
+        card: {
+          type: "tile",
+          entity: "sensor.dpc_milano_tomorrow_alert",
+          name: "Tomorrow",
+          tap_action: { action: "none" },
+          icon_tap_action: { action: "none" },
+          color: "#90c985",
+        },
+        column: "end",
+        select: "tomorrow",
+        selected: false,
+      },
+    ]);
+  });
+
+  it("shows the map of the day selected", () => {
+    const hass = withStates({}, MAPS);
+    const [, map, today, tomorrow] = mapLayout(hass, milano(hass), {}, "tomorrow");
+    assert.equal(map.card.entity, "image.dpc_milano_tomorrow_criticality_map");
+    assert.deepEqual([today.selected, tomorrow.selected], [false, true]);
+  });
+
+  it("shows the vigilance map, with the precipitation of the days that have one", () => {
+    const hass = withStates({}, MAPS);
+    // Tomorrow selected, but without its map: the first day with one instead
+    const [title, map, ...blocks] = mapLayout(
+      hass,
+      milano(hass),
+      { map: "vigilance" },
+      "tomorrow",
+    );
+    assert.deepEqual(title.card.badges, [
+      { type: "entity", entity: "sensor.dpc_milano_highest_precipitation", color: "#508BFF" },
+    ]);
+    assert.equal(map.card.entity, "image.dpc_milano_today_vigilance_map");
+    assert.equal(map.rows, 1);
+    assert.deepEqual(
+      blocks.map(({ card }) => [card.entity, card.color]),
+      [["sensor.dpc_milano_today_precipitation", "#C3FFFE"]],
+    );
+  });
+
+  it("shows only the heading without a map", () => {
+    const hass = withStates();
+    assert.deepEqual(
+      mapLayout(hass, milano(hass), {}).map(({ card }) => card.type),
+      ["heading"],
+    );
+  });
+
+  it("has no block for a day without its sensor", () => {
+    const hass = withStates({}, MAPS);
+    const place = milano(hass);
+    place.entries = place.entries.filter(
+      ({ entry, day }) => !(day === "tomorrow" && entry.translation_key === "alert"),
+    );
+    const [, map, ...blocks] = mapLayout(hass, place, {});
+    assert.equal(map.rows, 2);
+    assert.deepEqual(
+      blocks.map(({ select }) => select),
+      ["today"],
+    );
+  });
+});
+
+describe("cards", () => {
+  it("are three, each in the card picker", () => {
+    assert.deepEqual(
+      CARDS.map(({ type }) => type),
+      ["dpc-card", "dpc-bulletin-card", "dpc-map-card"],
+    );
+    const texts = { bulletins: "Boletins", maps: "Mapas" };
+    assert.deepEqual(
+      CARDS.map(({ name }) => name(texts)),
+      ["DPC Alert", "DPC Alert · Boletins", "DPC Alert · Mapas"],
+    );
+  });
+
+  it("check their configuration", () => {
+    checkConfig({});
+    checkConfig({ device_id: "milano", map: "vigilance" });
+    assert.throws(() => checkConfig({ device_id: 1 }), /device_id/);
+    assert.throws(() => checkConfig({ map: "radar" }), /map must be one of: criticality, vigilance/);
+  });
+
+  it("show a message without places, whatever the card", () => {
+    const hass = withStates();
+    for (const { layout } of CARDS) {
+      assert.equal(cardLayout(layout, hass, [], {})[0].card.type, "markdown");
+    }
   });
 });

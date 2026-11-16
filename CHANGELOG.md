@@ -10,12 +10,18 @@ that followed them.
 
 ### Added
 
-- **A DPC Alert card** for your own dashboards, in the card picker as soon as
-  the integration is installed: the alert and the precipitation of each day of
-  a place, with its highest alert and precipitation, in one card made of the
-  cards of Home Assistant, in the colors of the DPC maps. It finds the entities
-  of the place even after they are renamed: `type: custom:dpc-card`, with the
-  `device_id` of the place (the first place without it).
+- **Cards for your own dashboards**, in the card picker as soon as the
+  integration is installed, each a single card made of the cards of Home
+  Assistant, in the colors of the DPC maps and the language of the user. They
+  find the entities of the place even after they are renamed; set the
+  `device_id` of the place (the first place without it):
+  - `custom:dpc-card`: the alert and the precipitation of each day, with the
+    highest alert and precipitation of the place;
+  - `custom:dpc-bulletin-card`: the criticality and vigilance bulletins side
+    by side: their zones, when they were published, until when they cover;
+  - `custom:dpc-map-card`: the map of a day, beside a block for each day with
+    a map, which shows its map; `map: vigilance` for the vigilance map rather
+    than the criticality map.
 
 ### Fixed
 
