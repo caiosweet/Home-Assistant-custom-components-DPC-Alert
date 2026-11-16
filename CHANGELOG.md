@@ -19,13 +19,14 @@ that followed them.
     highest alert and precipitation of the place;
   - `custom:dpc-bulletin-card`: the criticality and vigilance bulletins side
     by side: their zones, when they were published, until when they cover;
-  - `custom:dpc-map-card`: the map of a day, beside a block for each day with
-    a map, which shows its map; `map: vigilance` for the vigilance map rather
-    than the criticality map.
+  - `custom:dpc-map-card`: the map of a day, beside a list as high as the
+    map: a block for each day with a map, which shows its map, the zone of the
+    map and the number of phenomena near the place; `map: vigilance` for the
+    vigilance map rather than the criticality map.
 
   A visual editor chooses the place, whether to show the title and the highest
-  alert and precipitation, the days, the data of the bulletins, and one or two
-  columns.
+  alert and precipitation, the days, the data of the bulletins, the zone and
+  the phenomena beside the map, and one or two columns.
 
 ### Changed
 

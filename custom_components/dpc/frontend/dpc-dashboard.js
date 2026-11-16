@@ -140,6 +140,7 @@ const TEXTS = {
     heading: "Heading",
     days: "Days",
     columns: "Columns",
+    details: "Details",
     description:
       "Alerts and weather vigilance of the Civil Protection Department for your places in Italy.",
     no_places:
@@ -154,6 +155,7 @@ const TEXTS = {
     heading: "Intestazione",
     days: "Giorni",
     columns: "Colonne",
+    details: "Dettagli",
     description:
       "Allerte e vigilanza meteo del Dipartimento della Protezione Civile per i tuoi luoghi in Italia.",
     no_places:
@@ -168,6 +170,7 @@ const TEXTS = {
     heading: "Cabeçalho",
     days: "Dias",
     columns: "Colunas",
+    details: "Detalhes",
     description:
       "Alertas e vigilância meteorológica da Defesa Civil para os seus lugares na Itália.",
     no_places:
@@ -182,6 +185,7 @@ const TEXTS = {
     heading: "En-tête",
     days: "Jours",
     columns: "Colonnes",
+    details: "Détails",
     description:
       "Alertes et vigilance météo du Département de la Protection civile pour vos lieux en Italie.",
     no_places:
@@ -196,6 +200,7 @@ const TEXTS = {
     heading: "Kopfzeile",
     days: "Tage",
     columns: "Spalten",
+    details: "Details",
     description:
       "Warnungen und Wetterlage des Zivilschutzes für Ihre Orte in Italien.",
     no_places:
@@ -210,6 +215,7 @@ const TEXTS = {
     heading: "Encabezado",
     days: "Días",
     columns: "Columnas",
+    details: "Detalles",
     description:
       "Alertas y vigilancia meteorológica del Departamento de Protección Civil para tus lugares en Italia.",
     no_places:
@@ -224,6 +230,7 @@ const TEXTS = {
     heading: "标题栏",
     days: "日期",
     columns: "列数",
+    details: "详情",
     description:
       "意大利民防部为您在意大利的地点提供的预警和气象警戒。",
     no_places:
@@ -238,6 +245,7 @@ const TEXTS = {
     heading: "Antet",
     days: "Zile",
     columns: "Coloane",
+    details: "Detalii",
     description:
       "Alertele și vigilența meteorologică ale Departamentului Protecției Civile pentru locurile tale din Italia.",
     no_places:
@@ -252,6 +260,7 @@ const TEXTS = {
     heading: "الترويسة",
     days: "الأيام",
     columns: "الأعمدة",
+    details: "التفاصيل",
     description:
       "إنذارات ويقظة الطقس من إدارة الحماية المدنية لأماكنك في إيطاليا.",
     no_places:
@@ -266,6 +275,7 @@ const TEXTS = {
     heading: "Шапка",
     days: "Дні",
     columns: "Стовпці",
+    details: "Подробиці",
     description:
       "Попередження та метеорологічна пильність Департаменту цивільного захисту для ваших місць в Італії.",
     no_places:
@@ -280,6 +290,7 @@ const TEXTS = {
     heading: "Koka",
     days: "Ditët",
     columns: "Kolonat",
+    details: "Detajet",
     description:
       "Paralajmërimet dhe vigjilenca meteorologjike e Departamentit të Mbrojtjes Civile për vendet e tua në Itali.",
     no_places:
@@ -294,6 +305,7 @@ const TEXTS = {
     heading: "হেডার",
     days: "দিন",
     columns: "কলাম",
+    details: "বিস্তারিত",
     description:
       "ইতালিতে আপনার জায়গাগুলোর জন্য নাগরিক সুরক্ষা বিভাগের সতর্কতা ও আবহাওয়া নজরদারি।",
     no_places:
@@ -308,6 +320,7 @@ const TEXTS = {
     heading: "हेडर",
     days: "दिन",
     columns: "कॉलम",
+    details: "विवरण",
     description:
       "इटली में आपके स्थानों के लिए नागरिक सुरक्षा विभाग की चेतावनियाँ और मौसम सतर्कता।",
     no_places:

@@ -62,6 +62,9 @@ import {
  * @property {string[]} [days] The days shown, of those the place has.
  * @property {string[]} [items] The data of the bulletins the bulletin card shows.
  * @property {number} [columns] 1, or 2 side by side.
+ * @property {boolean} [show_zone] The zone of the map, beside it.
+ * @property {boolean} [show_nearby_phenomena] The number of phenomena near the
+ *   place on the day of the map, beside it.
  * @property {MapKind} [map] The map of the map card.
  *
  * @typedef {"criticality" | "vigilance"} MapKind
@@ -114,13 +117,14 @@ export const MAP_CARD = "dpc-map-card";
 export const MAP_DAYS = ["today", "tomorrow"];
 
 /**
- * The maps of the map card: the image of each day, the sensor of the day its
- * block shows, and the sensor of the place its heading shows, with their colors
- * and the option that shows it.
+ * The maps of the map card: the image of each day, the zone of the place, the
+ * sensor of the day its block shows, and the sensor of the place its heading
+ * shows, with their colors and the option that shows it.
  */
 export const MAPS = {
   criticality: {
     image: "criticality_map",
+    zone: "alert_zone",
     day: "alert",
     dayColors: ALERT_COLORS,
     place: "highest_alert",
@@ -129,6 +133,7 @@ export const MAPS = {
   },
   vigilance: {
     image: "vigilance_map",
+    zone: "vigilance_zone",
     day: "precipitation",
     dayColors: PRECIPITATION_COLORS,
     place: "highest_precipitation",
@@ -173,6 +178,8 @@ export function defaultsOf(type) {
     items: BULLETIN_ITEMS,
     columns: 2,
     map: "criticality",
+    show_zone: true,
+    show_nearby_phenomena: true,
   };
 }
 
@@ -200,6 +207,19 @@ export function headingOptions(type, map = "criticality") {
     show_highest_alert: "show_highest_alert",
     show_highest_precipitation: "show_highest_precipitation",
   };
+}
+
+/**
+ * Return the details beside the map of the map card, which its editor lists,
+ * each with the option of the configuration it sets.
+ *
+ * @param {string} type
+ * @returns {Record<string, keyof CardConfig>}
+ */
+export function detailsOptions(type) {
+  return type === MAP_CARD
+    ? { show_zone: "show_zone", show_nearby_phenomena: "show_nearby_phenomena" }
+    : {};
 }
 
 /**
@@ -400,9 +420,13 @@ function hasData(hass, entity) {
 /**
  * Return the native cards of the map card: a heading with the place and its
  * highest level, the map of the selected day (the first without one), and
- * beside it, as high as the map, a block for each day chosen with a map: its
- * alert, or its precipitation for the vigilance map. A click on a block shows
- * its map.
+ * beside it, as high as the map, a list: a block for each day chosen with a
+ * map, its alert, or its precipitation for the vigilance map; the zone of the
+ * map; and the number of phenomena near the place on the day of the map.
+ *
+ * With more than one day, a click on a block shows its map, and the block of
+ * the map shown stands out. A single day is a tile like the others, which
+ * shows its details.
  *
  * @type {PlaceLayout}
  */
@@ -421,35 +445,55 @@ export function mapLayout(hass, place, config, selected) {
   if (!shown) {
     return layout;
   }
-  layout.push({
-    card: {
-      type: "picture-entity",
-      entity: /** @type {string} */ (place.entity("image", kind.image, shown)),
-      show_name: false,
-      show_state: false,
-    },
-    column: "start",
-    rows: days.length,
-  });
-  for (const day of days) {
+  const switches = days.length > 1;
+  /** @type {Placed[]} */
+  const beside = days.flatMap((day) => {
     const block = swatch(hass.states, place.entity("sensor", kind.day, day), kind.dayColors);
-    if (block) {
-      layout.push({
-        card: {
-          type: "tile",
-          entity: block.entity,
-          name: dayName(hass, place, day),
-          // The block shows its map; the card handles the click
-          tap_action: { action: "none" },
-          icon_tap_action: { action: "none" },
-          ...colorOf(block),
-        },
-        column: "end",
-        select: day,
-        selected: day === shown,
-      });
+    if (!block) {
+      return [];
+    }
+    const name = dayName(hass, place, day);
+    return switches
+      ? [
+          {
+            card: {
+              type: "tile",
+              entity: block.entity,
+              name,
+              // The block shows its map; the card handles the click
+              tap_action: { action: "none" },
+              icon_tap_action: { action: "none" },
+              ...colorOf(block),
+            },
+            column: /** @type {Column} */ ("end"),
+            select: day,
+            selected: day === shown,
+          },
+        ]
+      : [{ card: { type: "tile", entity: block.entity, name, ...colorOf(block) }, column: "end" }];
+  });
+  const details = [
+    (config.show_zone ?? true) && place.entity("sensor", kind.zone),
+    (config.show_nearby_phenomena ?? true) && place.entity("sensor", "nearby_phenomena", shown),
+  ];
+  for (const entity of details) {
+    if (entity) {
+      beside.push({ card: tile(hass, entity), column: "end" });
     }
   }
+  layout.push(
+    {
+      card: {
+        type: "picture-entity",
+        entity: /** @type {string} */ (place.entity("image", kind.image, shown)),
+        show_name: false,
+        show_state: false,
+      },
+      column: "start",
+      rows: Math.max(beside.length, 1),
+    },
+    ...beside,
+  );
   return layout;
 }
 
@@ -506,6 +550,8 @@ export function checkConfig(config) {
     "show_title",
     "show_highest_alert",
     "show_highest_precipitation",
+    "show_zone",
+    "show_nearby_phenomena",
   ])) {
     if (config[option] !== undefined && typeof config[option] !== "boolean") {
       throw new Error(`${option} must be true or false`);
@@ -533,7 +579,8 @@ function same(value, other) {
 
 /**
  * Return the configuration of a card from its visual editor: the columns as a
- * number, the list of the heading as its options, the lists in their order,
+ * number, the lists of the heading and the details as their options, the
+ * other lists in their order,
  * and without the options that show what the card shows anyway, so that its
  * YAML stays short.
  *
@@ -547,11 +594,14 @@ export function cleanConfig(type, value) {
   if (typeof config.columns === "string") {
     config.columns = Number(config.columns);
   }
-  if (Array.isArray(config.heading)) {
-    for (const [option, key] of Object.entries(headingOptions(type, config.map))) {
-      config[key] = config.heading.includes(option);
+  const lists = { heading: headingOptions(type, config.map), details: detailsOptions(type) };
+  for (const [field, options] of Object.entries(lists)) {
+    if (Array.isArray(config[field])) {
+      for (const [option, key] of Object.entries(options)) {
+        config[key] = config[field].includes(option);
+      }
+      delete config[field];
     }
-    delete config.heading;
   }
   if (Array.isArray(config.days)) {
     config.days = DAYS.filter((day) => config.days.includes(day));
@@ -569,7 +619,8 @@ export function cleanConfig(type, value) {
 
 /**
  * Return the data of the visual editor of a card: its options, with those it
- * leaves out as they show, the place it shows, and what its heading shows.
+ * leaves out as they show, the place it shows, and what its heading and the
+ * details beside its map show.
  *
  * @param {string} type
  * @param {Place[]} places
@@ -583,6 +634,9 @@ export function editorData(type, places, config) {
     ...options,
     device_id: config.device_id ?? places[0]?.device.id,
     heading: Object.entries(headingOptions(type, config.map))
+      .filter(([, key]) => options[key])
+      .map(([option]) => option),
+    details: Object.entries(detailsOptions(type))
       .filter(([, key]) => options[key])
       .map(([option]) => option),
     columns: String(config.columns ?? defaults.columns),
@@ -677,6 +731,12 @@ export function editorSchema(type, hass, places, config) {
     selector: { select: { options: ["1", "2"], mode: "dropdown" } },
   };
   if (type === MAP_CARD) {
+    const kind = MAPS[config.map ?? "criticality"];
+    /** @type {Record<string, string>} */
+    const detailsLabels = {
+      show_zone: entityText(hass, "sensor", kind.zone),
+      show_nearby_phenomena: entityText(hass, "sensor", "nearby_phenomena"),
+    };
     fields.push(
       {
         name: "map",
@@ -692,6 +752,20 @@ export function editorSchema(type, hass, places, config) {
         },
       },
       headingField,
+      {
+        name: "details",
+        label: texts.details,
+        selector: {
+          select: {
+            multiple: true,
+            mode: "list",
+            options: Object.keys(detailsOptions(type)).map((option) => ({
+              value: option,
+              label: detailsLabels[option],
+            })),
+          },
+        },
+      },
       daysField(MAP_DAYS),
     );
   } else if (type === BULLETIN_CARD) {

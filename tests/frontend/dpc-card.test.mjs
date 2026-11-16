@@ -325,7 +325,7 @@ const MAPS = statesOf({
 });
 
 describe("map card", () => {
-  it("shows the map of today, and beside it a block for each day with a map", () => {
+  it("shows the map of today, and beside it the days with a map, the zone and the phenomena", () => {
     const hass = withStates({}, MAPS);
     assert.deepEqual(mapLayout(hass, milano(hass), {}), [
       {
@@ -347,7 +347,8 @@ describe("map card", () => {
           show_state: false,
         },
         column: "start",
-        rows: 2,
+        // As high as the list beside it
+        rows: 4,
       },
       {
         card: {
@@ -375,14 +376,28 @@ describe("map card", () => {
         select: "tomorrow",
         selected: false,
       },
+      {
+        card: { type: "tile", entity: "sensor.dpc_milano_alert_zone", name: { type: "entity" } },
+        column: "end",
+      },
+      // The phenomena of the day of the map
+      {
+        card: {
+          type: "tile",
+          entity: "sensor.dpc_milano_today_nearby_phenomena",
+          name: { type: "entity" },
+        },
+        column: "end",
+      },
     ]);
   });
 
   it("shows the map of the day selected", () => {
     const hass = withStates({}, MAPS);
-    const [, map, today, tomorrow] = mapLayout(hass, milano(hass), {}, "tomorrow");
+    const [, map, today, tomorrow, , phenomena] = mapLayout(hass, milano(hass), {}, "tomorrow");
     assert.equal(map.card.entity, "image.dpc_milano_tomorrow_criticality_map");
     assert.deepEqual([today.selected, tomorrow.selected], [false, true]);
+    assert.equal(phenomena.card.entity, "sensor.dpc_milano_tomorrow_nearby_phenomena");
   });
 
   it("shows the vigilance map, with the precipitation of the days that have one", () => {
@@ -398,10 +413,43 @@ describe("map card", () => {
       { type: "entity", entity: "sensor.dpc_milano_highest_precipitation", color: "#f0bf01" },
     ]);
     assert.equal(map.card.entity, "image.dpc_milano_today_vigilance_map");
-    assert.equal(map.rows, 1);
+    assert.equal(map.rows, 3);
     assert.deepEqual(
       blocks.map(({ card }) => [card.entity, card.color]),
-      [["sensor.dpc_milano_today_precipitation", "#90c985"]],
+      [
+        ["sensor.dpc_milano_today_precipitation", "#90c985"],
+        // The zone of the vigilance map
+        ["sensor.dpc_milano_vigilance_zone", undefined],
+        ["sensor.dpc_milano_today_nearby_phenomena", undefined],
+      ],
+    );
+  });
+
+  it("shows a single day as a tile like the others, which shows its details", () => {
+    const hass = withStates({}, MAPS);
+    const [, map, day] = mapLayout(hass, milano(hass), { days: ["tomorrow"] });
+    assert.equal(map.card.entity, "image.dpc_milano_tomorrow_criticality_map");
+    assert.deepEqual(day, {
+      card: {
+        type: "tile",
+        entity: "sensor.dpc_milano_tomorrow_alert",
+        name: "Tomorrow",
+        color: "#90c985",
+      },
+      column: "end",
+    });
+  });
+
+  it("shows the zone and the phenomena only if chosen", () => {
+    const hass = withStates({}, MAPS);
+    const layout = mapLayout(hass, milano(hass), {
+      show_zone: false,
+      show_nearby_phenomena: false,
+    });
+    assert.equal(layout[1].rows, 2);
+    assert.deepEqual(
+      layout.slice(2).map(({ card }) => card.entity),
+      ["sensor.dpc_milano_today_alert", "sensor.dpc_milano_tomorrow_alert"],
     );
   });
 
@@ -419,11 +467,11 @@ describe("map card", () => {
     place.entries = place.entries.filter(
       ({ entry, day }) => !(day === "tomorrow" && entry.translation_key === "alert"),
     );
-    const [, map, ...blocks] = mapLayout(hass, place, {});
-    assert.equal(map.rows, 2);
+    const [, map, ...blocks] = mapLayout(hass, place, { show_zone: false, show_nearby_phenomena: false });
+    assert.equal(map.rows, 1);
     assert.deepEqual(
-      blocks.map(({ select }) => select),
-      ["today"],
+      blocks.map(({ card }) => card.entity),
+      ["sensor.dpc_milano_today_alert"],
     );
   });
 });
@@ -527,8 +575,12 @@ describe("options of the cards", () => {
     assert.deepEqual(heading.card.badges, []);
     assert.equal(map.card.entity, "image.dpc_milano_tomorrow_criticality_map");
     assert.deepEqual(
-      blocks.map(({ select }) => select),
-      ["tomorrow"],
+      blocks.map(({ card }) => card.entity),
+      [
+        "sensor.dpc_milano_tomorrow_alert",
+        "sensor.dpc_milano_alert_zone",
+        "sensor.dpc_milano_tomorrow_nearby_phenomena",
+      ],
     );
 
     const [vigilance] = mapLayout(hass, milano(hass), {
@@ -601,6 +653,7 @@ describe("visual editor", () => {
       ["device_id", "Lugar"],
       ["map", "Mapas"],
       ["heading", "Cabeçalho"],
+      ["details", "Detalhes"],
       ["days", "Dias"],
     ]);
   });
@@ -635,6 +688,37 @@ describe("visual editor", () => {
       show_title: "show_title",
       show_highest: "show_highest_precipitation",
     });
+  });
+
+  it("lists the details beside the map, named after the zone of the map", () => {
+    const hass = {
+      ...portuguese(),
+      localize: localizeWith({
+        ...texts,
+        "component.dpc.entity.sensor.alert_zone.name": "Zona de alerta",
+        "component.dpc.entity.sensor.vigilance_zone.name": "Zona de vigilância",
+        "component.dpc.entity.sensor.nearby_phenomena.name": "Fenômenos próximos",
+      }),
+    };
+    const details = (config) =>
+      editorSchema("dpc-map-card", hass, findPlaces(hass), config).find(
+        (field) => field.name === "details",
+      ).selector.select.options;
+
+    assert.deepEqual(details({}), [
+      { value: "show_zone", label: "Zona de alerta" },
+      { value: "show_nearby_phenomena", label: "Fenômenos próximos" },
+    ]);
+    assert.equal(details({ map: "vigilance" })[0].label, "Zona de vigilância");
+    assert.deepEqual(
+      cleanConfig("dpc-map-card", { details: ["show_nearby_phenomena"] }),
+      { show_zone: false },
+    );
+    assert.deepEqual(
+      editorData("dpc-map-card", findPlaces(hass), { show_nearby_phenomena: false }).details,
+      ["show_zone"],
+    );
+    assert.throws(() => checkConfig({ show_zone: 1 }), /show_zone must be true or false/);
   });
 
   it("offers the places, the days and the data of the bulletins by name", () => {
@@ -680,10 +764,13 @@ describe("visual editor", () => {
       show_highest_alert: true,
       show_highest_precipitation: true,
       heading: ["show_title", "show_highest"],
+      details: ["show_zone", "show_nearby_phenomena"],
       days: ["today", "tomorrow"],
       items: BULLETIN_ITEMS,
       columns: "2",
       map: "criticality",
+      show_zone: true,
+      show_nearby_phenomena: true,
     });
     assert.equal(editorData("dpc-card", places, { columns: 1 }).columns, "1");
     assert.deepEqual(
