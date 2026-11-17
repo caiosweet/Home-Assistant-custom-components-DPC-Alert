@@ -107,7 +107,11 @@ ruff check custom_components tests scripts
 mypy                                       # strict
 pytest --cov --cov-report=term-missing     # keep custom_components/dpc at 100%
 node --test "tests/frontend/*.test.mjs"    # the dashboard and the cards
+npx prettier --check .                     # the JavaScript and the YAML
 ```
+
+Your editor follows `.editorconfig` for the rest: LF, UTF-8 and the
+indentation of each kind of file.
 
 The continuous integration runs the same checks, plus hassfest and the HACS
 validation.

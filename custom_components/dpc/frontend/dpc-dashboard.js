@@ -143,8 +143,7 @@ const TEXTS = {
     details: "Details",
     description:
       "Alerts and weather vigilance of the Civil Protection Department for your places in Italy.",
-    no_places:
-      "Add a place of the Civil Protection Department integration to see its alerts here.",
+    no_places: "Add a place of the Civil Protection Department integration to see its alerts here.",
   },
   it: {
     integration_name: "Dipartimento Protezione Civile",
@@ -173,8 +172,7 @@ const TEXTS = {
     details: "Detalhes",
     description:
       "Alertas e vigilância meteorológica da Defesa Civil para os seus lugares na Itália.",
-    no_places:
-      "Adicione um lugar da integração Defesa Civil para ver os alertas dele aqui.",
+    no_places: "Adicione um lugar da integração Defesa Civil para ver os alertas dele aqui.",
   },
   fr: {
     integration_name: "Département de la Protection civile",
@@ -201,8 +199,7 @@ const TEXTS = {
     days: "Tage",
     columns: "Spalten",
     details: "Details",
-    description:
-      "Warnungen und Wetterlage des Zivilschutzes für Ihre Orte in Italien.",
+    description: "Warnungen und Wetterlage des Zivilschutzes für Ihre Orte in Italien.",
     no_places:
       "Fügen Sie einen Ort der Integration Zivilschutzabteilung hinzu, um hier seine Warnungen zu sehen.",
   },
@@ -231,10 +228,8 @@ const TEXTS = {
     days: "日期",
     columns: "列数",
     details: "详情",
-    description:
-      "意大利民防部为您在意大利的地点提供的预警和气象警戒。",
-    no_places:
-      "添加意大利民防部集成的地点，即可在此查看其预警。",
+    description: "意大利民防部为您在意大利的地点提供的预警和气象警戒。",
+    no_places: "添加意大利民防部集成的地点，即可在此查看其预警。",
   },
   ro: {
     integration_name: "Departamentul Protecției Civile",
@@ -261,10 +256,8 @@ const TEXTS = {
     days: "الأيام",
     columns: "الأعمدة",
     details: "التفاصيل",
-    description:
-      "إنذارات ويقظة الطقس من إدارة الحماية المدنية لأماكنك في إيطاليا.",
-    no_places:
-      "أضف مكاناً من تكامل إدارة الحماية المدنية لرؤية إنذاراته هنا.",
+    description: "إنذارات ويقظة الطقس من إدارة الحماية المدنية لأماكنك في إيطاليا.",
+    no_places: "أضف مكاناً من تكامل إدارة الحماية المدنية لرؤية إنذاراته هنا.",
   },
   uk: {
     integration_name: "Департамент цивільного захисту",
@@ -308,8 +301,7 @@ const TEXTS = {
     details: "বিস্তারিত",
     description:
       "ইতালিতে আপনার জায়গাগুলোর জন্য নাগরিক সুরক্ষা বিভাগের সতর্কতা ও আবহাওয়া নজরদারি।",
-    no_places:
-      "এখানে সতর্কতা দেখতে নাগরিক সুরক্ষা বিভাগ ইন্টিগ্রেশনের একটি জায়গা যোগ করুন।",
+    no_places: "এখানে সতর্কতা দেখতে নাগরিক সুরক্ষা বিভাগ ইন্টিগ্রেশনের একটি জায়গা যোগ করুন।",
   },
   hi: {
     integration_name: "नागरिक सुरक्षा विभाग",
@@ -321,8 +313,7 @@ const TEXTS = {
     days: "दिन",
     columns: "कॉलम",
     details: "विवरण",
-    description:
-      "इटली में आपके स्थानों के लिए नागरिक सुरक्षा विभाग की चेतावनियाँ और मौसम सतर्कता।",
+    description: "इटली में आपके स्थानों के लिए नागरिक सुरक्षा विभाग की चेतावनियाँ और मौसम सतर्कता।",
     no_places:
       "यहाँ इसकी चेतावनियाँ देखने के लिए नागरिक सुरक्षा विभाग इंटीग्रेशन का एक स्थान जोड़ें।",
   },
@@ -536,8 +527,7 @@ export function findPlaces(hass) {
   return [...entitiesByPlace]
     .filter(([placeId]) => hass.devices[placeId])
     .map(
-      ([placeId, entities]) =>
-        new Place(hass.devices[placeId], entities, daysByPlace.get(placeId)),
+      ([placeId, entities]) => new Place(hass.devices[placeId], entities, daysByPlace.get(placeId)),
     )
     .sort((a, b) => a.name.localeCompare(b.name));
 }
@@ -581,9 +571,7 @@ export function colorByState(card, entity, colors, colorOption = "color") {
     })),
     {
       ...card,
-      visibility: [
-        { condition: "state", entity, state_not: [...states, ...NO_DATA_STATES] },
-      ],
+      visibility: [{ condition: "state", entity, state_not: [...states, ...NO_DATA_STATES] }],
     },
   ];
 }
@@ -838,9 +826,7 @@ export function generateDashboard(hass) {
  * @param {Hass} hass
  */
 export function generateView(config, hass) {
-  const place = findPlaces(hass).find(
-    (candidate) => candidate.device.id === config.device_id,
-  );
+  const place = findPlaces(hass).find((candidate) => candidate.device.id === config.device_id);
   if (!place) {
     const texts = textsIn(hass.locale?.language ?? hass.language);
     return { type: "panel", cards: [{ type: "markdown", content: texts.no_places }] };
@@ -881,8 +867,7 @@ if (globalThis.customElements && globalThis.HTMLElement) {
   }
 
   /** @param {string} tag @param {CustomElementConstructor} strategy */
-  const define = (tag, strategy) =>
-    customElements.get(tag) || customElements.define(tag, strategy);
+  const define = (tag, strategy) => customElements.get(tag) || customElements.define(tag, strategy);
   define(`ll-strategy-dashboard-${STRATEGY}`, DpcDashboardStrategy);
   define(`ll-strategy-view-${STRATEGY}`, DpcViewStrategy);
 
@@ -894,8 +879,7 @@ if (globalThis.customElements && globalThis.HTMLElement) {
       type: STRATEGY,
       strategyType: "dashboard",
       name: "DPC Alert",
-      description: textsIn(document.documentElement.lang || navigator.language)
-        .description,
+      description: textsIn(document.documentElement.lang || navigator.language).description,
       documentationURL:
         "https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert#dashboard",
     });

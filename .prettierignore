@@ -1,0 +1,10 @@
+# Prettier formats the JavaScript of the dashboard and the cards, with their
+# tests, and the YAML. The rest keeps the format of what writes it:
+
+# Markdown is wrapped by hand: the README in long lines, the others at about
+# 80 columns
+*.md
+
+# JSON: manifest.json with tabs, as Home Assistant writes it; the translations
+# with 4 spaces, written by scripts/translations.py; the fixtures with 2
+*.json

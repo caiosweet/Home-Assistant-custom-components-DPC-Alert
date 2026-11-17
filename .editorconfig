@@ -1,0 +1,30 @@
+# How the files of the project are written: https://editorconfig.org
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+# ruff, with its default line length
+[*.py]
+indent_size = 4
+max_line_length = 88
+
+# Prettier (.prettierrc)
+[*.{js,mjs}]
+max_line_length = 100
+
+# Written with 4 spaces by scripts/translations.py, as icons.json
+[custom_components/dpc/{strings,icons}.json]
+indent_size = 4
+
+[custom_components/dpc/translations/*.json]
+indent_size = 4
+
+# With tabs, as Home Assistant writes the manifests of integrations
+[custom_components/dpc/manifest.json]
+indent_style = tab

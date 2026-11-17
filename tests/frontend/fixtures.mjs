@@ -81,4 +81,3 @@ export function homeAssistant({ version = "2026.11.0", language = "en", entities
     entities: Object.fromEntries(all.map((entry) => [entry.entity_id, entry])),
   };
 }
-

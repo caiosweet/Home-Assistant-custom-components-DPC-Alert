@@ -500,9 +500,7 @@ export function mapLayout(hass, place, config, selected) {
     (config[/** @type {keyof CardConfig} */ (kind.placeOption)] ?? true) && highest,
   ]);
   if (!shown) {
-    const withData = chosen.filter((day) =>
-      hasData(hass, place.entity("sensor", kind.day, day)),
-    );
+    const withData = chosen.filter((day) => hasData(hass, place.entity("sensor", kind.day, day)));
     return [
       ...layout,
       ...mapList(hass, place, config, withData, {
@@ -824,9 +822,7 @@ export function editorSchema(type, hass, places, config) {
       columnsField,
     );
   } else {
-    fields.push(headingField, daysField(DAYS),
-      columnsField,
-    );
+    fields.push(headingField, daysField(DAYS), columnsField);
   }
   return fields;
 }
@@ -1092,10 +1088,7 @@ if (globalThis.customElements && globalThis.HTMLElement) {
       /** Return the places, from the registries of the last time they changed. */
       #findPlaces() {
         const hass = /** @type {CardHass} */ (this.#hass);
-        if (
-          this.#places?.entities !== hass.entities ||
-          this.#places?.devices !== hass.devices
-        ) {
+        if (this.#places?.entities !== hass.entities || this.#places?.devices !== hass.devices) {
           this.#places = {
             entities: hass.entities,
             devices: hass.devices,

@@ -83,7 +83,13 @@ ruff check custom_components tests scripts
 mypy                                   # strict, configured in pyproject.toml
 pytest --cov --cov-report=term-missing
 node --test "tests/frontend/*.test.mjs"   # the dashboard strategy and the cards
+npx prettier --check .                    # the JavaScript and the YAML
 ```
+
+The dotfiles say how each file is written: `.editorconfig` (LF, UTF-8,
+indentation, the JSON with 4 spaces or tabs), `.prettierrc` (Prettier for the
+JavaScript and the YAML, `printWidth` 100; `.prettierignore` leaves out the
+Markdown and the JSON), `.gitattributes` (LF) and `.python-version` (3.14).
 
 CI runs mypy, pytest and the tests of the frontend (`tests.yaml`),
 hassfest and the HACS action (`validate.yaml`). Keep the coverage of `custom_components/dpc` at 100%.

@@ -198,9 +198,18 @@ describe("view of a place", () => {
     assert.deepEqual(
       today.map((card) => [card.color, card.visibility]),
       [
-        ["#90c985", [{ condition: "state", entity: "sensor.dpc_roma_today_alert", state: "green" }]],
-        ["#f8f865", [{ condition: "state", entity: "sensor.dpc_roma_today_alert", state: "yellow" }]],
-        ["#f0bf01", [{ condition: "state", entity: "sensor.dpc_roma_today_alert", state: "orange" }]],
+        [
+          "#90c985",
+          [{ condition: "state", entity: "sensor.dpc_roma_today_alert", state: "green" }],
+        ],
+        [
+          "#f8f865",
+          [{ condition: "state", entity: "sensor.dpc_roma_today_alert", state: "yellow" }],
+        ],
+        [
+          "#f0bf01",
+          [{ condition: "state", entity: "sensor.dpc_roma_today_alert", state: "orange" }],
+        ],
         ["#fd6767", [{ condition: "state", entity: "sensor.dpc_roma_today_alert", state: "red" }]],
         [
           undefined,
@@ -330,20 +339,34 @@ describe("view of a place", () => {
     assert.deepEqual(tomorrow.cards.find((card) => card.type === "map").entities, [
       { entity: "geo_location.dpc_roma_tomorrow_moderate_sea_sw", label_mode: "icon" },
     ]);
-    assert.equal(afterTomorrow.cards.find((card) => card.type === "map"), undefined);
+    assert.equal(
+      afterTomorrow.cards.find((card) => card.type === "map"),
+      undefined,
+    );
     assert.deepEqual(
-      today.cards.filter((card) => card.type === "picture-entity").map((card) => [
-        card.entity,
-        card.visibility,
-      ]),
+      today.cards
+        .filter((card) => card.type === "picture-entity")
+        .map((card) => [card.entity, card.visibility]),
       [
         [
           "image.dpc_roma_today_criticality_map",
-          [{ condition: "state", entity: "image.dpc_roma_today_criticality_map", state_not: ["unknown", "unavailable"] }],
+          [
+            {
+              condition: "state",
+              entity: "image.dpc_roma_today_criticality_map",
+              state_not: ["unknown", "unavailable"],
+            },
+          ],
         ],
         [
           "image.dpc_roma_today_vigilance_map",
-          [{ condition: "state", entity: "image.dpc_roma_today_vigilance_map", state_not: ["unknown", "unavailable"] }],
+          [
+            {
+              condition: "state",
+              entity: "image.dpc_roma_today_vigilance_map",
+              state_not: ["unknown", "unavailable"],
+            },
+          ],
         ],
       ],
     );
@@ -356,7 +379,9 @@ describe("view of a place", () => {
     const [place] = view.sections;
 
     assert.deepEqual(
-      place.cards.filter((card) => card.type === "tile" && !card.visibility).map((card) => card.entity),
+      place.cards
+        .filter((card) => card.type === "tile" && !card.visibility)
+        .map((card) => card.entity),
       [
         "sensor.dpc_roma_alert_zone",
         "sensor.dpc_roma_vigilance_zone",
@@ -484,8 +509,8 @@ describe("helpers", () => {
 
   it("makes URL paths of names", () => {
     assert.equal(slugify("Città di Castello"), "citta-di-castello");
-            state_not: ["green", "yellow", "orange", "red", "unknown", "unavailable"],
-    assert.equal(slugify("—"), "dpc");
+    state_not: ["green", "yellow", "orange", "red", "unknown", "unavailable"],
+      assert.equal(slugify("—"), "dpc");
   });
 
   it("has the colors of DPC for the highest alert, as for the alert of a day", () => {
