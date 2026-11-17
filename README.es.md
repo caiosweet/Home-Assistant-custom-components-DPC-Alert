@@ -1,22 +1,24 @@
-# DPC Alert (Protezione Civile)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/main/assets/brand/icon@2x.png" alt="" width="128">
+</p>
 
-[English](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/README.md) · [Italiano](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/README.it.md) · [Français](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/README.fr.md) · **Español** · [Deutsch](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/README.de.md)
+<h1 align="center">DPC Alert</h1>
 
-<img src="https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/assets/brand/icon.png" width="150px">
+<p align="center">Alertas y vigilancia meteorológica para cualquier lugar de Italia, a partir de los boletines oficiales del DPC</p>
+
+<p align="center">
+  <a href="https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/releases/latest"><img alt="Última versión" src="https://img.shields.io/github/v/release/caiosweet/Home-Assistant-custom-components-DPC-Alert?label=release&color=41BDF5"></a>
+  <a href="https://analytics.home-assistant.io/custom_integrations"><img alt="Instalaciones activas" src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fanalytics.home-assistant.io%2Fcustom_integrations.json&query=%24.dpc.total&label=instalaciones&color=41BDF5&logo=homeassistant&logoColor=white&cacheSeconds=86400"></a>
+  <a href="https://hacs.xyz/"><img alt="En el catálogo predeterminado de HACS" src="https://img.shields.io/badge/HACS-default-41BDF5?logo=homeassistantcommunitystore&logoColor=white"></a>
+  <a href="https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/actions/workflows/tests.yaml"><img alt="Pruebas" src="https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/actions/workflows/tests.yaml/badge.svg"></a>
+  <a href="https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/LICENSE.md"><img alt="Licencia" src="https://img.shields.io/github/license/caiosweet/Home-Assistant-custom-components-DPC-Alert?color=41BDF5"></a>
+</p>
+
+<p align="center"><a href="https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/README.md">English</a> · <a href="https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/README.it.md">Italiano</a> · <a href="https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/README.fr.md">Français</a> · <b>Español</b> · <a href="https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/README.de.md">Deutsch</a></p>
 
 Las alertas del Departamento de Protección Civil de Italia (Dipartimento della Protezione Civile, DPC) en Home Assistant, para cualquier lugar de Italia: el riesgo hidráulico, hidrogeológico y de tormentas de hoy y mañana, y la vigilancia meteorológica de los próximos tres días con los fenómenos cercanos a ti.
 
 Cómo funciona el sistema de alerta: [_Civil Protection Department_](https://rischi.protezionecivile.gov.it/en/meteo-hydro/alert) · [_Dipartimento Protezione Civile_](https://rischi.protezionecivile.gov.it/it/meteo-idro/allertamento)
-
-[![hacs][hacsbadge]][hacs] [![Validate](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/actions/workflows/validate.yaml/badge.svg)](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/actions/workflows/validate.yaml)
-
-[![GitHub latest release]][githubrelease] ![GitHub Release Date] [![Maintenancebadge]][maintenance] [![GitHub issuesbadge]][github issues]
-
-[![Websitebadge]][website] [![Forum][forumbadge]][forum] [![telegrambadge]][telegram] [![facebookbadge]][facebook]
-
-[![Don't buy me a coffee](https://img.shields.io/static/v1.svg?label=Don't%20buy%20me%20a%20coffee&message=🔔&color=black&logo=buy%20me%20a%20coffee&logoColor=white&labelColor=6f4e37)](https://paypal.me/hassiohelp)
-
----
 
 ## Características
 
@@ -443,6 +445,12 @@ Los fenómenos deben estar activados en las opciones. `zone.around_home` es una 
 
 </details>
 
+## Comunidad
+
+Ayuda y novedades en italiano en la comunidad [HassioHelp](https://hassiohelp.eu/): su [foro](https://forum.hassiohelp.eu/), su grupo de [Telegram](https://t.me/HassioHelp) y su grupo de [Facebook](https://www.facebook.com/groups/2062381507393179/).
+
+[![Don't buy me a coffee](https://img.shields.io/static/v1.svg?label=Don't%20buy%20me%20a%20coffee&message=🔔&color=black&logo=buy%20me%20a%20coffee&logoColor=white&labelColor=6f4e37)](https://paypal.me/hassiohelp)
+
 ## Contribuir
 
 Los informes, traducciones y correcciones son bienvenidos: consulta la [guía de contribución](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/CONTRIBUTING.md) (en inglés).
@@ -452,21 +460,3 @@ Los informes, traducciones y correcciones son bienvenidos: consulta la [guía de
 El código de DPC Alert está bajo la [licencia MIT](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/LICENSE.md). Los boletines son datos del Dipartimento della Protezione Civile – Presidenza del Consiglio dei Ministri, bajo la licencia [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.es): cada entidad lleva esta atribución.
 
 Los nombres, logotipos y marcas de este repositorio, como los del Dipartimento della Protezione Civile y de Home Assistant, pertenecen a sus titulares y solo se usan para identificarlos, sin implicar su respaldo.
-
-[hacs]: https://github.com/hacs/integration
-[hacsbadge]: https://img.shields.io/badge/HACS-Default-orange.svg
-[github latest release]: https://img.shields.io/github/v/release/caiosweet/Home-Assistant-custom-components-DPC-Alert
-[githubrelease]: https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/releases
-[github release date]: https://img.shields.io/github/release-date/caiosweet/Home-Assistant-custom-components-DPC-Alert
-[maintenancebadge]: https://img.shields.io/badge/Maintained%3F-Yes-brightgreen.svg
-[maintenance]: https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/graphs/commit-activity
-[github issuesbadge]: https://img.shields.io/github/issues/caiosweet/Home-Assistant-custom-components-DPC-Alert
-[github issues]: https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/issues
-[website]: https://hassiohelp.eu/
-[websitebadge]: https://img.shields.io/website?down_message=Offline&label=HssioHelp&logoColor=blue&up_message=Online&url=https%3A%2F%2Fhassiohelp.eu
-[telegram]: https://t.me/HassioHelp
-[telegrambadge]: https://img.shields.io/badge/Chat-Telegram-blue?logo=Telegram
-[facebook]: https://www.facebook.com/groups/2062381507393179/
-[facebookbadge]: https://img.shields.io/badge/Group-Facebook-blue?logo=Facebook
-[forum]: https://forum.hassiohelp.eu/
-[forumbadge]: https://img.shields.io/badge/HassioHelp-Forum-blue?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA0ppVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8%2BIDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNS1jMDIxIDc5LjE1NTc3MiwgMjAxNC8wMS8xMy0xOTo0NDowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6ODcxMjY2QzY5RUIzMTFFQUEwREVGQzE4OTI4Njk5NDkiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6ODcxMjY2QzU5RUIzMTFFQUEwREVGQzE4OTI4Njk5NDkiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTQgKFdpbmRvd3MpIj4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9ImFkb2JlOmRvY2lkOnBob3Rvc2hvcDo0MWVhZDAwNC05ZWFmLTExZWEtOGY3ZS1mNzQ3Zjc1MjgyNGIiIHN0UmVmOmRvY3VtZW50SUQ9ImFkb2JlOmRvY2lkOnBob3Rvc2hvcDo0MWVhZDAwNC05ZWFmLTExZWEtOGY3ZS1mNzQ3Zjc1MjgyNGIiLz4gPC9yZGY6RGVzY3JpcHRpb24%2BIDwvcmRmOlJERj4gPC94OnhtcG1ldGE%2BIDw/eHBhY2tldCBlbmQ9InIiPz4xQPr3AAADq0lEQVR42rRVW2wMURj%2Bz5lL7V27KG26KIuUEJemdalu3VN3Ei/ipSWUuIV4FB4kHrwo8VLRROJBgkYElZCi4olG4rVoROOSbTa0u7pzO/6Z2Zmd3Z2uevBn/8zsf/7zff/tnKGMMRi/pjM6/j08oKiqCm1tbTA4OAhuoqkS8KKPVjceOcgJngkfnl%2B5JiWH0pQvcfUPhULQ0dEBPp8PDBZZlqGyshLGFKG0fHHr/QfNlxnbjFp7uOcl8VVVj%2BXu9XohkUgY2NRpdJMpc5qWN5971zu7ftsWkSAX2iKLYg3NZ/t6Kxbu2Oi2x4g8IxSKSDR2tLXh2JOn3nAkKv9GAzPtyigS%2BSdV1B3sejhv09lTxTBcCXjRK9buu96%2BZG/7dUYEryK59EXWewNcza7zl%2Br237kpessC4yIITIlGGk88666OtR6VMFKmZhZY9sGsdw1ATgFU1O7et%2Brki56JVUtqsl4kl0CVUjB57vo1Tad7X4Wj9U1S0vRj8HfRSQKVC5auPN7zctqiPTs1Rz2pBV6xcOuq%2BkOPusVAeZWxDg5wl%2Bhz1vW%2BpBFMDIYXt9y%2BF6lr2a6kR7IEmipDeFYsRkVewFcTyAXcBtNMhTxCTTErUxZdu96qLW8varhFsyrnQCQOYNXU8qBp//4TH/jkHZ3UCTXFoncQGKciP1SiN1JDVY2IJwgEjq3jYMVsZgC/HSBw9RnA8CgBjmS3MkdefE638sCV0WGQk9/QXYNRicH%2B7eWwYUGpOT4oq%2Bfq0Upw4SEPVOCLnwOWp5o%2BgskfWEoZe8Qg6CGwcp7XWFVxTc0UYdlMrLmQsP8zVuQcWFNiORFCTSvRQTWQs6W101SRXE7/xiDSBeC5BKywRLx/KqbuA44TYUQS4HHfsLHEcZyhulP32zjEUwL2ACuPt24%2BR0HhnONJBA8IoRlG/4P4/%2B57FTTyC9bUMAQk8OJ9Am69VsHjC2cOJbPaU0iQn4DxrjnSwVwp4eF2XwC63uBVLCchpXgQPAiUUrM8xBwlfeqs%2Bc7JwFn//KHKtAI8IkVejFgIgY8p2etEB7cPDbF32wSE8pwx926XTx6pAcPxxmFlzIo2o/qPy84sb4JTSMb7v3qiGFhJIaAzw1wbkmh8tu4IrqKm4v347V1qmvQGKvjJjEyf7v/pX3GmrGp%2BtT73UDyRHCPLMBDKwUj801dl4P7Fwc8fh0rLwiaBrp2dN2Do%2Bxfb%2Bd%2BE2GwEe%2BEPTYaW1gNQUiKaBP9T/ggwAJik5dEKYSC3AAAAAElFTkSuQmCC
