@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Troubleshooting
+    url: https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert#troubleshooting
+    about: The common problems and how to solve them, before you open an issue.
+  - name: Questions and help in Italian
+    url: https://forum.hassiohelp.eu/
+    about: The forum of the Italian community HassioHelp.

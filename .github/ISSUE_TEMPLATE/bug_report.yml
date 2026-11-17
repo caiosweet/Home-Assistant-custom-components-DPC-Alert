@@ -1,0 +1,114 @@
+name: Report a problem
+description: Something in DPC Alert does not work as expected.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time to report a problem!
+
+        Before you start, check the [Troubleshooting](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert#troubleshooting) section of the README and the [open issues](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/issues): it may be solved already.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you saw, and where.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: How to reproduce it
+      description: The steps that lead to the problem.
+      placeholder: |
+        1. Go to …
+        2. Choose …
+        3. See …
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Where is the problem?
+      multiple: true
+      options:
+        - Setup or options
+        - Entities or their states
+        - Maps of the bulletins
+        - Phenomena on the map
+        - The DPC Alert dashboard
+        - The DPC Alert cards
+        - Translations
+        - Something else
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version of DPC Alert
+      description: On the integration page, or in the Marketplace or HACS.
+      placeholder: "2026.11.2"
+    validations:
+      required: true
+
+  - type: input
+    id: ha-version
+    attributes:
+      label: Version of Home Assistant
+      description: "**Settings → About**."
+      placeholder: "2026.11.3"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: installed-with
+    attributes:
+      label: Installed with
+      options:
+        - The Marketplace of Home Assistant
+        - HACS
+        - Copied by hand
+    validations:
+      required: true
+
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: |
+        On the integration, **⋮ → Download diagnostics**, then drag the file here. They leave out the coordinates of the place and the positions of the phenomena, but they show its municipality and DPC zones: remove them from the file first if you prefer to keep them private.
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Debug log
+      description: |
+        For an error: on the integration, choose **Enable debug logging** in the **⋮** menu, reproduce the problem, then disable it and paste the lines about `dpc` or `aiodpc` here.
+      render: text
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Screenshots and anything else
+      description: Screenshots help a lot for the dashboard, the cards and the forms.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you send it
+      options:
+        - label: I searched the open issues, and this problem is not there yet.
+          required: true
+        - label: I removed from the diagnostics and the log what I don't want to share.
+          required: true

@@ -36,7 +36,7 @@ section of the README and the
 [open issues](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/issues):
 someone may have found it already.
 
-Then [open an issue](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/issues/new)
+Then [open an issue](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/issues/new/choose)
 with:
 
 1. **What happened**, and what you expected instead.
@@ -58,7 +58,7 @@ sure: we will move it.
 
 ## Suggesting an improvement
 
-[Open an issue](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/issues/new)
+[Open an issue](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/issues/new/choose)
 that describes what you want to do and why: the use case matters more than
 the solution. For a large change, please discuss it in an issue before writing
 code, so that your work fits the project.

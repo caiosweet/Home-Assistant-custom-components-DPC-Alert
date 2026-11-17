@@ -1,0 +1,51 @@
+name: Suggest an improvement
+description: An idea to make DPC Alert more useful.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for your idea! Tell us what you want to do and why: the use case matters more than the solution.
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: What do you want to do?
+      description: The situation, and what is missing or hard today.
+      placeholder: When DPC issues an orange alert for tomorrow, I want to …
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: How could DPC Alert help?
+      description: An entity, an option of the cards, a better text… if you have an idea.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: What would it change?
+      multiple: true
+      options:
+        - Setup or options
+        - Entities
+        - Maps of the bulletins
+        - Phenomena on the map
+        - The DPC Alert dashboard
+        - The DPC Alert cards
+        - Translations
+        - Documentation
+        - Something else
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What do you do today instead?
+      description: A workaround, a template, another integration…
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Anything else
+      description: Screenshots, examples, links.
