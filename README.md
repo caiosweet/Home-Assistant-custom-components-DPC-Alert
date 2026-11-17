@@ -69,6 +69,7 @@ DPC Alert is in the community catalog, which both the Marketplace of Home Assist
 
 <p>
   <img src="https://raw.githubusercontent.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/main/assets/images/setup-map.png" alt="Pick the place on a map" width="49%">
+  <img src="https://raw.githubusercontent.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/main/assets/images/setup-zone.png" alt="Or use one of your zones, such as Home" width="49%">
   <img src="https://raw.githubusercontent.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/main/assets/images/setup-municipality.png" alt="Choose its municipality among those of its alert zone" width="49%">
   <img src="https://raw.githubusercontent.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/main/assets/images/setup-what-to-show.png" alt="What to show: the days and the kinds of entities" width="49%">
   <img src="https://raw.githubusercontent.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/main/assets/images/setup-alerts.png" alt="Alerts: the minimum level of warning, the radius of the phenomena and the update interval" width="49%">
