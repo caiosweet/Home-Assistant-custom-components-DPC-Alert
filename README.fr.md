@@ -120,7 +120,7 @@ Il a un onglet pour chaque lieu, avec les niveaux aux couleurs de la carte d'ale
 
 <img src="https://raw.githubusercontent.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/main/assets/images/dashboard.png" alt="Le tableau de bord DPC Alert de Torino : le lieu, aujourd'hui et demain" width="100%">
 
-Le tableau de bord suit vos lieux : il change de lui-même quand vous en ajoutez un, cochez ou décochez un jour, et quand un bulletin apporte d'autres phénomènes. L'alerte, la criticité, les niveaux, les précipitations et les cartes d'un jour sont masqués tant qu'ils n'ont pas de données, comme ceux de demain après minuit, jusqu'à ce que le DPC publie le bulletin suivant. Les bannières colorées des risques nécessitent Home Assistant 2026.9 ou plus récent ; avant, les risques sont affichés sous forme de tuiles.
+Le tableau de bord suit vos lieux : il change de lui-même quand vous en ajoutez un, cochez ou décochez un jour, et quand un bulletin apporte d'autres phénomènes. Ce qui n'a pas de données est masqué, comme l'alerte, les risques et les cartes de demain après minuit, jusqu'à ce que le DPC publie le bulletin suivant. Les bannières colorées des risques nécessitent Home Assistant 2026.9 ou plus récent ; avant, les risques sont affichés sous forme de tuiles.
 
 Pour montrer un lieu dans un autre tableau de bord, ajoutez une vue avec la stratégie du tableau de bord et l'identifiant de l'appareil du lieu, la fin de l'adresse de la page de son appareil :
 
@@ -136,7 +136,7 @@ Les capteurs binaires des risques sont des capteurs de sécurité : le tableau d
 
 ## Cartes
 
-L'intégration inclut trois cartes pour vos propres tableaux de bord, dans le sélecteur de cartes dès qu'elle est installée : recherchez **DPC Alert**. Chacune est une seule carte faite des cartes de Home Assistant, aux couleurs des alertes du DPC et dans la langue de chaque utilisateur, et trouve les entités du lieu même après que vous les avez renommées.
+L'intégration inclut trois cartes pour vos propres tableaux de bord, dans le sélecteur de cartes dès qu'elle est installée : recherchez **DPC Alert**. Chacune est une seule carte faite des cartes de Home Assistant, aux couleurs des alertes du DPC et dans la langue de chaque utilisateur, trouve les entités du lieu même après que vous les avez renommées, et omet ce qui n'a pas de données, comme le tableau de bord.
 
 - **DPC Alert** (`custom:dpc-card`) : l'alerte et les précipitations maximales du lieu, puis l'alerte et les précipitations de chaque jour ; après-demain n'a que ses précipitations.
 - **DPC Alert · Bulletins** (`custom:dpc-bulletin-card`) : le bulletin de criticité et, à côté, le bulletin de vigilance : leurs zones, quand ils ont été publiés et jusqu'à quand ils sont valables.

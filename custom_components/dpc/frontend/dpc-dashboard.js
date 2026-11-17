@@ -577,11 +577,22 @@ export function colorByState(card, entity, colors, colorOption = "color") {
 }
 
 /**
+ * Return the condition that shows a card while its entity has data: not
+ * unknown nor unavailable, as tomorrow after midnight, until the next bulletin.
+ *
+ * @param {string} entity
+ */
+export function withData(entity) {
+  return { condition: "state", entity, state_not: NO_DATA_STATES };
+}
+
+/**
  * Return the banners of a risk, shown while it is on, in the color of its level.
  *
  * Before the alert card, a tile shown while it is on. Without the level of the
  * risk, as when the place shows no sensors, the risk is all the dashboard has
- * of it: its tile, always shown, as the levels are.
+ * of it: its tile, shown whether it is on or off, while it has data, as the
+ * levels are.
  *
  * @param {Hass} hass
  * @param {string} entity A binary sensor of a risk.
@@ -590,7 +601,9 @@ export function colorByState(card, entity, colors, colorOption = "color") {
  */
 export function riskBanners(hass, entity, level) {
   if (!level) {
-    return [tile(hass, entity, { grid_options: { columns: 4 } })];
+    return [
+      { ...tile(hass, entity, { grid_options: { columns: 4 } }), visibility: [withData(entity)] },
+    ];
   }
   const isOn = { condition: "state", entity, state: "on" };
   if (!isAtLeast(hass, ALERT_CARD_VERSION)) {
@@ -660,7 +673,7 @@ function coloredTile(hass, entity, colors, options = {}) {
 }
 
 /**
- * Return the tiles of entities, those that are enabled.
+ * Return the tiles of entities, those that are enabled, shown while they have data.
  *
  * @param {Hass} hass
  * @param {Array<string | undefined>} entities
@@ -668,7 +681,9 @@ function coloredTile(hass, entity, colors, options = {}) {
  * @returns {Card[]}
  */
 function tiles(hass, entities, options = {}) {
-  return entities.flatMap((entity) => (entity ? [tile(hass, entity, options)] : []));
+  return entities.flatMap((entity) =>
+    entity ? [{ ...tile(hass, entity, options), visibility: [withData(entity)] }] : [],
+  );
 }
 
 /**

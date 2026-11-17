@@ -126,15 +126,38 @@ describe("card", () => {
     assert.equal(model.days[0].precipitation?.color, "var(--state-icon-color)");
   });
 
-  it("has no color without data", () => {
+  it("leaves out what has no data", () => {
     const hass = withStates({}, statesOf({ "sensor.dpc_milano_today_alert": "unavailable" }));
     const [today] = cardModel(hass, milano(hass)).days;
-    assert.deepEqual(today.alert, { entity: "sensor.dpc_milano_today_alert", color: undefined });
-    assert.deepEqual(today.precipitation, {
-      entity: "sensor.dpc_milano_today_precipitation",
-      color: undefined,
-    });
+    // Unavailable, and without a state at all
+    assert.equal(today.alert, undefined);
+    assert.equal(today.precipitation, undefined);
     assert.equal(swatch(hass.states, undefined, {}), undefined);
+  });
+
+  it("shows the days that have data, after midnight until the next bulletin", () => {
+    // Tomorrow has no alert yet, and the day after tomorrow no precipitation
+    const hass = withStates(
+      {},
+      statesOf({
+        "sensor.dpc_milano_today_alert": "green",
+        "sensor.dpc_milano_today_precipitation": "light",
+        "sensor.dpc_milano_tomorrow_alert": "unknown",
+        "sensor.dpc_milano_tomorrow_precipitation": "moderate",
+        "sensor.dpc_milano_after_tomorrow_precipitation": "unknown",
+      }),
+    );
+    assert.deepEqual(
+      milanoLayout(hass)
+        .slice(1)
+        .map(({ card, column }) => [card.entity, card.name, column]),
+      [
+        ["sensor.dpc_milano_today_alert", "Today", "start"],
+        ["sensor.dpc_milano_today_precipitation", { type: "entity" }, "end"],
+        // Without its alert, the precipitation is named after the day
+        ["sensor.dpc_milano_tomorrow_precipitation", "Tomorrow", "end"],
+      ],
+    );
   });
 
   it("names the days and the precipitation in the language of the user", () => {
@@ -213,13 +236,14 @@ describe("card", () => {
     ]);
   });
 
-  it("leaves the color of the theme to states without data", () => {
-    const [heading, alert] = milanoLayout(withStates({}, {}));
-    assert.deepEqual(heading.card.badges, [
-      { type: "entity", entity: "sensor.dpc_milano_highest_alert" },
-      { type: "entity", entity: "sensor.dpc_milano_highest_precipitation" },
+  it("shows only the place without any data", () => {
+    const layout = milanoLayout(withStates({}, {}));
+    assert.deepEqual(layout, [
+      {
+        card: { type: "heading", heading: "Milano", icon: "mdi:shield-alert", badges: [] },
+        column: "all",
+      },
     ]);
-    assert.equal(alert.card.color, undefined);
   });
 
   it("names the precipitation with its whole name before Home Assistant 2025.11", () => {

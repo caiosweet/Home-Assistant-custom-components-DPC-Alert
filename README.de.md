@@ -120,7 +120,7 @@ Es hat einen Tab für jeden Ort, mit den Stufen in den Farben der Warnkarte des 
 
 <img src="https://raw.githubusercontent.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/main/assets/images/dashboard.png" alt="Das Dashboard DPC Alert von Torino: der Ort, heute und morgen" width="100%">
 
-Das Dashboard folgt deinen Orten: Es ändert sich von selbst, wenn du einen hinzufügst, einen Tag an- oder abwählst und wenn ein Bulletin andere Phänomene bringt. Die Warnung, das Gefährdungspotenzial, die Stufen, der Niederschlag und die Karten eines Tages sind ausgeblendet, solange sie keine Daten haben, wie die von morgen nach Mitternacht, bis das DPC das nächste Bulletin veröffentlicht. Die farbigen Banner der Risiken erfordern Home Assistant 2026.9 oder neuer; davor werden die Risiken als Kacheln angezeigt.
+Das Dashboard folgt deinen Orten: Es ändert sich von selbst, wenn du einen hinzufügst, einen Tag an- oder abwählst und wenn ein Bulletin andere Phänomene bringt. Was keine Daten hat, ist ausgeblendet, etwa die Warnung, die Risiken und die Karten von morgen nach Mitternacht, bis das DPC das nächste Bulletin veröffentlicht. Die farbigen Banner der Risiken erfordern Home Assistant 2026.9 oder neuer; davor werden die Risiken als Kacheln angezeigt.
 
 Um einen Ort in einem anderen Dashboard anzuzeigen, füge eine Ansicht mit der Strategie des Dashboards und der ID des Geräts des Ortes hinzu, dem Ende der Adresse seiner Geräteseite:
 
@@ -136,7 +136,7 @@ Die Binärsensoren der Risiken sind Sicherheitssensoren: Auch das Dashboard **Si
 
 ## Karten
 
-Die Integration bringt drei Karten für deine eigenen Dashboards mit, die nach der Installation sofort in der Kartenauswahl stehen: Suche nach **DPC Alert**. Jede ist eine einzelne Karte, aufgebaut aus den Karten von Home Assistant, in den Farben der DPC-Warnungen und in der Sprache jedes Benutzers, und findet die Entitäten des Ortes auch, nachdem du sie umbenannt hast.
+Die Integration bringt drei Karten für deine eigenen Dashboards mit, die nach der Installation sofort in der Kartenauswahl stehen: Suche nach **DPC Alert**. Jede ist eine einzelne Karte, aufgebaut aus den Karten von Home Assistant, in den Farben der DPC-Warnungen und in der Sprache jedes Benutzers, findet die Entitäten des Ortes auch, nachdem du sie umbenannt hast, und lässt weg, was keine Daten hat, wie das Dashboard.
 
 - **DPC Alert** (`custom:dpc-card`): die höchste Warnung und der höchste Niederschlag des Ortes, dann die Warnung und der Niederschlag jedes Tages; übermorgen hat nur seinen Niederschlag.
 - **DPC Alert · Bulletins** (`custom:dpc-bulletin-card`): das Bulletin zum Gefährdungspotenzial und daneben das Bulletin zur Wetterlage: ihre Gebiete, wann sie veröffentlicht wurden und bis wann sie gelten.

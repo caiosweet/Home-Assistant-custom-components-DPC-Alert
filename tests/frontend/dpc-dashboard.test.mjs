@@ -271,13 +271,20 @@ describe("view of a place", () => {
     delete hass.entities["sensor.dpc_roma_today_hydraulic_risk_level"];
     const view = generateView({ device_id: "roma" }, hass);
 
-    // The risk is all the dashboard has of it, whether it is on or off
+    // The risk is all the dashboard has of it, whether it is on or off, while it has data
     assert.deepEqual(cardsFor(view, "binary_sensor.dpc_roma_today_hydraulic_risk"), [
       {
         type: "tile",
         entity: "binary_sensor.dpc_roma_today_hydraulic_risk",
         name: { type: "entity" },
         grid_options: { columns: 4 },
+        visibility: [
+          {
+            condition: "state",
+            entity: "binary_sensor.dpc_roma_today_hydraulic_risk",
+            state_not: ["unknown", "unavailable"],
+          },
+        ],
       },
     ]);
   });
@@ -378,9 +385,16 @@ describe("view of a place", () => {
     const view = generateView({ device_id: "roma" }, homeAssistant());
     const [place] = view.sections;
 
+    // While they have data, as the number of phenomena of each day
+    for (const entity of ["sensor.dpc_roma_alert_zone", "sensor.dpc_roma_today_nearby_phenomena"]) {
+      assert.deepEqual(cardsFor(view, entity)[0].visibility, [
+        { condition: "state", entity, state_not: ["unknown", "unavailable"] },
+      ]);
+    }
+
     assert.deepEqual(
       place.cards
-        .filter((card) => card.type === "tile" && !card.visibility)
+        .filter((card) => card.type === "tile" && !card.entity.includes("highest"))
         .map((card) => card.entity),
       [
         "sensor.dpc_roma_alert_zone",

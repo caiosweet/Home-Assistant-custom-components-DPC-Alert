@@ -120,7 +120,7 @@ It has a tab for each place, with the levels in the colors of the DPC alert map,
 
 <img src="https://raw.githubusercontent.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/main/assets/images/dashboard.png" alt="The DPC Alert dashboard of Torino: the place, today and tomorrow" width="100%">
 
-The dashboard follows your places: it changes by itself when you add one, check or uncheck a day, and when a bulletin brings other phenomena. The alert, the criticality, the levels, the precipitation and the maps of a day are hidden while they have no data, such as tomorrow's after midnight, until DPC publishes the next bulletin. The colored banners of the risks need Home Assistant 2026.9 or newer; before, the risks are shown as tiles.
+The dashboard follows your places: it changes by itself when you add one, check or uncheck a day, and when a bulletin brings other phenomena. What has no data is hidden, such as the alert, the risks and the maps of tomorrow after midnight, until DPC publishes the next bulletin. The colored banners of the risks need Home Assistant 2026.9 or newer; before, the risks are shown as tiles.
 
 To show a place in another dashboard, add a view with the strategy of the dashboard and the ID of the device of the place, the end of the address of its device page:
 
@@ -136,7 +136,7 @@ The binary sensors of the risks are safety sensors: the **Security** dashboard o
 
 ## Cards
 
-The integration comes with three cards for your own dashboards, in the card picker as soon as it is installed: search for **DPC Alert**. Each is a single card made of the cards of Home Assistant, in the colors of the DPC alerts and in the language of each user, and finds the entities of the place even after you rename them.
+The integration comes with three cards for your own dashboards, in the card picker as soon as it is installed: search for **DPC Alert**. Each is a single card made of the cards of Home Assistant, in the colors of the DPC alerts and in the language of each user, finds the entities of the place even after you rename them, and leaves out what has no data, as the dashboard does.
 
 - **DPC Alert** (`custom:dpc-card`): the highest alert and precipitation of the place, then the alert and the precipitation of each day; the day after tomorrow has its precipitation only.
 - **DPC Alert · Bulletins** (`custom:dpc-bulletin-card`): the criticality bulletin and, beside it, the vigilance bulletin: their zones, when they were published and until when they cover.

@@ -120,7 +120,7 @@ Ha una scheda per ogni luogo, con i livelli nei colori della mappa di allerta de
 
 <img src="https://raw.githubusercontent.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/main/assets/images/dashboard.png" alt="La plancia DPC Alert di Torino: il luogo, oggi e domani" width="100%">
 
-La plancia segue i tuoi luoghi: cambia da sola quando ne aggiungi uno, scegli o togli un giorno, e quando un bollettino porta altri fenomeni. L'allerta, la criticità, i livelli, le precipitazioni e le mappe di un giorno restano nascosti finché non hanno dati, come quelli di domani dopo mezzanotte, finché il DPC non pubblica il bollettino successivo. Gli avvisi colorati dei rischi richiedono Home Assistant 2026.9 o successivo; prima, i rischi sono mostrati come riquadri.
+La plancia segue i tuoi luoghi: cambia da sola quando ne aggiungi uno, scegli o togli un giorno, e quando un bollettino porta altri fenomeni. Ciò che non ha dati resta nascosto, come l'allerta, i rischi e le mappe di domani dopo mezzanotte, finché il DPC non pubblica il bollettino successivo. Gli avvisi colorati dei rischi richiedono Home Assistant 2026.9 o successivo; prima, i rischi sono mostrati come riquadri.
 
 Per mostrare un luogo in un'altra plancia, aggiungi una vista con la strategia della plancia e l'ID del dispositivo del luogo, la parte finale dell'indirizzo della pagina del suo dispositivo:
 
@@ -136,7 +136,7 @@ I sensori binari dei rischi sono sensori di sicurezza: anche la plancia **Sicure
 
 ## Schede
 
-L'integrazione include tre schede per le tue plance, nel selettore delle schede appena installata: cerca **DPC Alert**. Ognuna è una sola scheda fatta con le schede di Home Assistant, nei colori delle allerte del DPC e nella lingua di ogni utente, e trova le entità del luogo anche dopo che le hai rinominate.
+L'integrazione include tre schede per le tue plance, nel selettore delle schede appena installata: cerca **DPC Alert**. Ognuna è una sola scheda fatta con le schede di Home Assistant, nei colori delle allerte del DPC e nella lingua di ogni utente, trova le entità del luogo anche dopo che le hai rinominate, e omette ciò che non ha dati, come la plancia.
 
 - **DPC Alert** (`custom:dpc-card`): l'allerta e le precipitazioni massime del luogo, poi l'allerta e le precipitazioni di ogni giorno; dopodomani ha solo le precipitazioni.
 - **DPC Alert · Bollettini** (`custom:dpc-bulletin-card`): il bollettino di criticità e, accanto, quello di vigilanza: le loro zone, quando sono stati pubblicati e fino a quando sono validi.

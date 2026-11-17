@@ -291,8 +291,23 @@ function heading(config, name, badges) {
 }
 
 /**
+ * Return an entity with data and the color of its state; none without the
+ * entity or its data, as tomorrow after midnight until the next bulletin, so
+ * that the cards leave it out, as the dashboard hides it.
+ *
+ * @param {CardHass} hass
+ * @param {string | undefined} entity
+ * @param {Record<string, string>} colors The color of each state.
+ * @returns {Swatch | undefined}
+ */
+function shown(hass, entity, colors) {
+  return hasData(hass, entity) ? swatch(hass.states, entity, colors) : undefined;
+}
+
+/**
  * Return what the alert card shows of a place: its highest alert and
- * precipitation, and the alert and the precipitation of each of its days.
+ * precipitation, and the alert and the precipitation of each of its days,
+ * those with data.
  *
  * @param {CardHass} hass
  * @param {Place} place
@@ -300,21 +315,20 @@ function heading(config, name, badges) {
  * @returns {CardModel}
  */
 export function cardModel(hass, place, days = DAYS) {
-  const { states } = hass;
   return {
     name: place.name,
-    highestAlert: swatch(states, place.entity("sensor", "highest_alert"), HIGHEST_ALERT_COLORS),
-    highestPrecipitation: swatch(
-      states,
+    highestAlert: shown(hass, place.entity("sensor", "highest_alert"), HIGHEST_ALERT_COLORS),
+    highestPrecipitation: shown(
+      hass,
       place.entity("sensor", "highest_precipitation"),
       HIGHEST_PRECIPITATION_COLORS,
     ),
     days: DAYS.filter((day) => place.days.has(day) && days.includes(day)).map((day) => ({
       day,
       name: dayName(hass, place, day),
-      alert: swatch(states, place.entity("sensor", "alert", day), ALERT_COLORS),
-      precipitation: swatch(
-        states,
+      alert: shown(hass, place.entity("sensor", "alert", day), ALERT_COLORS),
+      precipitation: shown(
+        hass,
         place.entity("sensor", "precipitation", day),
         PRECIPITATION_COLORS,
       ),

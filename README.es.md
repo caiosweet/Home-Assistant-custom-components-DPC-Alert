@@ -120,7 +120,7 @@ Tiene una pestaña por cada lugar, con los niveles en los colores del mapa de al
 
 <img src="https://raw.githubusercontent.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/main/assets/images/dashboard.png" alt="El panel de control DPC Alert de Torino: el lugar, hoy y mañana" width="100%">
 
-El panel de control sigue a tus lugares: cambia por sí solo cuando añades uno, marcas o desmarcas un día, y cuando un boletín trae otros fenómenos. La alerta, la criticidad, los niveles, la precipitación y los mapas de un día se ocultan mientras no tienen datos, como los de mañana después de medianoche, hasta que el DPC publica el siguiente boletín. Los avisos de color de los riesgos requieren Home Assistant 2026.9 o posterior; antes, los riesgos se muestran como mosaicos.
+El panel de control sigue a tus lugares: cambia por sí solo cuando añades uno, marcas o desmarcas un día, y cuando un boletín trae otros fenómenos. Lo que no tiene datos se oculta, como la alerta, los riesgos y los mapas de mañana después de medianoche, hasta que el DPC publica el siguiente boletín. Los avisos de color de los riesgos requieren Home Assistant 2026.9 o posterior; antes, los riesgos se muestran como mosaicos.
 
 Para mostrar un lugar en otro panel de control, añade una vista con la estrategia del panel y el ID del dispositivo del lugar, la parte final de la dirección de la página de su dispositivo:
 
@@ -136,7 +136,7 @@ Los sensores binarios de los riesgos son sensores de seguridad: el panel de cont
 
 ## Tarjetas
 
-La integración incluye tres tarjetas para tus propios paneles de control, en el selector de tarjetas en cuanto se instala: busca **DPC Alert**. Cada una es una sola tarjeta hecha con las tarjetas de Home Assistant, en los colores de las alertas del DPC y en el idioma de cada usuario, y encuentra las entidades del lugar incluso después de que les cambies el nombre.
+La integración incluye tres tarjetas para tus propios paneles de control, en el selector de tarjetas en cuanto se instala: busca **DPC Alert**. Cada una es una sola tarjeta hecha con las tarjetas de Home Assistant, en los colores de las alertas del DPC y en el idioma de cada usuario, encuentra las entidades del lugar incluso después de que les cambies el nombre, y omite lo que no tiene datos, como el panel de control.
 
 - **DPC Alert** (`custom:dpc-card`): la alerta y la precipitación máximas del lugar, y después la alerta y la precipitación de cada día; pasado mañana solo tiene su precipitación.
 - **DPC Alert · Boletines** (`custom:dpc-bulletin-card`): el boletín de criticidad y, a su lado, el boletín de vigilancia: sus zonas, cuándo se publicaron y hasta cuándo son válidos.
