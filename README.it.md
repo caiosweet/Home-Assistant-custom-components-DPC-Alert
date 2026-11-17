@@ -444,23 +444,15 @@ I fenomeni devono essere attivati nelle opzioni. `zone.around_home` è una zona 
 
 </details>
 
-## Licenza
-
-_Dati forniti dal servizio [_Dipartimento della Protezione Civile-Presidenza del Consiglio dei Ministri_](https://www.protezionecivile.gov.it/it/) Licenza Creative Commons [_CC BY 4.0._](https://creativecommons.org/licenses/by/4.0/deed.it)_
-
-_Information provided by [_Department of Civil Protection - Presidency of the Council of Ministers_](https://www.protezionecivile.gov.it/en/) Creative Commons License [_CC BY 4.0._](https://creativecommons.org/licenses/by/4.0/)_
-
 ## Contribuire
 
 Segnalazioni, traduzioni e correzioni sono benvenute: vedi la [guida per contribuire](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/CONTRIBUTING.md) (in inglese).
 
----
+## Licenza
 
-## Note legali sui marchi
+Il codice di DPC Alert è sotto [licenza MIT](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/LICENSE.md). I bollettini sono dati del Dipartimento della Protezione Civile – Presidenza del Consiglio dei Ministri, con licenza [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.it): ogni entità riporta questa attribuzione.
 
-Tutti i nomi di prodotti, i marchi e i marchi registrati nelle immagini di questo repository sono di proprietà dei rispettivi titolari.
-Tutte le immagini di questo repository sono usate dall'autore solo a scopo di identificazione.
-L'uso di questi nomi, marchi e loghi nelle immagini non implica alcuna approvazione.
+I nomi, i loghi e i marchi presenti in questo repository, come quelli del Dipartimento della Protezione Civile e di Home Assistant, appartengono ai rispettivi titolari e sono usati solo per identificarli, senza implicarne l'approvazione.
 
 [hacs]: https://github.com/hacs/integration
 [hacsbadge]: https://img.shields.io/badge/HACS-Default-orange.svg

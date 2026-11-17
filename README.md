@@ -443,23 +443,15 @@ The phenomena must be on in the options. `zone.around_home` is a zone you create
 
 </details>
 
-## License
-
-_Information provided by [_Department of Civil Protection - Presidency of the Council of Ministers_](https://www.protezionecivile.gov.it/en/) Creative Commons License [_CC BY 4.0._](https://creativecommons.org/licenses/by/4.0/)_
-
-_Dati forniti dal servizio [_Dipartimento della Protezione Civile-Presidenza del Consiglio dei Ministri_](https://www.protezionecivile.gov.it/it/) Licenza Creative Commons [_CC BY 4.0._](https://creativecommons.org/licenses/by/4.0/deed.it)_
-
 ## Contributing
 
 Reports, translations and fixes are welcome: see the [contributing guide](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/CONTRIBUTING.md).
 
----
+## License
 
-## Trademark Legal Notices
+The code of DPC Alert is under the [MIT License](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/LICENSE.md). The bulletins are data of the Dipartimento della Protezione Civile – Presidenza del Consiglio dei Ministri, under the [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) license: every entity carries this attribution.
 
-All product names, trademarks and registered trademarks in the images in this repository, are property of their respective owners.
-All images in this repository are used by the author for identification purposes only.
-The use of these names, trademarks and brands appearing in these image files, do not imply endorsement.
+The names, logos and trademarks in this repository, such as those of the Dipartimento della Protezione Civile and of Home Assistant, belong to their owners and are used to identify them only, without implying their endorsement.
 
 [hacs]: https://github.com/hacs/integration
 [hacsbadge]: https://img.shields.io/badge/HACS-Default-orange.svg
