@@ -45,7 +45,7 @@
  *   Load texts of an integration into the frontend, and return them with the others.
  *
  * @typedef {Record<string, any>} Card A card configuration.
- * @typedef {{ type: string, cards: Card[] }} Section A section of a sections view.
+ * @typedef {{ type: string, cards: Card[], visibility?: Card[] }} Section A section of a sections view.
  */
 
 /** The integration whose entities the dashboard shows. */
@@ -780,8 +780,35 @@ export function daySection(hass, place, day) {
 }
 
 /**
+ * Return a section shown while any of its entities has data, as its cards are.
+ *
+ * Without data, as the day after tomorrow from midnight until the next
+ * bulletin, every card of a section is hidden: so is the section, rather than
+ * its heading alone. Sections have visibility conditions since Home Assistant
+ * 2024.6.
+ *
+ * @param {Section} section
+ * @returns {Section}
+ */
+export function shownWithData(section) {
+  const entities = [
+    ...new Set(
+      section.cards.flatMap((card) => [
+        card.entity,
+        ...(card.entities ?? []).map((/** @type {Card} */ item) => item.entity),
+      ]),
+    ),
+  ].filter((entity) => entity !== undefined);
+  if (!entities.length) {
+    return section;
+  }
+  return { ...section, visibility: [{ condition: "or", conditions: entities.map(withData) }] };
+}
+
+/**
  * Return the view of a place: the sections of the place and of its days that
- * have more than their heading, as when the place shows no sensors.
+ * have more than their heading, as when the place shows no sensors, each shown
+ * while it has data.
  *
  * @param {Hass} hass
  * @param {Place} place
@@ -793,7 +820,9 @@ export function placeView(hass, place) {
     sections: [
       placeSection(hass, place),
       ...DAYS.filter((day) => place.days.has(day)).map((day) => daySection(hass, place, day)),
-    ].filter((section) => section.cards.length > 1),
+    ]
+      .filter((section) => section.cards.length > 1)
+      .map(shownWithData),
   };
 }
 

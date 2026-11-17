@@ -120,7 +120,7 @@ Es hat einen Tab für jeden Ort, mit den Stufen in den Farben der Warnkarte des 
 
 <img src="https://raw.githubusercontent.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/main/assets/images/dashboard.png" alt="Das Dashboard DPC Alert von Torino: der Ort, heute und morgen" width="100%">
 
-Das Dashboard folgt deinen Orten: Es ändert sich von selbst, wenn du einen hinzufügst, einen Tag an- oder abwählst und wenn ein Bulletin andere Phänomene bringt. Was keine Daten hat, ist ausgeblendet, etwa die Warnung, die Risiken und die Karten von morgen nach Mitternacht, bis das DPC das nächste Bulletin veröffentlicht. Die farbigen Banner der Risiken erfordern Home Assistant 2026.9 oder neuer; davor werden die Risiken als Kacheln angezeigt.
+Das Dashboard folgt deinen Orten: Es ändert sich von selbst, wenn du einen hinzufügst, einen Tag an- oder abwählst und wenn ein Bulletin andere Phänomene bringt. Was keine Daten hat, ist ausgeblendet, etwa die Warnung, die Risiken und die Karten von morgen nach Mitternacht, bis das DPC das nächste Bulletin veröffentlicht; ein Tag ganz ohne Daten ist vollständig ausgeblendet. Die farbigen Banner der Risiken erfordern Home Assistant 2026.9 oder neuer; davor werden die Risiken als Kacheln angezeigt.
 
 Um einen Ort in einem anderen Dashboard anzuzeigen, füge eine Ansicht mit der Strategie des Dashboards und der ID des Geräts des Ortes hinzu, dem Ende der Adresse seiner Geräteseite:
 

@@ -120,7 +120,7 @@ Tiene una pestaña por cada lugar, con los niveles en los colores del mapa de al
 
 <img src="https://raw.githubusercontent.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/main/assets/images/dashboard.png" alt="El panel de control DPC Alert de Torino: el lugar, hoy y mañana" width="100%">
 
-El panel de control sigue a tus lugares: cambia por sí solo cuando añades uno, marcas o desmarcas un día, y cuando un boletín trae otros fenómenos. Lo que no tiene datos se oculta, como la alerta, los riesgos y los mapas de mañana después de medianoche, hasta que el DPC publica el siguiente boletín. Los avisos de color de los riesgos requieren Home Assistant 2026.9 o posterior; antes, los riesgos se muestran como mosaicos.
+El panel de control sigue a tus lugares: cambia por sí solo cuando añades uno, marcas o desmarcas un día, y cuando un boletín trae otros fenómenos. Lo que no tiene datos se oculta, como la alerta, los riesgos y los mapas de mañana después de medianoche, hasta que el DPC publica el siguiente boletín; un día sin ningún dato se oculta entero. Los avisos de color de los riesgos requieren Home Assistant 2026.9 o posterior; antes, los riesgos se muestran como mosaicos.
 
 Para mostrar un lugar en otro panel de control, añade una vista con la estrategia del panel y el ID del dispositivo del lugar, la parte final de la dirección de la página de su dispositivo:
 

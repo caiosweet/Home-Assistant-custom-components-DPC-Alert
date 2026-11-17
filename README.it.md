@@ -120,7 +120,7 @@ Ha una scheda per ogni luogo, con i livelli nei colori della mappa di allerta de
 
 <img src="https://raw.githubusercontent.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/main/assets/images/dashboard.png" alt="La plancia DPC Alert di Torino: il luogo, oggi e domani" width="100%">
 
-La plancia segue i tuoi luoghi: cambia da sola quando ne aggiungi uno, scegli o togli un giorno, e quando un bollettino porta altri fenomeni. Ciò che non ha dati resta nascosto, come l'allerta, i rischi e le mappe di domani dopo mezzanotte, finché il DPC non pubblica il bollettino successivo. Gli avvisi colorati dei rischi richiedono Home Assistant 2026.9 o successivo; prima, i rischi sono mostrati come riquadri.
+La plancia segue i tuoi luoghi: cambia da sola quando ne aggiungi uno, scegli o togli un giorno, e quando un bollettino porta altri fenomeni. Ciò che non ha dati resta nascosto, come l'allerta, i rischi e le mappe di domani dopo mezzanotte, finché il DPC non pubblica il bollettino successivo; un giorno senza alcun dato resta nascosto per intero. Gli avvisi colorati dei rischi richiedono Home Assistant 2026.9 o successivo; prima, i rischi sono mostrati come riquadri.
 
 Per mostrare un luogo in un'altra plancia, aggiungi una vista con la strategia della plancia e l'ID del dispositivo del luogo, la parte finale dell'indirizzo della pagina del suo dispositivo:
 

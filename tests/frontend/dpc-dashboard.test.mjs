@@ -15,6 +15,7 @@ import {
   generateDashboard,
   generateView,
   isAtLeast,
+  shownWithData,
   slugify,
   textsIn,
   translated,
@@ -417,6 +418,39 @@ describe("view of a place", () => {
 
     assert.equal(cardsOf(view).filter((card) => card.type === "picture-entity").length, 0);
     assert.equal(cardsOf(view).filter((card) => card.entity?.endsWith("_zone")).length, 0);
+  });
+
+  it("shows each section while any of its entities has data", () => {
+    const view = generateView({ device_id: "roma" }, homeAssistant());
+    const [, today, , afterTomorrow] = view.sections;
+
+    // After midnight, until the next bulletin, the day after tomorrow has no
+    // data: none of its cards shows, and the section neither
+    const noData = (entity) => ({
+      condition: "state",
+      entity,
+      state_not: ["unknown", "unavailable"],
+    });
+    assert.deepEqual(afterTomorrow.visibility, [
+      {
+        condition: "or",
+        conditions: [
+          noData("sensor.dpc_roma_after_tomorrow_precipitation"),
+          noData("sensor.dpc_roma_after_tomorrow_nearby_phenomena"),
+        ],
+      },
+    ]);
+    // Each entity once, those of the cards of the map too
+    const conditions = today.visibility[0].conditions.map((condition) => condition.entity);
+    assert.equal(conditions.length, new Set(conditions).size);
+    assert.ok(conditions.includes("sensor.dpc_roma_today_alert"));
+    assert.ok(conditions.includes("geo_location.dpc_roma_today_isolated_thunderstorms_sse"));
+    assert.ok(view.sections.every((section) => section.visibility));
+  });
+
+  it("leaves a section without entities as it is", () => {
+    const section = { type: "grid", cards: [{ type: "heading", heading: "Roma" }] };
+    assert.equal(shownWithData(section), section);
   });
 
   it("shows the maps of a day right after the cards as wide as the section", () => {

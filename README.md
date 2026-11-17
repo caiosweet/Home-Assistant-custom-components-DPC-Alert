@@ -120,7 +120,7 @@ It has a tab for each place, with the levels in the colors of the DPC alert map,
 
 <img src="https://raw.githubusercontent.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/main/assets/images/dashboard.png" alt="The DPC Alert dashboard of Torino: the place, today and tomorrow" width="100%">
 
-The dashboard follows your places: it changes by itself when you add one, check or uncheck a day, and when a bulletin brings other phenomena. What has no data is hidden, such as the alert, the risks and the maps of tomorrow after midnight, until DPC publishes the next bulletin. The colored banners of the risks need Home Assistant 2026.9 or newer; before, the risks are shown as tiles.
+The dashboard follows your places: it changes by itself when you add one, check or uncheck a day, and when a bulletin brings other phenomena. What has no data is hidden, such as the alert, the risks and the maps of tomorrow after midnight, until DPC publishes the next bulletin; a day with no data at all is hidden whole. The colored banners of the risks need Home Assistant 2026.9 or newer; before, the risks are shown as tiles.
 
 To show a place in another dashboard, add a view with the strategy of the dashboard and the ID of the device of the place, the end of the address of its device page:
 

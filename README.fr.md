@@ -120,7 +120,7 @@ Il a un onglet pour chaque lieu, avec les niveaux aux couleurs de la carte d'ale
 
 <img src="https://raw.githubusercontent.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/main/assets/images/dashboard.png" alt="Le tableau de bord DPC Alert de Torino : le lieu, aujourd'hui et demain" width="100%">
 
-Le tableau de bord suit vos lieux : il change de lui-même quand vous en ajoutez un, cochez ou décochez un jour, et quand un bulletin apporte d'autres phénomènes. Ce qui n'a pas de données est masqué, comme l'alerte, les risques et les cartes de demain après minuit, jusqu'à ce que le DPC publie le bulletin suivant. Les bannières colorées des risques nécessitent Home Assistant 2026.9 ou plus récent ; avant, les risques sont affichés sous forme de tuiles.
+Le tableau de bord suit vos lieux : il change de lui-même quand vous en ajoutez un, cochez ou décochez un jour, et quand un bulletin apporte d'autres phénomènes. Ce qui n'a pas de données est masqué, comme l'alerte, les risques et les cartes de demain après minuit, jusqu'à ce que le DPC publie le bulletin suivant ; un jour sans aucune donnée est masqué en entier. Les bannières colorées des risques nécessitent Home Assistant 2026.9 ou plus récent ; avant, les risques sont affichés sous forme de tuiles.
 
 Pour montrer un lieu dans un autre tableau de bord, ajoutez une vue avec la stratégie du tableau de bord et l'identifiant de l'appareil du lieu, la fin de l'adresse de la page de son appareil :
 

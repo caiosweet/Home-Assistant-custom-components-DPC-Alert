@@ -66,7 +66,9 @@ that followed them.
 - The DPC Alert dashboard and cards leave out what has no data, rather than
   showing it as unknown: the number of phenomena, the zones and the
   bulletins, and, after midnight until the next bulletin, the alert and the
-  risks of tomorrow and the precipitation of the day after tomorrow.
+  risks of tomorrow and the precipitation of the day after tomorrow. A section
+  of the dashboard with no data at all is hidden whole, rather than its
+  heading alone.
 - The setup and the options accepted a place that shows nothing, such as no
   day without the sensors, or only the day after tomorrow with only its risks
   or maps: they ask for something the place shows.
