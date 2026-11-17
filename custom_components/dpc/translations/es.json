@@ -81,7 +81,7 @@
             "already_configured": "Ya hay una entrada configurada para esta ubicación."
         },
         "create_entry": {
-            "default": "Para ver las alertas en un panel, ve a **Ajustes → Paneles de control → Añadir panel de control** y elige **DPC Alert** entre los paneles de la comunidad. Si no aparece, recarga la página."
+            "default": "Para ver las alertas en un panel, ve a **Configuración → Paneles de control → Añadir panel de control** y elige **DPC Alert** entre los paneles de la comunidad. Si no aparece, recarga la página."
         }
     },
     "options": {

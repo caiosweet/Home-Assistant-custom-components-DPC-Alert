@@ -197,6 +197,18 @@ Users' automations and dashboards depend on what the integration exposes.
   page and holds the sections the quality scale asks for (installation,
   configuration, options, removal, data update, known limitations,
   troubleshooting, use cases, examples): keep them current.
+- The README is translated: `README.<language>.md` at the root, with the tag
+  Home Assistant names the language with (`README.it.md`, `README.fr.md`,
+  `README.es.md`, `README.de.md`), and the same line of language links at the
+  top of each. A change to `README.md` changes every translation, in the same
+  commit. The translations use the texts of the integration in their language
+  (`translations/<language>.json`) for what it shows, and keep the entity IDs,
+  YAML, URLs and images of `README.md`. The Marketplace shows `README.md`;
+  [home-assistant/core#189842](https://github.com/home-assistant/core/pull/189842)
+  would show the translation of the language of the user, by these names.
+- Images of the README are in `assets/images/`, linked with absolute
+  `raw.githubusercontent.com` URLs: the Marketplace and HACS show the README
+  outside GitHub, where relative paths break. The screenshots show Torino.
 
 ## Tests
 

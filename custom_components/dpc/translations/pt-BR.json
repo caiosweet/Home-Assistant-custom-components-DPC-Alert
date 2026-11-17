@@ -81,7 +81,7 @@
             "already_configured": "Já existe uma entrada configurada para este local."
         },
         "create_entry": {
-            "default": "Para ver os alertas em um painel, vá em **Configurações → Painéis → Adicionar painel** e escolha **DPC Alert** entre os painéis da comunidade. Se ele não aparecer, recarregue a página."
+            "default": "Para ver os alertas em um painel, vá em **Configurações → Dashboards → Adicionar dashboard** e escolha **DPC Alert** entre os dashboards da comunidade. Se ele não aparecer, recarregue a página."
         }
     },
     "options": {

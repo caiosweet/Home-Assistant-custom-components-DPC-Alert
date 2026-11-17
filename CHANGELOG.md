@@ -43,10 +43,15 @@ that followed them.
   does not show.
 - Requires aiodpc 0.9.0.
 - The README shows the setup, a place and its devices, the dashboard and the
-  cards, and its examples use Turin.
+  cards, and its examples use Turin. It is translated into Italian, French,
+  Spanish and German (`README.it.md`, `README.fr.md`, `README.es.md`,
+  `README.de.md`).
 
 ### Fixed
 
+- The message at the end of the setup names the menus of Home Assistant as
+  Home Assistant shows them in Spanish, Brazilian Portuguese, Romanian,
+  Arabic, Albanian, Bengali and Hindi.
 - The maps that DPC publishes blank, 40% of the criticality maps from August to
   November 2026, are no longer shown: the map of a day is unavailable, and
   left out of the dashboards, until DPC publishes it, checked again at every

@@ -81,7 +81,7 @@
             "already_configured": "Një hyrje për këtë vend është konfiguruar tashmë."
         },
         "create_entry": {
-            "default": "Për të parë paralajmërimet në një panel, shko te **Cilësimet → Panelet → Shto panel** dhe zgjidh **DPC Alert** ndër panelet e komunitetit. Nëse nuk shfaqet, ringarko faqen."
+            "default": "Për të parë paralajmërimet në një panel, shko te **Cilësimet → Panelet e kontrollit → Shto panelin e kontrollit** dhe zgjidh **DPC Alert** ndër panelet e komunitetit. Nëse nuk shfaqet, ringarko faqen."
         }
     },
     "options": {

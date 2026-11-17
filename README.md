@@ -1,5 +1,7 @@
 # DPC Alert (Protezione Civile)
 
+**English** · [Italiano](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/README.it.md) · [Français](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/README.fr.md) · [Español](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/README.es.md) · [Deutsch](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/README.de.md)
+
 <img src="https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/assets/brand/icon.png" width="150px">
 
 The alerts of the Italian Civil Protection Department (Dipartimento della Protezione Civile, DPC) in Home Assistant, for any place in Italy: the hydraulic, hydrogeological and thunderstorm risk of today and tomorrow, and the weather vigilance of the next three days with the phenomena near you.
@@ -245,12 +247,12 @@ geo_location_sources:
 
 ## Troubleshooting
 
-- **The integration shows "Retrying setup"**: DPC cannot be reached. Home Assistant retries on its own; check that it can reach `mappe.protezionecivile.gov.it` and `raw.githubusercontent.com`.
+- **The integration shows "Failed setup, will retry"**: DPC cannot be reached. Home Assistant retries on its own; check that it can reach `mappe.protezionecivile.gov.it` and `raw.githubusercontent.com`.
 - **"… is not inside any DPC alert zone"**: the place is outside Italy, or in San Marino or Vatican City. Delete it and add a place in Italy.
 - **The entities of a day are missing**: check the **Days** option of the place. The places added before this version show today and tomorrow.
 - **An automation reads an attribute that is gone**, such as `level`, `info`, `zone_name` or `expires`: the data of the bulletins became entities. The [changelog](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/CHANGELOG.md) lists where each attribute is now.
 - **After an update, texts in English or names such as `municipality_in_use` in the forms**: Home Assistant and the browser keep the texts of the previous version. Restart Home Assistant, then reload the page, clearing its cache (Ctrl+F5).
-- **Entity and device names in another language**: Home Assistant names entities and devices in the language of the system, not of your profile: **Settings → System → General → Language**. So are the names of the phenomena. The states and the translated values of the attributes follow your profile, and so do the names in the DPC Alert dashboard and cards.
+- **Entity and device names in another language**: Home Assistant names entities and devices in the language of the system, not of your profile: **Settings → System → Home information → Language** (General, in older versions). So are the names of the phenomena. The states and the translated values of the attributes follow your profile, and so do the names in the DPC Alert dashboard and cards.
 - **Entity IDs such as `binary_sensor.dpc_torino_idraulico_oggi`**: the entities of places added with an earlier version keep their IDs, so that automations keep working. To give them the IDs of new places, such as `binary_sensor.dpc_torino_today_hydraulic_risk` (Home Assistant 2025.6 or newer): on the page of each device, choose **⋮ → Recreate entity IDs**, or select the entities in **Settings → Entities** and choose **Recreate entity IDs of selected**. Then update the automations and dashboards that use them. The same gives the new IDs after you rename a place.
 - **DPC Alert is not among the community dashboards, or its cards are not in the card picker**: the browser loads them when it opens Home Assistant. Reload the page after installing or updating the integration.
 - **A place added before 2026.11 has no municipality**: it uses the alert zone of its coordinates, and its device is named after its entry. Choose its municipality in its options, under **Municipality**, among those of its alert zone.

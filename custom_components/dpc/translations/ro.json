@@ -81,7 +81,7 @@
             "already_configured": "O intrare pentru acest loc este deja configurată."
         },
         "create_entry": {
-            "default": "Pentru a vedea alertele pe un tablou de bord, mergi la **Setări → Tablouri de bord → Adaugă tablou de bord** și alege **DPC Alert** printre tablourile de bord ale comunității. Dacă nu apare, reîncarcă pagina."
+            "default": "Pentru a vedea alertele pe un tablou de bord, mergi la **Configurare → Tablouri de bord → Adaugă tablou de bord** și alege **DPC Alert** printre tablourile de bord ale comunității. Dacă nu apare, reîncarcă pagina."
         }
     },
     "options": {
