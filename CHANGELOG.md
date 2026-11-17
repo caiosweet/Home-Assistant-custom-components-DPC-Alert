@@ -46,6 +46,8 @@ that followed them.
   cards, and its examples use Turin. It is translated into Italian, French,
   Spanish and German (`README.it.md`, `README.fr.md`, `README.es.md`,
   `README.de.md`).
+- A [contributing guide](CONTRIBUTING.md): how to report a problem, translate
+  and contribute code.
 
 ### Fixed
 

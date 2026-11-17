@@ -66,6 +66,8 @@ tests/               pytest-homeassistant-custom-component, DPC mocked with fixt
 tests/frontend/      node:test tests of the dashboard strategy and the cards
 scripts/translations.py  writes the texts of aiodpc into the translations
 release.sh           releases, run by the maintainer
+CONTRIBUTING.md      the guide for contributors: keep its checks and rules in
+                     step with this file
 ```
 
 ## Checks

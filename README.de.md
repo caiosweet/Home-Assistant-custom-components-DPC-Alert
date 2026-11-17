@@ -449,7 +449,9 @@ _Informationen bereitgestellt vom [_Department of Civil Protection - Presidency 
 
 _Dati forniti dal servizio [_Dipartimento della Protezione Civile-Presidenza del Consiglio dei Ministri_](https://www.protezionecivile.gov.it/it/) Licenza Creative Commons [_CC BY 4.0._](https://creativecommons.org/licenses/by/4.0/deed.it)_
 
-## Beiträge sind willkommen
+## Mitwirken
+
+Fehlerberichte, Übersetzungen und Korrekturen sind willkommen: siehe die [Anleitung zum Mitwirken](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/CONTRIBUTING.md) (auf Englisch).
 
 ---
 
