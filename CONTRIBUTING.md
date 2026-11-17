@@ -12,6 +12,7 @@ help and what makes a contribution easy to accept.
 - [Suggesting an improvement](#suggesting-an-improvement)
 - [Translating](#translating)
 - [Contributing code](#contributing-code)
+- [Using AI](#using-ai)
 - [Pull requests](#pull-requests)
 
 ## Ways to contribute
@@ -151,6 +152,31 @@ Automations and dashboards depend on what the integration exposes, so:
   latest.
 - A new entity has its icon in `icons.json` and its texts in every
   language.
+
+## Using AI
+
+AI tools are welcome: they can help you write code, tests, translations and
+text. This project follows the
+[AI policy of Home Assistant](https://contributors.home-assistant.io/start/ai-policy/):
+
+- **You are responsible for everything you submit.** Understand every change
+  and be able to explain it in your own words; review and test it as if you
+  had written it yourself. Contributions that look like unreviewed AI output
+  are closed.
+- **Describe your pull request yourself**: what it changes and why. If an AI
+  helped you write the description, check it for technical accuracy.
+- **Answer the questions of the maintainers yourself.** An AI may improve the
+  language of your answer, not its content; if it translates your words,
+  check that they still say what you mean.
+- **No autonomous agents**: issues and pull requests come from a person who
+  reviewed them. Those an agent opens on its own are closed.
+- **When you quote an AI**, put the quote in a block (`>`), say where it comes
+  from, and add what you think of it.
+
+Your assistant can follow the rules of the project too: they are in
+[AGENTS.md](AGENTS.md), the file that coding agents such as Codex, GitHub
+Copilot, Cursor and Gemini CLI read; [CLAUDE.md](CLAUDE.md) imports it for
+Claude Code.
 
 ## Pull requests
 
