@@ -103,6 +103,18 @@ body:
       label: Screenshots and anything else
       description: Screenshots help a lot for the dashboard, the cards and the forms.
 
+  - type: dropdown
+    id: ai
+    attributes:
+      label: Did you use AI to write this report?
+      description: AI is welcome, as long as a person checks what it writes and can answer questions about it. See [Using AI](https://github.com/caiosweet/Home-Assistant-custom-components-DPC-Alert/blob/main/CONTRIBUTING.md#using-ai).
+      options:
+        - "No"
+        - Yes, it helped me write it, and I checked it
+        - Yes, it wrote most of it; I checked it and can answer questions myself
+    validations:
+      required: true
+
   - type: checkboxes
     id: checks
     attributes:
